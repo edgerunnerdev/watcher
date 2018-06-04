@@ -55,7 +55,15 @@ void Watcher::Update()
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
 
-	if ( ImGui::CollapsingHeader( "Webserver scanner" ) )
+	std::stringstream wss;
+	unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
+	unsigned int maxIP = ~0u;
+	double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
+	float percent = static_cast< float >( ratio * 100.0f );
+	wss.precision( 3 );
+	wss <<  "Webserver scanner (" << percent << "%)";
+
+	if ( ImGui::CollapsingHeader( wss.str().c_str() ) )
 	{
 		{
 			std::stringstream ss;
