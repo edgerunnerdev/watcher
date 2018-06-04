@@ -1,0 +1,6 @@
+.vs/
+0x00-watcher.vcxproj.filters
+0x00-watcher.vcxproj.user
+bin/
+imgui.ini
+temp/
