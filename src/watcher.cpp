@@ -4,26 +4,40 @@
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
 #include "ip_generator.h"
+#include "json.h"
 #include "watcher.h"
 #include "scanner.h"
+
+Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher( unsigned int scannerCount ) :
 m_Active( true ),
 m_pDatabase( nullptr ),
 m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 {
+	g_pWatcher = this;
+
 	ReadConfig();
 	m_pIPGenerator = std::make_unique< IPGenerator >( m_ConfigInitialIP );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
+	LoadCameraDetectionRules();
+	PopulateCameraDetectionQueue();
+
 	auto scannerThreadMain = []( Watcher* pWatcher, Scanner* pScanner )
 	{
+		std::vector< unsigned short > ports = { 80, 81, 83, 8080 };
 		while ( pWatcher->IsActive() )
 		{
 			Network::IPAddress address = pWatcher->GetIPGenerator()->GetNext();
-			if ( pScanner->Scan( address ) )
+			
+			for ( unsigned short port : ports )
 			{
-				pWatcher->AddEntry( address );
+				address.SetPort( port );
+				if ( pScanner->Scan( address ) )
+				{
+					pWatcher->OnWebServerFound( address );
+				}
 			}
 		}
 	};
@@ -91,14 +105,22 @@ void Watcher::Update()
 		}
 	}
 
+	if ( ImGui::CollapsingHeader( "Camera scanner" ) )
+	{
+		std::stringstream queueSizeSS;
+		queueSizeSS << "Queue size: " << m_CameraDetectionQueue.size();
+		ImGui::Text( queueSizeSS.str().c_str() );
+
+		std::stringstream rulesSS;
+		rulesSS << "Rules loaded: " << m_CameraDetectionRules.size();
+		ImGui::Text( rulesSS.str().c_str() );
+	}
+
 	ImGui::End();
 }
 
-void Watcher::AddEntry( Network::IPAddress address )
+void Watcher::OnWebServerFound( Network::IPAddress address )
 {
-	std::lock_guard< std::mutex > lock( m_KnownServersMutex );
-	m_KnownServers.push_back( address );
-
 	// Store this web server into the database, mark it as not parsed.
 	std::stringstream ss;
 	ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.ToString() << "', 0);";
@@ -109,6 +131,11 @@ void Watcher::AddEntry( Network::IPAddress address )
 	{
 		fprintf( stderr, "SQL error: %s\n", pError );
 		sqlite3_free( pError );
+	}
+
+	{
+		std::lock_guard< std::mutex > lock( m_CameraDetectionQueueMutex );
+		m_CameraDetectionQueue.push_back( address );
 	}
 }
 
@@ -132,4 +159,67 @@ void Watcher::ReadConfig()
 
 		configFile.close();
 	}
+}
+
+void Watcher::LoadCameraDetectionRules()
+{
+	using json = nlohmann::json;
+	std::ifstream file( "rules/cameradetection.json" );
+	if ( file.is_open() )
+	{
+		json jsonRules;
+		file >> jsonRules;
+		file.close();
+
+		for ( auto& jsonRule : jsonRules ) 
+		{
+			CameraDetectionRule cameraDetectionRule;
+			for ( json::iterator it = jsonRule.begin(); it != jsonRule.end(); ++it ) 
+			{
+				const std::string& key = it.key();
+				if ( key == "intitle" )
+				{
+					if ( it.value().is_array() )
+					{
+						for ( auto& text : it.value() )
+						{
+							cameraDetectionRule.AddFilter( CameraDetectionRule::FilterType::InTitle, text );
+						}
+					}
+				}
+	  		}
+			m_CameraDetectionRules.push_back( cameraDetectionRule );
+		}
+	}
+}
+
+// Loads from the database any IP addresses for web servers which have been
+// found but not processed yet and adds them to the camera detection queue.
+// Any servers which are identified at run time are added to the queue via the
+// OnWebServerFound() callback instead.
+void Watcher::PopulateCameraDetectionQueue()
+{
+	auto callback = []( void* notUsed, int argc, char** argv, char** azColName )
+	{
+		for ( int i = 0; i < argc; i++ )
+		{
+			Network::IPAddress ipAddress( argv[i] );
+			g_pWatcher->OnWebServerAddedFromDatabase( ipAddress );
+		}
+		return 0;
+	};
+
+	std::string query = "SELECT IP FROM WebServers WHERE Parsed=0";
+	char* pError = nullptr;
+	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, 0, &pError );
+	if( rc != SQLITE_OK )
+	{
+		fprintf( stderr, "SQL error: %s\n", pError );
+		sqlite3_free( pError );
+	}
+}
+
+void Watcher::OnWebServerAddedFromDatabase( Network::IPAddress address )
+{
+	m_CameraDetectionQueue.push_back( address );
 }

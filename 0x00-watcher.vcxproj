@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\camera_scanner.cpp" />
     <ClCompile Include="src\GL\gl3w.cpp" />
     <ClCompile Include="src\imgui\imgui.cpp" />
     <ClCompile Include="src\imgui\imgui_demo.cpp" />
@@ -146,6 +147,8 @@
     <ClCompile Include="src\watcher.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\camera_detection_rule.h" />
+    <ClInclude Include="src\camera_scanner.h" />
     <ClInclude Include="src\GL\gl3w.h" />
     <ClInclude Include="src\GL\glcorearb.h" />
     <ClInclude Include="src\imgui\imconfig.h" />
@@ -156,6 +159,7 @@
     <ClInclude Include="src\imgui\stb_textedit.h" />
     <ClInclude Include="src\imgui\stb_truetype.h" />
     <ClInclude Include="src\ip_generator.h" />
+    <ClInclude Include="src\json.h" />
     <ClInclude Include="src\network\network.h" />
     <ClInclude Include="src\port_probe.h" />
     <ClInclude Include="src\scanner.h" />
