@@ -107,7 +107,7 @@ void Watcher::Update()
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
 
-	if ( ImGui::CollapsingHeader( "Webserver scanner" ) )
+	if ( ImGui::CollapsingHeader( "Webserver scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
 		std::stringstream wss;
 		unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
@@ -115,7 +115,8 @@ void Watcher::Update()
 		double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
 		float percent = static_cast< float >( ratio * 100.0f );
 		wss.precision( 3 );
-		wss <<  "Address space scanner: " << percent << "%";
+		wss <<  "Address space scanned: " << percent << "%%";
+		ImGui::Text( wss.str().c_str() );
 
 		{
 			std::stringstream ss;
@@ -143,7 +144,7 @@ void Watcher::Update()
 		}
 	}
 
-	if ( ImGui::CollapsingHeader( "Camera scanner" ) )
+	if ( ImGui::CollapsingHeader( "Camera scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
 		std::stringstream queueSizeSS;
 		queueSizeSS << "Queue size: " << m_CameraScannerQueue.size();
