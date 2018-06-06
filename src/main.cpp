@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <GL/gl3w.h>    // This example is using gl3w to access OpenGL functions (because it is small). You may use glew/glad/glLoadGen/etc. whatever already works for you.
 #include <SDL.h>
+#include <curl/curl.h>
 #include "network/network.h"
 #include "watcher.h"
 
@@ -22,6 +23,10 @@ int main(int, char**)
 
     Network::Result res = Network::Initialise();
     SDL_assert( res == Network::Result::Success );
+
+    // Initialise curl, but don't attempt to initialise the Win32 socket libraries
+    // as that would have been done by Network::Initialise().
+    curl_global_init( CURL_GLOBAL_NOTHING );
 
     // Setup window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -106,6 +111,7 @@ int main(int, char**)
     ImGui::DestroyContext();
 
 	Network::Shutdown();
+    curl_global_cleanup();
 
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);

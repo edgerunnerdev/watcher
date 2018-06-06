@@ -1,13 +1,15 @@
 SRC_DIR=src
 OBJ_DIR=temp/linux
 SRC_FILES=$(shell find $(SRC_DIR) -name "*.cpp")
-OBJ_FILES=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(OBJ_DIR)/sqlite/sqlite3.o
+OBJ_FILES=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(OBJ_DIR)/ext/sqlite/sqlite3.o $(OBJ_DIR)/ext/htmlstreamparser.o
 
 SDL_CFLAGS=$(shell sdl2-config --cflags)
 SDL_LDFLAGS=$(shell sdl2-config --libs)
-CPPFLAGS=-std=c++17 -Isrc $(SDL_CFLAGS)
-CFLAGS=-Isrc
-LDFLAGS=$(SDL_LDFLAGS) -ldl -lpthread -lGL
+CURL_CFLAGS=$(shell curl-config --cflags)
+CURL_LDFLAGS=$(shell curl-config --libs)
+CPPFLAGS=-std=c++17 -Isrc -Isrc/ext $(SDL_CFLAGS) $(CURL_CFLAGS) -Wno-format-security
+CFLAGS=-Isrc -Isrc/ext
+LDFLAGS=$(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL
 
 
 0x00-watcher: $(OBJ_FILES)
@@ -17,7 +19,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
 	g++ $(CPPFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/sqlite/sqlite3.o: $(SRC_DIR)/sqlite/sqlite3.c
+$(OBJ_DIR)/ext/sqlite/sqlite3.o: $(SRC_DIR)/ext/sqlite/sqlite3.c
+	mkdir -p $(@D)
+	gcc $(CFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
 	mkdir -p $(@D)
 	gcc $(CFLAGS) -c -o $@ $<
 

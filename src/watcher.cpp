@@ -1,8 +1,10 @@
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
+#include "camera_scanner.h"
 #include "ip_generator.h"
 #include "json.h"
 #include "watcher.h"
@@ -23,7 +25,30 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 
 	LoadCameraDetectionRules();
 	PopulateCameraDetectionQueue();
+	InitialiseWebServerScanners( scannerCount );
+	InitialiseCameraScanners( 1 );
+}
 
+Watcher::~Watcher()
+{
+	m_Active = false;
+	for ( auto& thread : m_ScannerThreads )
+	{
+		thread.join();
+	}
+
+	for ( auto& thread : m_CameraScannerThreads )
+	{
+		thread.join();
+	}
+
+	sqlite3_close( m_pDatabase );
+
+	WriteConfig();
+}
+
+void Watcher::InitialiseWebServerScanners( unsigned int scannerCount )
+{
 	auto scannerThreadMain = []( Watcher* pWatcher, Scanner* pScanner )
 	{
 		std::vector< unsigned short > ports = { 80, 81, 83, 8080 };
@@ -50,17 +75,30 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 	}
 }
 
-Watcher::~Watcher()
+void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 {
-	m_Active = false;
-	for ( auto& thread : m_ScannerThreads )
+	auto scannerThreadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
 	{
-		thread.join();
+		while ( pWatcher->IsActive() )
+		{
+			Network::IPAddress address;
+			if ( pWatcher->ConsumeCameraScannerQueue( address ) )
+			{ 
+				pScanner->Scan( address );
+			}
+			else
+			{
+				std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+			}
+		}
+	};
+	
+	for ( unsigned int i = 0u; i < scannerCount; i++ )
+	{
+		CameraScannerUniquePtr pScanner = std::make_unique< CameraScanner >();
+		m_CameraScannerThreads.emplace_back( scannerThreadMain, this, pScanner.get() );
+		m_CameraScanners.push_back( std::move( pScanner ) );
 	}
-
-	sqlite3_close( m_pDatabase );
-
-	WriteConfig();
 }
 
 void Watcher::Update()
@@ -69,16 +107,16 @@ void Watcher::Update()
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
 
-	std::stringstream wss;
-	unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
-	unsigned int maxIP = ~0u;
-	double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
-	float percent = static_cast< float >( ratio * 100.0f );
-	wss.precision( 3 );
-	wss <<  "Webserver scanner (" << percent << "%)";
-
-	if ( ImGui::CollapsingHeader( wss.str().c_str() ) )
+	if ( ImGui::CollapsingHeader( "Webserver scanner" ) )
 	{
+		std::stringstream wss;
+		unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
+		unsigned int maxIP = ~0u;
+		double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
+		float percent = static_cast< float >( ratio * 100.0f );
+		wss.precision( 3 );
+		wss <<  "Address space scanner: " << percent << "%";
+
 		{
 			std::stringstream ss;
 			ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
@@ -108,7 +146,7 @@ void Watcher::Update()
 	if ( ImGui::CollapsingHeader( "Camera scanner" ) )
 	{
 		std::stringstream queueSizeSS;
-		queueSizeSS << "Queue size: " << m_CameraDetectionQueue.size();
+		queueSizeSS << "Queue size: " << m_CameraScannerQueue.size();
 		ImGui::Text( queueSizeSS.str().c_str() );
 
 		std::stringstream rulesSS;
@@ -134,8 +172,8 @@ void Watcher::OnWebServerFound( Network::IPAddress address )
 	}
 
 	{
-		std::lock_guard< std::mutex > lock( m_CameraDetectionQueueMutex );
-		m_CameraDetectionQueue.push_back( address );
+		std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+		m_CameraScannerQueue.push_back( address );
 	}
 }
 
@@ -221,5 +259,23 @@ void Watcher::PopulateCameraDetectionQueue()
 
 void Watcher::OnWebServerAddedFromDatabase( Network::IPAddress address )
 {
-	m_CameraDetectionQueue.push_back( address );
+	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	m_CameraScannerQueue.push_back( address );
+}
+
+// Takes an address from the camera scanner queue.
+// Returns false if the queue is empty.
+bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
+{
+	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	if ( m_CameraScannerQueue.empty() )
+	{
+		return false;
+	}
+	else
+	{
+		address = m_CameraScannerQueue.back();
+		m_CameraScannerQueue.pop_back();
+		return true;
+	}
 }
