@@ -57,6 +57,8 @@ private:
 	CameraScannerVector m_CameraScanners;
 };
 
+extern Watcher* g_pWatcher;
+
 inline bool Watcher::IsActive() const
 {
 	return m_Active;
