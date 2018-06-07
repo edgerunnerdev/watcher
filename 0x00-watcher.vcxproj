@@ -79,12 +79,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)libs\SDL2-2.0.8\include;$(ProjectDir)libs\gl3w;$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\ext;$(ProjectDir)libs\SDL2-2.0.8\include;$(ProjectDir)libs\gl3w;$(ProjectDir)libs\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;SDL2.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)libs\SDL2-2.0.8\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>normaliz.lib;wldap32.lib;crypt32.lib;libcurl_a.lib;ws2_32.lib;SDL2.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)libs\SDL2-2.0.8\lib\x86;$(ProjectDir)libs\curl\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,11 +132,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\GL\gl3w.cpp" />
-    <ClCompile Include="src\imgui\imgui.cpp" />
-    <ClCompile Include="src\imgui\imgui_demo.cpp" />
-    <ClCompile Include="src\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\imgui\imgui_impl_sdl_gl3.cpp" />
+    <ClCompile Include="src\camera_detection_rule.cpp" />
+    <ClCompile Include="src\camera_scanner.cpp" />
+    <ClCompile Include="src\ext\GL\gl3w.cpp" />
+    <ClCompile Include="src\ext\htmlstreamparser.c" />
+    <ClCompile Include="src\ext\imgui\imgui.cpp" />
+    <ClCompile Include="src\ext\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\ext\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\ext\imgui\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="src\ip_generator.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network\network.cpp" />
@@ -142,24 +147,28 @@
     <ClCompile Include="src\network\network_windows.cpp" />
     <ClCompile Include="src\port_probe.cpp" />
     <ClCompile Include="src\scanner.cpp" />
-    <ClCompile Include="src\sqlite\sqlite3.c" />
+    <ClCompile Include="src\ext\sqlite\sqlite3.c" />
     <ClCompile Include="src\watcher.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\GL\gl3w.h" />
-    <ClInclude Include="src\GL\glcorearb.h" />
-    <ClInclude Include="src\imgui\imconfig.h" />
-    <ClInclude Include="src\imgui\imgui.h" />
-    <ClInclude Include="src\imgui\imgui_impl_sdl_gl3.h" />
-    <ClInclude Include="src\imgui\imgui_internal.h" />
-    <ClInclude Include="src\imgui\stb_rect_pack.h" />
-    <ClInclude Include="src\imgui\stb_textedit.h" />
-    <ClInclude Include="src\imgui\stb_truetype.h" />
+    <ClInclude Include="src\camera_detection_rule.h" />
+    <ClInclude Include="src\camera_scanner.h" />
+    <ClInclude Include="src\ext\GL\gl3w.h" />
+    <ClInclude Include="src\ext\GL\glcorearb.h" />
+    <ClInclude Include="src\ext\htmlstreamparser.h" />
+    <ClInclude Include="src\ext\imgui\imconfig.h" />
+    <ClInclude Include="src\ext\imgui\imgui.h" />
+    <ClInclude Include="src\ext\imgui\imgui_impl_sdl_gl3.h" />
+    <ClInclude Include="src\ext\imgui\imgui_internal.h" />
+    <ClInclude Include="src\ext\imgui\stb_rect_pack.h" />
+    <ClInclude Include="src\ext\imgui\stb_textedit.h" />
+    <ClInclude Include="src\ext\imgui\stb_truetype.h" />
     <ClInclude Include="src\ip_generator.h" />
+    <ClInclude Include="src\ext\json.h" />
     <ClInclude Include="src\network\network.h" />
     <ClInclude Include="src\port_probe.h" />
     <ClInclude Include="src\scanner.h" />
-    <ClInclude Include="src\sqlite\sqlite3.h" />
+    <ClInclude Include="src\ext\sqlite\sqlite3.h" />
     <ClInclude Include="src\watcher.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

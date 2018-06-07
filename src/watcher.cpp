@@ -1,29 +1,63 @@
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
+#include "camera_scanner.h"
 #include "ip_generator.h"
 #include "watcher.h"
 #include "scanner.h"
+
+Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher( unsigned int scannerCount ) :
 m_Active( true ),
 m_pDatabase( nullptr ),
 m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 {
+	g_pWatcher = this;
+
 	ReadConfig();
 	m_pIPGenerator = std::make_unique< IPGenerator >( m_ConfigInitialIP );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
+	PopulateCameraDetectionQueue();
+	InitialiseWebServerScanners( scannerCount );
+	InitialiseCameraScanner();
+}
+
+Watcher::~Watcher()
+{
+	m_Active = false;
+	for ( auto& thread : m_ScannerThreads )
+	{
+		thread.join();
+	}
+
+	m_CameraScannerThread.join();
+
+	sqlite3_close( m_pDatabase );
+
+	WriteConfig();
+}
+
+void Watcher::InitialiseWebServerScanners( unsigned int scannerCount )
+{
 	auto scannerThreadMain = []( Watcher* pWatcher, Scanner* pScanner )
 	{
+		std::vector< unsigned short > ports = { 80, 81, 83, 8080 };
 		while ( pWatcher->IsActive() )
 		{
 			Network::IPAddress address = pWatcher->GetIPGenerator()->GetNext();
-			if ( pScanner->Scan( address ) )
+			
+			for ( unsigned short port : ports )
 			{
-				pWatcher->AddEntry( address );
+				address.SetPort( port );
+				if ( pScanner->Scan( address ) )
+				{
+					pWatcher->OnWebServerFound( address );
+				}
 			}
 		}
 	};
@@ -36,17 +70,27 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 	}
 }
 
-Watcher::~Watcher()
+void Watcher::InitialiseCameraScanner()
 {
-	m_Active = false;
-	for ( auto& thread : m_ScannerThreads )
+	auto scannerThreadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
 	{
-		thread.join();
-	}
-
-	sqlite3_close( m_pDatabase );
-
-	WriteConfig();
+		while ( pWatcher->IsActive() )
+		{
+			Network::IPAddress address;
+			if ( pWatcher->ConsumeCameraScannerQueue( address ) )
+			{ 
+				CameraScanResult scanResult = pScanner->Scan( address );
+				pWatcher->OnCameraScanned( scanResult );
+			}
+			else
+			{
+				std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+			}
+		}
+	};
+	
+	m_pCameraScanner = std::make_unique< CameraScanner >();
+	m_CameraScannerThread = std::thread( scannerThreadMain, this, m_pCameraScanner.get() );
 }
 
 void Watcher::Update()
@@ -55,16 +99,17 @@ void Watcher::Update()
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
 
-	std::stringstream wss;
-	unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
-	unsigned int maxIP = ~0u;
-	double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
-	float percent = static_cast< float >( ratio * 100.0f );
-	wss.precision( 3 );
-	wss <<  "Webserver scanner (" << percent << "%)";
-
-	if ( ImGui::CollapsingHeader( wss.str().c_str() ) )
+	if ( ImGui::CollapsingHeader( "Webserver scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
+		std::stringstream wss;
+		unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
+		unsigned int maxIP = ~0u;
+		double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
+		float percent = static_cast< float >( ratio * 100.0f );
+		wss.precision( 3 );
+		wss <<  "Address space scanned: " << percent << "%%";
+		ImGui::Text( wss.str().c_str() );
+
 		{
 			std::stringstream ss;
 			ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
@@ -91,14 +136,41 @@ void Watcher::Update()
 		}
 	}
 
+	if ( ImGui::CollapsingHeader( "Camera scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
+	{
+		std::stringstream queueSizeSS;
+		queueSizeSS << "Queue size: " << m_CameraScannerQueue.size();
+		ImGui::Text( queueSizeSS.str().c_str() );
+
+		std::stringstream rulesSS;
+		rulesSS << "Rules loaded: " << m_pCameraScanner->GetRuleCount();
+		ImGui::Text( rulesSS.str().c_str() );
+
+		if ( ImGui::TreeNode( "Results (100 most recent)" ) )
+		{
+			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+			ImGui::Columns( 3 );
+			ImGui::SetColumnWidth( 0, 32 );
+			for ( auto& scanResult : m_CameraScanResults )
+			{
+				ImGui::Text( scanResult.isCamera ? "x" : " " );
+				ImGui::NextColumn();
+				ImGui::Text( scanResult.address.ToString().c_str() );
+				ImGui::NextColumn();
+				ImGui::Text( scanResult.title.c_str() );
+				ImGui::NextColumn();
+			}
+			ImGui::Columns( 1 );
+
+			ImGui::TreePop();
+		}
+	}
+
 	ImGui::End();
 }
 
-void Watcher::AddEntry( Network::IPAddress address )
+void Watcher::OnWebServerFound( Network::IPAddress address )
 {
-	std::lock_guard< std::mutex > lock( m_KnownServersMutex );
-	m_KnownServers.push_back( address );
-
 	// Store this web server into the database, mark it as not parsed.
 	std::stringstream ss;
 	ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.ToString() << "', 0);";
@@ -109,6 +181,11 @@ void Watcher::AddEntry( Network::IPAddress address )
 	{
 		fprintf( stderr, "SQL error: %s\n", pError );
 		sqlite3_free( pError );
+	}
+
+	{
+		std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+		m_CameraScannerQueue.push_back( address );
 	}
 }
 
@@ -131,5 +208,64 @@ void Watcher::ReadConfig()
 	    }
 
 		configFile.close();
+	}
+}
+
+// Loads from the database any IP addresses for web servers which have been
+// found but not processed yet and adds them to the camera detection queue.
+// Any servers which are identified at run time are added to the queue via the
+// OnWebServerFound() callback instead.
+void Watcher::PopulateCameraDetectionQueue()
+{
+	auto callback = []( void* notUsed, int argc, char** argv, char** azColName )
+	{
+		for ( int i = 0; i < argc; i++ )
+		{
+			Network::IPAddress ipAddress( argv[i] );
+			g_pWatcher->OnWebServerAddedFromDatabase( ipAddress );
+		}
+		return 0;
+	};
+
+	std::string query = "SELECT IP FROM WebServers WHERE Parsed=0";
+	char* pError = nullptr;
+	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, 0, &pError );
+	if( rc != SQLITE_OK )
+	{
+		fprintf( stderr, "SQL error: %s\n", pError );
+		sqlite3_free( pError );
+	}
+}
+
+void Watcher::OnWebServerAddedFromDatabase( Network::IPAddress address )
+{
+	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	m_CameraScannerQueue.push_back( address );
+}
+
+void Watcher::OnCameraScanned( const CameraScanResult& result )
+{
+	std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+	m_CameraScanResults.push_front( result );
+	if ( m_CameraScanResults.size() > 100 )
+	{
+		m_CameraScanResults.pop_back();
+	}
+}
+
+// Takes an address from the camera scanner queue.
+// Returns false if the queue is empty.
+bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
+{
+	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	if ( m_CameraScannerQueue.empty() )
+	{
+		return false;
+	}
+	else
+	{
+		address = m_CameraScannerQueue.back();
+		m_CameraScannerQueue.pop_back();
+		return true;
 	}
 }

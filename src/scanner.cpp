@@ -10,7 +10,6 @@ Scanner::Scanner()
 
 bool Scanner::Scan( Network::IPAddress address )
 {
-	address.SetPort( 80 );
 	SetStatusText( "Probing " + address.ToString() );
 	PortProbe probe;
 	if ( probe.Probe( address ) == PortProbe::Result::Open )

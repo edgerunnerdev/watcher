@@ -9,6 +9,13 @@ namespace Network
 // IPAddress
 //-----------------------------------------------------------------------------
 
+IPAddress::IPAddress() :
+m_Host( 0 ),
+m_Port( 0 )
+{
+
+}
+
 IPAddress::IPAddress( const std::vector< int >& host, unsigned short port /* = 0u */ )
 {
 	SetHost( host );
