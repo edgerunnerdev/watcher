@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\camera_detection_rule.cpp" />
     <ClCompile Include="src\camera_scanner.cpp" />
     <ClCompile Include="src\ext\GL\gl3w.cpp" />
     <ClCompile Include="src\ext\htmlstreamparser.c" />

@@ -1,6 +1,8 @@
+#include <fstream>
 #include <string.h>
 #include <curl/curl.h>
 #include "ext/htmlstreamparser.h"
+#include "ext/json.h"
 #include "network/network.h"
 #include "camera_scanner.h"
 #include "watcher.h"
@@ -37,9 +39,11 @@ CameraScanner::CameraScanner()
 {
 	m_Title = "";
 	g_pCameraScanner = this;
+
+	LoadCameraDetectionRules();
 }
 
-bool CameraScanner::Scan( Network::IPAddress address )
+CameraScanResult CameraScanner::Scan( Network::IPAddress address )
 {
 	CURL* pCurl = curl_easy_init();
 
@@ -67,16 +71,58 @@ bool CameraScanner::Scan( Network::IPAddress address )
 
 	curl_easy_cleanup(pCurl);
 
-	const CameraDetectionRuleVector& rules = g_pWatcher->GetCameraDetectionRules();
-	if ( m_Title.length() > 0 )
-	{
-		printf("%s: %s\n", url.c_str(), m_Title.c_str());
-	}
-
-	return false;
+	CameraScanResult result;
+	result.isCamera = EvaluateDetectionRules();
+	result.address = address;
+	result.title = m_Title;
+	return std::move( result );
 }
 
 void CameraScanner::SetTitle( const std::string& title )
 {
 	m_Title = title;
+}
+
+void CameraScanner::LoadCameraDetectionRules()
+{
+	using json = nlohmann::json;
+	std::ifstream file( "rules/cameradetection.json" );
+	if ( file.is_open() )
+	{
+		json jsonRules;
+		file >> jsonRules;
+		file.close();
+
+		for ( auto& jsonRule : jsonRules ) 
+		{
+			CameraDetectionRule cameraDetectionRule;
+			for ( json::iterator it = jsonRule.begin(); it != jsonRule.end(); ++it ) 
+			{
+				const std::string& key = it.key();
+				if ( key == "intitle" )
+				{
+					if ( it.value().is_array() )
+					{
+						for ( auto& text : it.value() )
+						{
+							cameraDetectionRule.AddFilter( CameraDetectionRule::FilterType::InTitle, text );
+						}
+					}
+				}
+			}
+			m_CameraDetectionRules.push_back( cameraDetectionRule );
+		}
+	}
+}
+
+bool CameraScanner::EvaluateDetectionRules() const
+{
+	for ( auto& rule : m_CameraDetectionRules )
+	{
+		if ( rule.Match( m_Title ) )
+		{
+			return true;
+		}
+	}
+	return false;
 }

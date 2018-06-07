@@ -6,7 +6,6 @@
 #include "sqlite/sqlite3.h"
 #include "camera_scanner.h"
 #include "ip_generator.h"
-#include "json.h"
 #include "watcher.h"
 #include "scanner.h"
 
@@ -23,10 +22,9 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 	m_pIPGenerator = std::make_unique< IPGenerator >( m_ConfigInitialIP );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
-	LoadCameraDetectionRules();
 	PopulateCameraDetectionQueue();
 	InitialiseWebServerScanners( scannerCount );
-	InitialiseCameraScanners( 1 );
+	InitialiseCameraScanner();
 }
 
 Watcher::~Watcher()
@@ -37,10 +35,7 @@ Watcher::~Watcher()
 		thread.join();
 	}
 
-	for ( auto& thread : m_CameraScannerThreads )
-	{
-		thread.join();
-	}
+	m_CameraScannerThread.join();
 
 	sqlite3_close( m_pDatabase );
 
@@ -75,7 +70,7 @@ void Watcher::InitialiseWebServerScanners( unsigned int scannerCount )
 	}
 }
 
-void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
+void Watcher::InitialiseCameraScanner()
 {
 	auto scannerThreadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
 	{
@@ -84,7 +79,8 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 			Network::IPAddress address;
 			if ( pWatcher->ConsumeCameraScannerQueue( address ) )
 			{ 
-				pScanner->Scan( address );
+				CameraScanResult scanResult = pScanner->Scan( address );
+				pWatcher->OnCameraScanned( scanResult );
 			}
 			else
 			{
@@ -93,12 +89,8 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 		}
 	};
 	
-	for ( unsigned int i = 0u; i < scannerCount; i++ )
-	{
-		CameraScannerUniquePtr pScanner = std::make_unique< CameraScanner >();
-		m_CameraScannerThreads.emplace_back( scannerThreadMain, this, pScanner.get() );
-		m_CameraScanners.push_back( std::move( pScanner ) );
-	}
+	m_pCameraScanner = std::make_unique< CameraScanner >();
+	m_CameraScannerThread = std::thread( scannerThreadMain, this, m_pCameraScanner.get() );
 }
 
 void Watcher::Update()
@@ -151,8 +143,27 @@ void Watcher::Update()
 		ImGui::Text( queueSizeSS.str().c_str() );
 
 		std::stringstream rulesSS;
-		rulesSS << "Rules loaded: " << m_CameraDetectionRules.size();
+		rulesSS << "Rules loaded: " << m_pCameraScanner->GetRuleCount();
 		ImGui::Text( rulesSS.str().c_str() );
+
+		if ( ImGui::TreeNode( "Results (100 most recent)" ) )
+		{
+			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+			ImGui::Columns( 3 );
+			ImGui::SetColumnWidth( 0, 32 );
+			for ( auto& scanResult : m_CameraScanResults )
+			{
+				ImGui::Text( scanResult.isCamera ? "x" : " " );
+				ImGui::NextColumn();
+				ImGui::Text( scanResult.address.ToString().c_str() );
+				ImGui::NextColumn();
+				ImGui::Text( scanResult.title.c_str() );
+				ImGui::NextColumn();
+			}
+			ImGui::Columns( 1 );
+
+			ImGui::TreePop();
+		}
 	}
 
 	ImGui::End();
@@ -200,38 +211,6 @@ void Watcher::ReadConfig()
 	}
 }
 
-void Watcher::LoadCameraDetectionRules()
-{
-	using json = nlohmann::json;
-	std::ifstream file( "rules/cameradetection.json" );
-	if ( file.is_open() )
-	{
-		json jsonRules;
-		file >> jsonRules;
-		file.close();
-
-		for ( auto& jsonRule : jsonRules ) 
-		{
-			CameraDetectionRule cameraDetectionRule;
-			for ( json::iterator it = jsonRule.begin(); it != jsonRule.end(); ++it ) 
-			{
-				const std::string& key = it.key();
-				if ( key == "intitle" )
-				{
-					if ( it.value().is_array() )
-					{
-						for ( auto& text : it.value() )
-						{
-							cameraDetectionRule.AddFilter( CameraDetectionRule::FilterType::InTitle, text );
-						}
-					}
-				}
-	  		}
-			m_CameraDetectionRules.push_back( cameraDetectionRule );
-		}
-	}
-}
-
 // Loads from the database any IP addresses for web servers which have been
 // found but not processed yet and adds them to the camera detection queue.
 // Any servers which are identified at run time are added to the queue via the
@@ -262,6 +241,16 @@ void Watcher::OnWebServerAddedFromDatabase( Network::IPAddress address )
 {
 	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
 	m_CameraScannerQueue.push_back( address );
+}
+
+void Watcher::OnCameraScanned( const CameraScanResult& result )
+{
+	std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+	m_CameraScanResults.push_front( result );
+	if ( m_CameraScanResults.size() > 100 )
+	{
+		m_CameraScanResults.pop_back();
+	}
 }
 
 // Takes an address from the camera scanner queue.
