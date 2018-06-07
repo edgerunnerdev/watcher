@@ -134,7 +134,7 @@
   <ItemGroup>
     <ClCompile Include="src\camera_scanner.cpp" />
     <ClCompile Include="src\ext\GL\gl3w.cpp" />
-    <ClCompile Include="src\ext\htmlstreamparser.cpp" />
+    <ClCompile Include="src\ext\htmlstreamparser.c" />
     <ClCompile Include="src\ext\imgui\imgui.cpp" />
     <ClCompile Include="src\ext\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\ext\imgui\imgui_draw.cpp" />

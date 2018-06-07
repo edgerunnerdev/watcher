@@ -16,6 +16,11 @@
  *	along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -350,3 +355,6 @@ char* html_parser_inner_text(HTMLSTREAMPARSER *hsp);
  */
 int html_parser_cmp_inner_text(HTMLSTREAMPARSER *hsp, char *p, size_t l);
 
+#ifdef __cplusplus
+}
+#endif
