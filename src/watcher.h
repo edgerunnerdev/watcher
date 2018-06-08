@@ -10,7 +10,9 @@
 class IPGenerator;
 class CameraScanner;
 class Scanner;
+class WatcherRep;
 struct sqlite3;
+struct SDL_Window;
 
 using ScannerUniquePtr = std::unique_ptr< Scanner >;
 using IPGeneratorUniquePtr = std::unique_ptr< IPGenerator >;
@@ -18,11 +20,12 @@ using ScannerVector = std::vector< ScannerUniquePtr >;
 using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
 using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
+using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 
 class Watcher
 {
 public:
-	Watcher( unsigned int scannerCount );
+	Watcher( SDL_Window* pWindow, unsigned int scannerCount );
 	~Watcher();
 	void Update();
 	bool IsActive() const;
@@ -38,6 +41,9 @@ private:
 	void PopulateCameraDetectionQueue();
 	void InitialiseWebServerScanners( unsigned int scannerCount );
 	void InitialiseCameraScanner();
+	void RestartCameraDetection();
+	void ExecuteDatabaseQuery( const std::string& query );
+	void ProcessDatabaseQueryQueue();
 
 	bool m_Active;
 	ThreadVector m_ScannerThreads;
@@ -52,6 +58,12 @@ private:
 	CameraScannerUniquePtr m_pCameraScanner;
 	std::mutex m_CameraScanResultsMutex;
 	CameraScanResultList m_CameraScanResults;
+
+	std::thread::id m_MainThreadID;
+	std::mutex m_QueryQueueMutex;
+	std::vector< std::string > m_QueryQueue;
+
+	WatcherRepUniquePtr m_pRep;
 };
 
 extern Watcher* g_pWatcher;

@@ -47,7 +47,6 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui_ImplSdlGL3_Init(window);
 
     // Setup style
@@ -71,9 +70,9 @@ int main(int, char**)
 
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 
-	Watcher watcher( 64 );
+	Watcher watcher( window, 64 );
 
     // Main loop
     bool done = false;
@@ -91,7 +90,6 @@ int main(int, char**)
                 done = true;
         }
         ImGui_ImplSdlGL3_NewFrame(window);
-
 
         ImGui::ShowDemoWindow(&show_demo_window);
 

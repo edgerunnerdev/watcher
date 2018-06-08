@@ -149,6 +149,7 @@
     <ClCompile Include="src\scanner.cpp" />
     <ClCompile Include="src\ext\sqlite\sqlite3.c" />
     <ClCompile Include="src\watcher.cpp" />
+    <ClCompile Include="src\watcher_rep.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera_detection_rule.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="src\scanner.h" />
     <ClInclude Include="src\ext\sqlite\sqlite3.h" />
     <ClInclude Include="src\watcher.h" />
+    <ClInclude Include="src\watcher_rep.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

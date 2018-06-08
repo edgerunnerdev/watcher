@@ -18,6 +18,10 @@ static size_t write_callback( void* buffer, size_t size, size_t nmemb, void* dat
 	for (size_t p = 0; p < realsize; p++)
 	{
 		char c = ((char*)buffer)[p];
+		if ( c <= -1 )
+		{
+			continue;
+		}
 
 		html_parser_char_parse(hsp, ((char *)buffer)[p]);
 		if ( html_parser_cmp_tag( hsp, &titleEndTag[0], titleEndTag.size() ) )

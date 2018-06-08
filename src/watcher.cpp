@@ -2,23 +2,27 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <SDL.h>
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
 #include "camera_scanner.h"
 #include "ip_generator.h"
 #include "watcher.h"
 #include "scanner.h"
+#include "watcher_rep.h"
 
 Watcher* g_pWatcher = nullptr;
 
-Watcher::Watcher( unsigned int scannerCount ) :
+Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
 m_pDatabase( nullptr ),
 m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 {
 	g_pWatcher = this;
+	m_MainThreadID = std::this_thread::get_id();
 
 	ReadConfig();
+	m_pRep = std::make_unique< WatcherRep >( pWindow );
 	m_pIPGenerator = std::make_unique< IPGenerator >( m_ConfigInitialIP );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
@@ -95,6 +99,10 @@ void Watcher::InitialiseCameraScanner()
 
 void Watcher::Update()
 {
+	ProcessDatabaseQueryQueue();
+
+	m_pRep->Render();
+
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
@@ -106,7 +114,7 @@ void Watcher::Update()
 		unsigned int maxIP = ~0u;
 		double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
 		float percent = static_cast< float >( ratio * 100.0f );
-		wss.precision( 3 );
+		//wss.precision( 3 );
 		wss <<  "Address space scanned: " << percent << "%%";
 		ImGui::Text( wss.str().c_str() );
 
@@ -166,7 +174,19 @@ void Watcher::Update()
 		}
 	}
 
+	if ( ImGui::CollapsingHeader( "Database operations" ) )
+	{
+		if ( ImGui::Button( "Restart camera scan" ) )
+		{
+			RestartCameraDetection();
+		}
+	}
+
 	ImGui::End();
+
+	ImGui::BeginTooltip();
+	ImGui::Text("test tooltip");
+    ImGui::EndTooltip();
 }
 
 void Watcher::OnWebServerFound( Network::IPAddress address )
@@ -174,19 +194,10 @@ void Watcher::OnWebServerFound( Network::IPAddress address )
 	// Store this web server into the database, mark it as not parsed.
 	std::stringstream ss;
 	ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.ToString() << "', 0);";
+	ExecuteDatabaseQuery( ss.str() );
 
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, ss.str().c_str() , nullptr, 0, &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}
-
-	{
-		std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
-		m_CameraScannerQueue.push_back( address );
-	}
+	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	m_CameraScannerQueue.push_back( address );
 }
 
 void Watcher::WriteConfig()
@@ -211,6 +222,11 @@ void Watcher::ReadConfig()
 	}
 }
 
+void Watcher::RestartCameraDetection()
+{
+	ExecuteDatabaseQuery( "UPDATE WebServers SET Scanned=0;" );
+}
+
 // Loads from the database any IP addresses for web servers which have been
 // found but not processed yet and adds them to the camera detection queue.
 // Any servers which are identified at run time are added to the queue via the
@@ -227,7 +243,7 @@ void Watcher::PopulateCameraDetectionQueue()
 		return 0;
 	};
 
-	std::string query = "SELECT IP FROM WebServers WHERE Parsed=0";
+	std::string query = "SELECT IP FROM WebServers WHERE Scanned=0";
 	char* pError = nullptr;
 	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, 0, &pError );
 	if( rc != SQLITE_OK )
@@ -251,6 +267,45 @@ void Watcher::OnCameraScanned( const CameraScanResult& result )
 	{
 		m_CameraScanResults.pop_back();
 	}
+
+	std::stringstream wss;
+	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.ToString() << "';";
+	ExecuteDatabaseQuery( wss.str() );
+
+	if ( result.isCamera )
+	{
+		std::stringstream css;
+		css << "INSERT OR REPLACE INTO Cameras VALUES('" << result.address.ToString() << "', 0, '" << result.title << "');";
+		ExecuteDatabaseQuery( css.str() );
+	}
+}
+
+void Watcher::ExecuteDatabaseQuery( const std::string& query )
+{
+	if ( std::this_thread::get_id() != m_MainThreadID )
+	{
+		std::lock_guard< std::mutex > lock( m_QueryQueueMutex );
+		m_QueryQueue.push_back( query );
+	}
+	else
+	{
+		char* pError = nullptr;
+		int rc = sqlite3_exec( m_pDatabase, query.c_str(), nullptr, 0, &pError );
+		if( rc != SQLITE_OK )
+		{
+			sqlite3_free( pError );
+		}
+	}
+}
+
+void Watcher::ProcessDatabaseQueryQueue()
+{
+	std::lock_guard< std::mutex > lock( m_QueryQueueMutex );
+	for ( std::string& query : m_QueryQueue )
+	{
+		ExecuteDatabaseQuery( query );
+	}
+	m_QueryQueue.clear();
 }
 
 // Takes an address from the camera scanner queue.
