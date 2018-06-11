@@ -26,7 +26,7 @@ int main(int, char**)
 
     // Initialise curl, but don't attempt to initialise the Win32 socket libraries
     // as that would have been done by Network::Initialise().
-    curl_global_init( CURL_GLOBAL_NOTHING );
+    curl_global_init( CURL_GLOBAL_SSL );
 
     // Setup window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);

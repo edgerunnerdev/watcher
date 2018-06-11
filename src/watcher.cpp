@@ -6,6 +6,7 @@
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
 #include "camera_scanner.h"
+#include "database_helpers.h"
 #include "ip_generator.h"
 #include "watcher.h"
 #include "scanner.h"
@@ -27,6 +28,7 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
 	PopulateCameraDetectionQueue();
+	InitialiseGeoScanner();
 	InitialiseWebServerScanners( scannerCount );
 	InitialiseCameraScanner();
 }
@@ -40,6 +42,7 @@ Watcher::~Watcher()
 	}
 
 	m_CameraScannerThread.join();
+	m_GeoScannerThread.join();
 
 	sqlite3_close( m_pDatabase );
 
@@ -95,6 +98,20 @@ void Watcher::InitialiseCameraScanner()
 	
 	m_pCameraScanner = std::make_unique< CameraScanner >();
 	m_CameraScannerThread = std::thread( scannerThreadMain, this, m_pCameraScanner.get() );
+}
+
+void Watcher::InitialiseGeoScanner()
+{
+	auto scannerThreadMain = []( Watcher* pWatcher, GeoScanner* pScanner )
+	{
+		while ( pWatcher->IsActive() )
+		{
+			pScanner->Update();
+		}
+	};
+	
+	m_pGeoScanner = std::make_unique< GeoScanner >();
+	m_GeoScannerThread = std::thread( scannerThreadMain, this, m_pGeoScanner.get() );
 }
 
 void Watcher::Update()
@@ -172,6 +189,14 @@ void Watcher::Update()
 
 			ImGui::TreePop();
 		}
+	}
+
+	if ( ImGui::CollapsingHeader( "Geolocation", ImGuiTreeNodeFlags_DefaultOpen ) )
+	{
+		ImGui::Text( "Provider: ipinfo.io" );
+		std::stringstream ss;
+		ss << "Queue size: " << m_pGeoScanner->GetQueueSize();
+		ImGui::Text( ss.str().c_str() );
 	}
 
 	if ( ImGui::CollapsingHeader( "Database operations" ) )
@@ -275,7 +300,7 @@ void Watcher::OnCameraScanned( const CameraScanResult& result )
 	if ( result.isCamera )
 	{
 		std::stringstream css;
-		css << "INSERT OR REPLACE INTO Cameras VALUES('" << result.address.ToString() << "', 0, '" << result.title << "');";
+		css << "INSERT OR REPLACE INTO Cameras VALUES('" << result.address.ToString() << "', 0, '" << result.title << "', 0);";
 		ExecuteDatabaseQuery( css.str() );
 	}
 }
@@ -289,12 +314,7 @@ void Watcher::ExecuteDatabaseQuery( const std::string& query )
 	}
 	else
 	{
-		char* pError = nullptr;
-		int rc = sqlite3_exec( m_pDatabase, query.c_str(), nullptr, 0, &pError );
-		if( rc != SQLITE_OK )
-		{
-			sqlite3_free( pError );
-		}
+		::ExecuteDatabaseQuery( m_pDatabase, query.c_str() );
 	}
 }
 
@@ -323,4 +343,10 @@ bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
 		m_CameraScannerQueue.pop_back();
 		return true;
 	}
+}
+
+void Watcher::OnGeoInfoAdded( const GeoInfo& geoInfo )
+{
+	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
+	m_GeoInfos.push_back( geoInfo );
 }

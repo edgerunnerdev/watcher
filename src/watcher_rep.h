@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <GL/GL.h>
+#include <GL/gl.h>
 
 struct SDL_Surface;
 struct SDL_Window;

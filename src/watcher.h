@@ -6,6 +6,8 @@
 
 #include "network/network.h"
 #include "camera_scanner.h"
+#include "geo_info.h"
+#include "geo_scanner.h"
 
 class IPGenerator;
 class CameraScanner;
@@ -21,6 +23,8 @@ using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
 using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
+using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
+using GeoInfoVector = std::vector< GeoInfo >;
 
 class Watcher
 {
@@ -33,7 +37,11 @@ public:
 	void OnWebServerFound( Network::IPAddress address );
 	void OnWebServerAddedFromDatabase( Network::IPAddress address );
 	void OnCameraScanned( const CameraScanResult& result );
+	void OnGeoInfoAdded( const GeoInfo& geoInfo );
+
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
+
+	const GeoInfoVector& GetGeoInfos() const;
 
 private:
 	void WriteConfig();
@@ -41,6 +49,7 @@ private:
 	void PopulateCameraDetectionQueue();
 	void InitialiseWebServerScanners( unsigned int scannerCount );
 	void InitialiseCameraScanner();
+	void InitialiseGeoScanner();
 	void RestartCameraDetection();
 	void ExecuteDatabaseQuery( const std::string& query );
 	void ProcessDatabaseQueryQueue();
@@ -63,6 +72,12 @@ private:
 	std::mutex m_QueryQueueMutex;
 	std::vector< std::string > m_QueryQueue;
 
+	std::thread m_GeoScannerThread;
+	GeoScannerUniquePtr m_pGeoScanner;
+
+	std::mutex m_GeoInfoMutex;
+	GeoInfoVector m_GeoInfos;
+
 	WatcherRepUniquePtr m_pRep;
 };
 
@@ -76,4 +91,9 @@ inline bool Watcher::IsActive() const
 inline IPGenerator* Watcher::GetIPGenerator() const
 {
 	return m_pIPGenerator.get();
+}
+
+inline const GeoInfoVector& Watcher::GetGeoInfos() const
+{
+	return m_GeoInfos;
 }

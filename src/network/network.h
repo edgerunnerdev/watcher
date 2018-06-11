@@ -3,6 +3,12 @@
 #include <string>
 #include <vector>
 
+// windows.h redefines SetPort as either SetPortA or SetPortW, which will cause
+// issues with IPAddress::SetPort().
+#ifdef _WIN32
+#undef SetPort
+#endif
+
 namespace Network
 {
 

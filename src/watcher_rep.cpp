@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 
 #include "watcher_rep.h"
+#include "watcher.h"
 
 WatcherRep::WatcherRep( SDL_Window* pWindow ) :
 m_pWindow( pWindow ),
@@ -40,6 +41,19 @@ void WatcherRep::Render()
 	pDrawList->AddImage( (ImTextureID)m_BackgroundTexture, ImVec2(0,0), ImVec2( windowWidth, windowHeight ) );
 	ImGui::PopStyleColor();
 	ImGui::End();
+
+	// TODO: replace interface with longitude / latitude
+	const GeoInfoVector& geoInfos = g_pWatcher->GetGeoInfos();
+	for ( const GeoInfo& geoInfo : geoInfos )
+	{
+		float locationX, locationY;
+		float latitude;
+		float longitude;
+		geoInfo.GetLocation( latitude, longitude );
+		locationX = ( longitude + 180.0f ) / 360.0f * static_cast< float >( windowWidth );
+		locationY = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( windowHeight );
+		pDrawList->AddCircle( ImVec2( locationX, locationY ), 10.0f, ImColor( 255, 0, 0 ) );
+	}
 }
 
 void WatcherRep::LoadTextures()

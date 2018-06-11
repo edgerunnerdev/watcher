@@ -134,12 +134,15 @@
   <ItemGroup>
     <ClCompile Include="src\camera_detection_rule.cpp" />
     <ClCompile Include="src\camera_scanner.cpp" />
+    <ClCompile Include="src\database_helpers.cpp" />
     <ClCompile Include="src\ext\GL\gl3w.cpp" />
     <ClCompile Include="src\ext\htmlstreamparser.c" />
     <ClCompile Include="src\ext\imgui\imgui.cpp" />
     <ClCompile Include="src\ext\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\ext\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\ext\imgui\imgui_impl_sdl_gl3.cpp" />
+    <ClCompile Include="src\geo_info.cpp" />
+    <ClCompile Include="src\geo_scanner.cpp" />
     <ClCompile Include="src\ip_generator.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network\network.cpp" />
@@ -154,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="src\camera_detection_rule.h" />
     <ClInclude Include="src\camera_scanner.h" />
+    <ClInclude Include="src\database_helpers.h" />
     <ClInclude Include="src\ext\GL\gl3w.h" />
     <ClInclude Include="src\ext\GL\glcorearb.h" />
     <ClInclude Include="src\ext\htmlstreamparser.h" />
@@ -164,6 +168,8 @@
     <ClInclude Include="src\ext\imgui\stb_rect_pack.h" />
     <ClInclude Include="src\ext\imgui\stb_textedit.h" />
     <ClInclude Include="src\ext\imgui\stb_truetype.h" />
+    <ClInclude Include="src\geo_info.h" />
+    <ClInclude Include="src\geo_scanner.h" />
     <ClInclude Include="src\ip_generator.h" />
     <ClInclude Include="src\ext\json.h" />
     <ClInclude Include="src\network\network.h" />

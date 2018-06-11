@@ -31,7 +31,6 @@ void CameraDetectionRule::AddFilter( FilterType type, const std::string& filter 
 	loweredFilter.resize( filter.length() );
 	std::transform( filter.begin(), filter.end(), loweredFilter.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
 
-
 	if ( type == FilterType::InTitle )
 	{
 		m_InTitle.push_back( loweredFilter );
