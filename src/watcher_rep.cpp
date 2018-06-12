@@ -47,11 +47,8 @@ void WatcherRep::Render()
 	for ( const GeoInfo& geoInfo : geoInfos )
 	{
 		float locationX, locationY;
-		float latitude;
-		float longitude;
-		geoInfo.GetLocation( latitude, longitude );
-		locationX = ( longitude + 180.0f ) / 360.0f * static_cast< float >( windowWidth );
-		locationY = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( windowHeight );
+		locationX = ( geoInfo.GetLongitude() + 180.0f ) / 360.0f * static_cast< float >( windowWidth );
+		locationY = ( 1.0f - ( geoInfo.GetLatitude() + 90.0f ) / 180.0f ) * static_cast< float >( windowHeight );
 		pDrawList->AddCircle( ImVec2( locationX, locationY ), 10.0f, ImColor( 255, 0, 0 ) );
 	}
 }

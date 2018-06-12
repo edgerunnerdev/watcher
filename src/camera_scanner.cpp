@@ -69,7 +69,7 @@ CameraScanResult CameraScanner::Scan( Network::IPAddress address )
 	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, write_callback);
 	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, hsp);
 	curl_easy_setopt(pCurl, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 20L);
+	curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 10L);
 
 	curl_easy_perform(pCurl);
 

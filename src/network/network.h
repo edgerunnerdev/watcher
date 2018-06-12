@@ -27,6 +27,7 @@ public:
 	void SetPort( unsigned short port );
 	unsigned short GetPort() const;
 	std::string ToString() const;
+	std::string GetHostAsString() const;
 
 private:
 	unsigned int m_Host;

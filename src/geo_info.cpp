@@ -4,20 +4,20 @@
 #include "geo_info.h"
 
 GeoInfo::GeoInfo( Network::IPAddress address ) :
-m_Address( address )
+m_Address( address ),
+m_Latitude( 0.0f ),
+m_Longitude( 0.0f )
 {
-	m_Location[ 0 ] = 0.0f;
-	m_Location[ 1 ] = 0.0f;
 }
 
-bool GeoInfo::LoadFromDatabase( const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float x, float y )
+bool GeoInfo::LoadFromDatabase( const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float latitude, float longitude )
 {
 	m_City = city;
 	m_Region = region;
 	m_Country = country;
 	m_Organisation = organisation;
-	m_Location[ 0 ] = x;
-	m_Location[ 1 ] = y;
+	m_Latitude = latitude;
+	m_Longitude = longitude;
 	return true;
 }
 
@@ -38,10 +38,10 @@ bool GeoInfo::LoadFromJSON( const std::string& data )
 	}
 	else
 	{
-		std::string x = location.substr( 0, locationSeparator );
-		std::string y = location.substr( locationSeparator + 1 );
-		m_Location[ 0 ] = static_cast< float >( atof( x.c_str() ) );
-		m_Location[ 1 ] = static_cast< float >( atof( y.c_str() ) );
+		std::string latitude = location.substr( 0, locationSeparator );
+		std::string longitude = location.substr( locationSeparator + 1 );
+		m_Latitude = static_cast< float >( atof( latitude.c_str() ) );
+		m_Longitude = static_cast< float >( atof( longitude.c_str() ) );
 		return true;
 	}
 }
@@ -55,8 +55,8 @@ void GeoInfo::SaveToDatabase( sqlite3* pDatabase )
 		"'" << m_Region << "', " <<
 		"'" << m_Country << "', " <<
 		"'" << m_Organisation << "', " <<
-		m_Location[ 0 ] << ", " <<
-		m_Location[ 1 ] << ");";
+		m_Latitude << ", " <<
+		m_Longitude << ");";
 	ExecuteDatabaseQuery( pDatabase, addGeoInfoQuery.str() );
 
 	std::stringstream updateCameraQuery;

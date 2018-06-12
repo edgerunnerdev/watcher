@@ -75,17 +75,24 @@ unsigned short IPAddress::GetPort() const
 std::string IPAddress::ToString() const
 {
 	std::stringstream ss;
-	ss << 
-		( m_Host >> 24 ) << "." <<
-		( ( m_Host >> 16 ) & 0xFF ) << "." <<
-		( ( m_Host >> 8 ) & 0xFF ) << "." <<
-		( m_Host & 0xFF );
+	ss << GetHostAsString();
 
 	if ( m_Port != 0u )
 	{
 		ss << ":" << m_Port;
 	}
 
+	return ss.str();
+}
+
+std::string IPAddress::GetHostAsString() const
+{
+	std::stringstream ss;
+	ss << 
+		( m_Host >> 24 ) << "." <<
+		( ( m_Host >> 16 ) & 0xFF ) << "." <<
+		( ( m_Host >> 8 ) & 0xFF ) << "." <<
+		( m_Host & 0xFF );
 	return ss.str();
 }
 

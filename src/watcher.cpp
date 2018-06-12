@@ -16,6 +16,7 @@ Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
+m_WebServerScannerMode( WebServerScannerMode::None ),
 m_pDatabase( nullptr ),
 m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 {
@@ -29,7 +30,6 @@ m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
 
 	PopulateCameraDetectionQueue();
 	InitialiseGeoScanner();
-	InitialiseWebServerScanners( scannerCount );
 	InitialiseCameraScanner();
 }
 
@@ -53,7 +53,7 @@ void Watcher::InitialiseWebServerScanners( unsigned int scannerCount )
 {
 	auto scannerThreadMain = []( Watcher* pWatcher, Scanner* pScanner )
 	{
-		std::vector< unsigned short > ports = { 80, 81, 83, 8080 };
+		std::vector< unsigned short > ports = { 80, 81, 82, 83, 84, 8080 };
 		while ( pWatcher->IsActive() )
 		{
 			Network::IPAddress address = pWatcher->GetIPGenerator()->GetNext();
@@ -126,38 +126,54 @@ void Watcher::Update()
 
 	if ( ImGui::CollapsingHeader( "Webserver scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
-		std::stringstream wss;
-		unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
-		unsigned int maxIP = ~0u;
-		double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
-		float percent = static_cast< float >( ratio * 100.0f );
-		//wss.precision( 3 );
-		wss <<  "Address space scanned: " << percent << "%%";
-		ImGui::Text( wss.str().c_str() );
-
+		if ( m_WebServerScannerMode == WebServerScannerMode::None )
 		{
-			std::stringstream ss;
-			ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
-			ImGui::Text( ss.str().c_str() );
+			if ( ImGui::Button( "Begin scan (basic)" ) )
+			{
+				InitialiseWebServerScanners( 64 );
+				m_WebServerScannerMode = WebServerScannerMode::Basic;
+			}
+			else if ( ImGui::Button( "Begin scan (zmap)" ) )
+			{
+				m_WebServerScannerMode = WebServerScannerMode::Zmap;
+			}
 		}
+		else if ( m_WebServerScannerMode == WebServerScannerMode::Basic )
+		{
+			std::stringstream wss;
+			unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
+			unsigned int maxIP = ~0u;
+			double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
+			float percent = static_cast< float >( ratio * 100.0f );
+			//wss.precision( 3 );
+			wss <<  "Address space scanned: " << percent << "%%";
+			ImGui::Text( wss.str().c_str() );
 
-        if ( ImGui::TreeNode( "Active threads" ) )
-        {
-			ImGui::Columns( 2 );
-			ImGui::SetColumnWidth( 0, 32 );
-			unsigned int numScanners = m_Scanners.size();
-			for ( unsigned int i = 0; i < numScanners; i++ )
 			{
 				std::stringstream ss;
-				ss << "#" << ( i + 1 );
+				ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
 				ImGui::Text( ss.str().c_str() );
-				ImGui::NextColumn();
-				ImGui::Text( m_Scanners[ i ]->GetStatusText().c_str() );
-				ImGui::NextColumn();
 			}
-			ImGui::Columns( 1 );
 
-			ImGui::TreePop();
+
+			if ( ImGui::TreeNode( "Active threads" ) )
+			{
+				ImGui::Columns( 2 );
+				ImGui::SetColumnWidth( 0, 32 );
+				unsigned int numScanners = m_Scanners.size();
+				for ( unsigned int i = 0; i < numScanners; i++ )
+				{
+					std::stringstream ss;
+					ss << "#" << ( i + 1 );
+					ImGui::Text( ss.str().c_str() );
+					ImGui::NextColumn();
+					ImGui::Text( m_Scanners[ i ]->GetStatusText().c_str() );
+					ImGui::NextColumn();
+				}
+				ImGui::Columns( 1 );
+
+				ImGui::TreePop();
+			}
 		}
 	}
 
@@ -218,7 +234,7 @@ void Watcher::OnWebServerFound( Network::IPAddress address )
 {
 	// Store this web server into the database, mark it as not parsed.
 	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.ToString() << "', 0);";
+	ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.GetHostAsString() << "', " << address.GetPort() << ", 0);";
 	ExecuteDatabaseQuery( ss.str() );
 
 	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
@@ -260,15 +276,14 @@ void Watcher::PopulateCameraDetectionQueue()
 {
 	auto callback = []( void* notUsed, int argc, char** argv, char** azColName )
 	{
-		for ( int i = 0; i < argc; i++ )
-		{
-			Network::IPAddress ipAddress( argv[i] );
-			g_pWatcher->OnWebServerAddedFromDatabase( ipAddress );
-		}
+		SDL_assert( argc == 2 );
+		Network::IPAddress ipAddress( argv[0] );
+		ipAddress.SetPort( atoi( argv[1] ) );
+		g_pWatcher->OnWebServerAddedFromDatabase( ipAddress );
 		return 0;
 	};
 
-	std::string query = "SELECT IP FROM WebServers WHERE Scanned=0";
+	std::string query = "SELECT IP, Port FROM WebServers WHERE Scanned=0";
 	char* pError = nullptr;
 	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, 0, &pError );
 	if( rc != SQLITE_OK )
@@ -294,13 +309,18 @@ void Watcher::OnCameraScanned( const CameraScanResult& result )
 	}
 
 	std::stringstream wss;
-	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.ToString() << "';";
+	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.GetHostAsString() << "';";
 	ExecuteDatabaseQuery( wss.str() );
 
 	if ( result.isCamera )
 	{
 		std::stringstream css;
-		css << "INSERT OR REPLACE INTO Cameras VALUES('" << result.address.ToString() << "', 0, '" << result.title << "', 0);";
+		css << "INSERT OR REPLACE INTO Cameras VALUES('" 
+			<< result.address.GetHostAsString() << "', " // Host
+			<< result.address.GetPort()	// Port
+			<< ", 0, '" // Type (unused at the moment)
+			<< result.title // Parsed title
+			<< "', 0);"; // Geolocation pending
 		ExecuteDatabaseQuery( css.str() );
 	}
 }

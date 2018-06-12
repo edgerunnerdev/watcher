@@ -17,7 +17,8 @@ public:
 	const std::string& GetRegion() const;
 	const std::string& GetCountry() const;
 	const std::string& GetOrganisation() const;
-	void GetLocation( float& x, float& y ) const;
+	float GetLatitude() const;
+	float GetLongitude() const;
 
 private:
 	Network::IPAddress m_Address;
@@ -25,7 +26,8 @@ private:
 	std::string m_Region;
 	std::string m_Country;
 	std::string m_Organisation;
-	float m_Location[ 2 ];
+	float m_Latitude;
+	float m_Longitude;
 };
 
 inline const Network::IPAddress& GeoInfo::GetIPAddress() const
@@ -53,8 +55,12 @@ inline const std::string& GeoInfo::GetOrganisation() const
 	return m_Organisation;
 }
 
-inline void GeoInfo::GetLocation( float &x, float &y ) const
+inline float GeoInfo::GetLatitude() const
 {
-	x = m_Location[ 0 ];
-	y = m_Location[ 1 ];
+	return m_Latitude;
+}
+
+inline float GeoInfo::GetLongitude() const
+{
+	return m_Longitude;
 }

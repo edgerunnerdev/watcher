@@ -62,7 +62,7 @@ void GeoScanner::Update()
 	curl_easy_setopt( m_pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback );
 	curl_easy_setopt( m_pCurlHandle, CURLOPT_WRITEDATA, &m_Data );
 	curl_easy_setopt( m_pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0" );
-	curl_easy_setopt( m_pCurlHandle, CURLOPT_TIMEOUT, 20L );
+	curl_easy_setopt( m_pCurlHandle, CURLOPT_TIMEOUT, 10L );
 
 	if ( curl_easy_perform( m_pCurlHandle ) != CURLE_OK )
 	{
@@ -90,8 +90,6 @@ void GeoScanner::Update()
 			);
 		}
 	}
-
-	std::this_thread::sleep_for( std::chrono::seconds( 2 ) );
 }
 
 void GeoScanner::QueueScan( Network::IPAddress address )
@@ -108,7 +106,6 @@ void GeoScanner::PopulateQueueFromDatabase()
 		for ( int i = 0; i < argc; i++ )
 		{
 			Network::IPAddress address( argv[i] );
-			address.SetPort( 0 );
 			pGeoScanner->QueueScan( address );
 		}
 		return 0;

@@ -26,6 +26,13 @@ using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
 using GeoInfoVector = std::vector< GeoInfo >;
 
+enum class WebServerScannerMode
+{
+	None,
+	Basic,
+	Zmap
+};
+
 class Watcher
 {
 public:
@@ -57,6 +64,7 @@ private:
 	bool m_Active;
 	ThreadVector m_ScannerThreads;
 	ScannerVector m_Scanners;
+	WebServerScannerMode m_WebServerScannerMode;
 	IPGeneratorUniquePtr m_pIPGenerator;
 	sqlite3* m_pDatabase;
 
