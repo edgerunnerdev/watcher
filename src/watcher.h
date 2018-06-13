@@ -9,6 +9,7 @@
 #include "geo_info.h"
 #include "geo_scanner.h"
 
+class Configuration;
 class IPGenerator;
 class CameraScanner;
 class Scanner;
@@ -25,6 +26,7 @@ using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
 using GeoInfoVector = std::vector< GeoInfo >;
+using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
 
 enum class WebServerScannerMode
 {
@@ -41,6 +43,7 @@ public:
 	void Update();
 	bool IsActive() const;
 	IPGenerator* GetIPGenerator() const;
+	Configuration* GetConfiguration() const;
 	void OnWebServerFound( Network::IPAddress address );
 	void OnWebServerAddedFromDatabase( Network::IPAddress address );
 	void OnCameraScanned( const CameraScanResult& result );
@@ -51,8 +54,6 @@ public:
 	const GeoInfoVector& GetGeoInfos() const;
 
 private:
-	void WriteConfig();
-	void ReadConfig();
 	void PopulateCameraDetectionQueue();
 	void InitialiseWebServerScanners( unsigned int scannerCount );
 	void InitialiseCameraScanner();
@@ -68,7 +69,6 @@ private:
 	IPGeneratorUniquePtr m_pIPGenerator;
 	sqlite3* m_pDatabase;
 
-	Network::IPAddress m_ConfigInitialIP;
 	std::mutex m_CameraScannerQueueMutex;
 	IPVector m_CameraScannerQueue;
 	std::thread m_CameraScannerThread;
@@ -87,6 +87,7 @@ private:
 	GeoInfoVector m_GeoInfos;
 
 	WatcherRepUniquePtr m_pRep;
+	ConfigurationUniquePtr m_pConfiguration;
 };
 
 extern Watcher* g_pWatcher;
@@ -99,6 +100,11 @@ inline bool Watcher::IsActive() const
 inline IPGenerator* Watcher::GetIPGenerator() const
 {
 	return m_pIPGenerator.get();
+}
+
+inline Configuration* Watcher::GetConfiguration() const
+{
+	return m_pConfiguration.get();
 }
 
 inline const GeoInfoVector& Watcher::GetGeoInfos() const

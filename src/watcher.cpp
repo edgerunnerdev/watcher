@@ -6,6 +6,7 @@
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
 #include "camera_scanner.h"
+#include "configuration.h"
 #include "database_helpers.h"
 #include "ip_generator.h"
 #include "watcher.h"
@@ -17,15 +18,14 @@ Watcher* g_pWatcher = nullptr;
 Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
 m_WebServerScannerMode( WebServerScannerMode::None ),
-m_pDatabase( nullptr ),
-m_ConfigInitialIP( { 1, 0, 0, 1 }, 0 )
+m_pDatabase( nullptr )
 {
 	g_pWatcher = this;
 	m_MainThreadID = std::this_thread::get_id();
+	m_pConfiguration = std::make_unique< Configuration >();
 
-	ReadConfig();
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
-	m_pIPGenerator = std::make_unique< IPGenerator >( m_ConfigInitialIP );
+	m_pIPGenerator = std::make_unique< IPGenerator >( m_pConfiguration->GetWebScannerStartAddress() );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 
 	PopulateCameraDetectionQueue();
@@ -46,7 +46,7 @@ Watcher::~Watcher()
 
 	sqlite3_close( m_pDatabase );
 
-	WriteConfig();
+	m_pConfiguration->SetWebScannerStartAddress( m_pIPGenerator->GetCurrent() );
 }
 
 void Watcher::InitialiseWebServerScanners( unsigned int scannerCount )
@@ -239,28 +239,6 @@ void Watcher::OnWebServerFound( Network::IPAddress address )
 
 	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
 	m_CameraScannerQueue.push_back( address );
-}
-
-void Watcher::WriteConfig()
-{
-	std::ofstream configFile("0x00-watcher.cfg");
-	configFile << m_pIPGenerator->GetCurrent().ToString() << "\n";
-	configFile.close();
-}
-
-void Watcher::ReadConfig()
-{
-	std::ifstream configFile("0x00-watcher.cfg");
-	if ( configFile.is_open() )
-	{
-		std::string addr;
-		if ( getline( configFile, addr ) )
-	    {
-	    	m_ConfigInitialIP = Network::IPAddress( addr );
-	    }
-
-		configFile.close();
-	}
 }
 
 void Watcher::RestartCameraDetection()

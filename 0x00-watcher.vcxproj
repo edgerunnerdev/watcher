@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="src\camera_detection_rule.cpp" />
     <ClCompile Include="src\camera_scanner.cpp" />
+    <ClCompile Include="src\configuration.cpp" />
     <ClCompile Include="src\database_helpers.cpp" />
     <ClCompile Include="src\ext\GL\gl3w.cpp" />
     <ClCompile Include="src\ext\htmlstreamparser.c" />
@@ -157,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="src\camera_detection_rule.h" />
     <ClInclude Include="src\camera_scanner.h" />
+    <ClInclude Include="src\configuration.h" />
     <ClInclude Include="src\database_helpers.h" />
     <ClInclude Include="src\ext\GL\gl3w.h" />
     <ClInclude Include="src\ext\GL\glcorearb.h" />
