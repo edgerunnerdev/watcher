@@ -1,3 +1,4 @@
+#include <SDL.h>
 #include "ip_generator.h"
 
 IPGenerator::IPGenerator( Network::IPAddress startAddress )
@@ -12,11 +13,13 @@ IPGenerator::IPGenerator( Network::IPAddress startAddress )
 	};
 }
 
-Network::IPAddress IPGenerator::GetNext()
+Network::IPAddress IPGenerator::GetNext( int block /* = 32 */ )
 {
 	std::lock_guard< std::mutex > lock( m_Mutex );
 
-	m_Current[ 3 ]++;
+	SDL_assert( block == 0 || block == 8 || block == 16 || block == 32 );
+	m_Current[ block / 8 - 1 ]++;
+
 	if ( m_Current[ 3 ] > 255 )
 	{
 		m_Current[ 3 ] = 0;

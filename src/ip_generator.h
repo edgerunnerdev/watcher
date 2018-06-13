@@ -9,7 +9,7 @@ class IPGenerator
 {
 public:
 	IPGenerator( Network::IPAddress startAddress );
-	Network::IPAddress GetNext();
+	Network::IPAddress GetNext( int block = 32 );
 	Network::IPAddress GetCurrent();
 private:
 	std::vector< int > m_Current;
