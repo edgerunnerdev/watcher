@@ -17,8 +17,14 @@ Network::IPAddress IPGenerator::GetNext( int block /* = 32 */ )
 {
 	std::lock_guard< std::mutex > lock( m_Mutex );
 
-	SDL_assert( block == 0 || block == 8 || block == 16 || block == 32 );
-	m_Current[ block / 8 - 1 ]++;
+	SDL_assert( block == 8 || block == 16 || block == 24 || block == 32 );
+	int idx = block / 8 - 1;
+
+	m_Current[ idx ]++;
+	for ( int i = idx + 1; i < 4; ++i )
+	{
+		m_Current[ i ] = 0;
+	}
 
 	if ( m_Current[ 3 ] > 255 )
 	{

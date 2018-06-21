@@ -31,14 +31,15 @@ void WatcherRep::Render()
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
+	ImVec2 windowSize = ImVec2( static_cast< float >( windowWidth ), static_cast< float >( windowHeight ) );
 
-	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
-	ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
+	ImGui::SetNextWindowPos( ImVec2( 0.0f, 0.0f ) );
+	ImGui::SetNextWindowSize( windowSize );
 	ImGui::PushStyleColor( ImGuiCol_FrameBg, ImColor(0, 0, 0, 0).Value );
 	ImGui::Begin( "Watcher", nullptr, flags );
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	//pDrawList->AddQuadFilled( ImVec2( 0, 0 ), ImVec2( 512, 0 ), ImVec2( 512, 512 ), ImVec2( 0, 512 ), ImColor(255, 0, 0));
-	pDrawList->AddImage( (ImTextureID)m_BackgroundTexture, ImVec2(0,0), ImVec2( windowWidth, windowHeight ) );
+	pDrawList->AddImage( (ImTextureID)m_BackgroundTexture, ImVec2(0,0), windowSize );
 	ImGui::PopStyleColor();
 	ImGui::End();
 
@@ -49,7 +50,7 @@ void WatcherRep::Render()
 		float locationX, locationY;
 		locationX = ( geoInfo.GetLongitude() + 180.0f ) / 360.0f * static_cast< float >( windowWidth );
 		locationY = ( 1.0f - ( geoInfo.GetLatitude() + 90.0f ) / 180.0f ) * static_cast< float >( windowHeight );
-		pDrawList->AddCircle( ImVec2( locationX, locationY ), 10.0f, ImColor( 255, 0, 0 ) );
+		pDrawList->AddCircle( ImVec2( locationX, locationY ), 4.0f, ImColor( 255, 0, 0 ), 4 );
 	}
 }
 

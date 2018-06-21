@@ -25,6 +25,7 @@ GeoScanner::GeoScanner()
 {
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 	PopulateQueueFromDatabase();
+	PopulateResultsFromDatabase();
 	m_pCurlHandle = curl_easy_init();
 	m_Data.reserve( 1024 );
 }
@@ -119,6 +120,33 @@ void GeoScanner::PopulateQueueFromDatabase()
 		fprintf( stderr, "SQL error: %s\n", pError );
 		sqlite3_free( pError );
 	}
+}
+
+void GeoScanner::PopulateResultsFromDatabase()
+{
+	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
+	{
+		Network::IPAddress address( argv[ 0 ] );
+		std::string city = argv[ 1 ];
+		std::string region = argv[ 2 ];
+		std::string country = argv[ 3 ];
+		std::string organisation = argv[ 4 ];
+		float latitude = static_cast< float >( atof( argv[ 5 ] ) );
+		float longitude = static_cast< float >( atof( argv[ 6 ] ) );
+		GeoInfo geoInfo( address );
+		geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
+		g_pWatcher->OnGeoInfoAdded( geoInfo );
+		return 0;
+	};
+
+	std::string query = "SELECT * FROM Geolocation";
+	char* pError = nullptr;
+	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, this, &pError );
+	if( rc != SQLITE_OK )
+	{
+		fprintf( stderr, "SQL error: %s\n", pError );
+		sqlite3_free( pError );
+	}	
 }
 
 size_t GeoScanner::GetQueueSize() const

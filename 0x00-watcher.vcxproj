@@ -144,16 +144,19 @@
     <ClCompile Include="src\ext\imgui\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="src\geo_info.cpp" />
     <ClCompile Include="src\geo_scanner.cpp" />
+    <ClCompile Include="src\internet_scanner.cpp" />
     <ClCompile Include="src\ip_generator.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network\network.cpp" />
     <ClCompile Include="src\network\network_linux.cpp" />
     <ClCompile Include="src\network\network_windows.cpp" />
     <ClCompile Include="src\port_probe.cpp" />
-    <ClCompile Include="src\scanner.cpp" />
+    <ClCompile Include="src\internet_scanner_basic.cpp" />
     <ClCompile Include="src\ext\sqlite\sqlite3.c" />
     <ClCompile Include="src\watcher.cpp" />
     <ClCompile Include="src\watcher_rep.cpp" />
+    <ClCompile Include="src\internet_scanner_nmap.cpp" />
+    <ClCompile Include="src\internet_scanner_zmap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera_detection_rule.h" />
@@ -172,14 +175,17 @@
     <ClInclude Include="src\ext\imgui\stb_truetype.h" />
     <ClInclude Include="src\geo_info.h" />
     <ClInclude Include="src\geo_scanner.h" />
+    <ClInclude Include="src\internet_scanner.h" />
     <ClInclude Include="src\ip_generator.h" />
     <ClInclude Include="src\ext\json.h" />
     <ClInclude Include="src\network\network.h" />
     <ClInclude Include="src\port_probe.h" />
-    <ClInclude Include="src\scanner.h" />
+    <ClInclude Include="src\internet_scanner_basic.h" />
     <ClInclude Include="src\ext\sqlite\sqlite3.h" />
     <ClInclude Include="src\watcher.h" />
     <ClInclude Include="src\watcher_rep.h" />
+    <ClInclude Include="src\internet_scanner_nmap.h" />
+    <ClInclude Include="src\internet_scanner_zmap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

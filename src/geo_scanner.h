@@ -19,6 +19,7 @@ public:
 
 private:
 	void PopulateQueueFromDatabase();
+	void PopulateResultsFromDatabase();
 	std::string m_Data;
 
 	mutable std::mutex m_QueueMutex;

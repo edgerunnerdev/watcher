@@ -7,9 +7,9 @@ SDL_CFLAGS=$(shell sdl2-config --cflags)
 SDL_LDFLAGS=$(shell sdl2-config --libs)
 CURL_CFLAGS=$(shell curl-config --cflags)
 CURL_LDFLAGS=$(shell curl-config --libs)
-CPPFLAGS=-std=c++17 -Isrc -Isrc/ext $(SDL_CFLAGS) $(CURL_CFLAGS) -Wno-format-security
-CFLAGS=-Isrc -Isrc/ext
-LDFLAGS=$(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL
+CPPFLAGS=-g -std=c++17 -Isrc -Isrc/ext $(SDL_CFLAGS) $(CURL_CFLAGS) -Wno-format-security
+CFLAGS=-g -Isrc -Isrc/ext
+LDFLAGS=-g $(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL -lboost_system -lboost_filesystem -pthread
 
 
 0x00-watcher: $(OBJ_FILES)

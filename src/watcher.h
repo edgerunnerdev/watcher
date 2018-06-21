@@ -12,26 +12,33 @@
 class Configuration;
 class IPGenerator;
 class CameraScanner;
-class Scanner;
+class InternetScannerNmap;
+class WebMasscanParser;
+class InternetScannerZmap;
+class InternetScannerBasic;
 class WatcherRep;
 struct sqlite3;
 struct SDL_Window;
 
-using ScannerUniquePtr = std::unique_ptr< Scanner >;
+using InternetScannerBasicUniquePtr = std::unique_ptr< InternetScannerBasic >;
+using InternetScannerNmapUniquePtr = std::unique_ptr< InternetScannerNmap >;
+using InternetScannerZmapUniquePtr = std::unique_ptr< InternetScannerZmap >;
 using IPGeneratorUniquePtr = std::unique_ptr< IPGenerator >;
-using ScannerVector = std::vector< ScannerUniquePtr >;
+using InternetScannerBasicVector = std::vector< InternetScannerBasicUniquePtr >;
 using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
 using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
+using CameraScannerVector = std::vector< CameraScannerUniquePtr >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
 using GeoInfoVector = std::vector< GeoInfo >;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
 
-enum class WebServerScannerMode
+enum class InternetScannerMode
 {
 	None,
 	Basic,
+	Nmap,
 	Zmap
 };
 
@@ -44,9 +51,11 @@ public:
 	bool IsActive() const;
 	IPGenerator* GetIPGenerator() const;
 	Configuration* GetConfiguration() const;
-	void OnWebServerFound( Network::IPAddress address );
-	void OnWebServerAddedFromDatabase( Network::IPAddress address );
-	void OnCameraScanned( const CameraScanResult& result );
+
+	// Any callback which has to write into the database needs to receive its own
+	// database connection.
+	void OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address );
+	void OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& result );
 	void OnGeoInfoAdded( const GeoInfo& geoInfo );
 
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
@@ -55,30 +64,26 @@ public:
 
 private:
 	void PopulateCameraDetectionQueue();
-	void InitialiseWebServerScanners( unsigned int scannerCount );
-	void InitialiseCameraScanner();
+	void InitialiseInternetScannerBasic( unsigned int scannerCount );
+	void InitialiseNmap();
+	void InitialiseZmap();
+	void InitialiseCameraScanners( unsigned int scannerCount );
 	void InitialiseGeoScanner();
 	void RestartCameraDetection();
-	void ExecuteDatabaseQuery( const std::string& query );
-	void ProcessDatabaseQueryQueue();
 
 	bool m_Active;
-	ThreadVector m_ScannerThreads;
-	ScannerVector m_Scanners;
-	WebServerScannerMode m_WebServerScannerMode;
+	ThreadVector m_InternetScannerBasicThreads;
+	InternetScannerBasicVector m_InternetScannerBasic;
+	InternetScannerMode m_WebServerScannerMode;
 	IPGeneratorUniquePtr m_pIPGenerator;
 	sqlite3* m_pDatabase;
 
 	std::mutex m_CameraScannerQueueMutex;
 	IPVector m_CameraScannerQueue;
-	std::thread m_CameraScannerThread;
-	CameraScannerUniquePtr m_pCameraScanner;
+	CameraScannerVector m_CameraScanners;
+	ThreadVector m_CameraScannerThreads;
 	std::mutex m_CameraScanResultsMutex;
 	CameraScanResultList m_CameraScanResults;
-
-	std::thread::id m_MainThreadID;
-	std::mutex m_QueryQueueMutex;
-	std::vector< std::string > m_QueryQueue;
 
 	std::thread m_GeoScannerThread;
 	GeoScannerUniquePtr m_pGeoScanner;
@@ -88,6 +93,12 @@ private:
 
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
+
+	InternetScannerNmapUniquePtr m_pInternetScannerNmap;
+	std::thread m_InternetScannerNmapThread;
+
+	InternetScannerZmapUniquePtr m_pInternetScannerZmap;
+	std::thread m_InternetScannerZmapThread;
 };
 
 extern Watcher* g_pWatcher;

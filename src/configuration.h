@@ -15,8 +15,8 @@ public:
 	int GetWebScannerRate() const;
 	void SetWebScannerRate( int value );
 
-	std::vector< int > GetWebScannerPorts() const;
-	void SetWebScannerPorts( const std::vector< int >& ports );
+	const Network::PortVector& GetWebScannerPorts() const;
+	void SetWebScannerPorts( const Network::PortVector& ports );
 
 private:
 	void Save();
@@ -25,5 +25,5 @@ private:
 
 	Network::IPAddress m_StartAddress;
 	int m_Rate;
-	std::vector< int > m_Ports;
+	Network::PortVector m_Ports;
 };

@@ -1,5 +1,6 @@
 #include <fstream>
 #include <string>
+#include <SDL.h>
 #include "ext/json.h"
 #include "configuration.h"
 
@@ -51,7 +52,9 @@ void Configuration::Load()
 				{
 					for ( auto& port : it.value() )
 					{
-						m_Ports.push_back( port );
+						SDL_assert( port >= 0 );
+						SDL_assert( port <= 65535 );
+						m_Ports.push_back( static_cast< unsigned short >( port ) );
 					}
 				}
 			}
@@ -63,7 +66,7 @@ void Configuration::UseDefaults()
 {
 	m_StartAddress = Network::IPAddress( "1.0.0.0" );
 	m_Rate = 100;
-	m_Ports = { 80, 81, 82, 83, 84, 8080 };
+	m_Ports = { 80, 81, 8080 };
 }
 
 Network::IPAddress Configuration::GetWebScannerStartAddress() const
@@ -86,12 +89,12 @@ void Configuration::SetWebScannerRate( int value )
 	m_Rate = value;
 }
 
-std::vector< int > Configuration::GetWebScannerPorts() const
+const Network::PortVector& Configuration::GetWebScannerPorts() const
 {
 	return m_Ports;
 }
 
-void Configuration::SetWebScannerPorts( const std::vector< int >& ports )
+void Configuration::SetWebScannerPorts( const Network::PortVector& ports )
 {
 	m_Ports = ports;
 }

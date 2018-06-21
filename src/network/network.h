@@ -12,6 +12,8 @@
 namespace Network
 {
 
+using PortVector = std::vector< unsigned short >;
+
 //-----------------------------------------------------------------------------
 // IPAddress
 // All return values are in host order, not network order.
