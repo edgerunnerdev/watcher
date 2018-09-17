@@ -1,19 +1,48 @@
 #include <SDL.h>
 #include "imgui/imgui.h"
 
+#include "atlas/atlas.h"
+#include "atlas_grid.h"
 #include "watcher_rep.h"
 #include "watcher.h"
 
 WatcherRep::WatcherRep( SDL_Window* pWindow ) :
 m_pWindow( pWindow ),
-m_BackgroundTexture( GL_INVALID_VALUE )
+m_BackgroundTexture( GL_INVALID_VALUE ),
+m_CellSize( 128.0f )
 {
 	LoadTextures();
+
+	int windowWidth;
+	int windowHeight;
+	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
+	m_pAtlasGrid = std::make_unique< AtlasGrid >( windowWidth, windowHeight, 16 );
+	m_pAtlas = std::make_unique< Atlas >( 8, 4, 256 );
+
+	for ( GLuint x = 0u; x < m_BackgroundTextures.size(); ++x )
+	{
+		for ( GLuint y = 0; y < m_BackgroundTextures[ x ].size(); ++y )
+		{
+			m_BackgroundTextures[ x ][ y ] = 0u;
+		}
+	}
 }
 
 WatcherRep::~WatcherRep()
 {
 
+}
+
+void WatcherRep::Update()
+{
+	static const float sBaseCellSize = 128.0f;
+	m_CellSize = sBaseCellSize;
+
+	ImGuiIO& io = ImGui::GetIO();
+	if ( io.WantCaptureMouse == false )
+	{
+
+	}
 }
 
 void WatcherRep::Render()
@@ -40,6 +69,9 @@ void WatcherRep::Render()
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	//pDrawList->AddQuadFilled( ImVec2( 0, 0 ), ImVec2( 512, 0 ), ImVec2( 512, 512 ), ImVec2( 0, 512 ), ImColor(255, 0, 0));
 	pDrawList->AddImage( (ImTextureID)m_BackgroundTexture, ImVec2(0,0), windowSize );
+
+	m_pAtlas->Render();
+
 	ImGui::PopStyleColor();
 	ImGui::End();
 
@@ -77,4 +109,9 @@ GLuint WatcherRep::LoadTexture( const std::string& filename )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	return tex;
+}
+
+void WatcherRep::AddToAtlas( float latitude, float longitude, int index )
+{
+	m_pAtlasGrid->Add( latitude, longitude, index );
 }

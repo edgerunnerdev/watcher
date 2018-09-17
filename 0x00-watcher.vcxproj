@@ -132,6 +132,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\atlas\atlas.cpp" />
+    <ClCompile Include="src\atlas_grid.cpp" />
     <ClCompile Include="src\camera_detection_rule.cpp" />
     <ClCompile Include="src\camera_scanner.cpp" />
     <ClCompile Include="src\configuration.cpp" />
@@ -159,6 +161,8 @@
     <ClCompile Include="src\internet_scanner_zmap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\atlas\atlas.h" />
+    <ClInclude Include="src\atlas_grid.h" />
     <ClInclude Include="src\camera_detection_rule.h" />
     <ClInclude Include="src\camera_scanner.h" />
     <ClInclude Include="src\configuration.h" />

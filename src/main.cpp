@@ -87,11 +87,13 @@ int main(int, char**)
         {
             ImGui_ImplSdlGL3_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
+			{
                 done = true;
+			}
         }
         ImGui_ImplSdlGL3_NewFrame(window);
 
-        ImGui::ShowDemoWindow(&show_demo_window);
+        //ImGui::ShowDemoWindow(&show_demo_window);
 
 		watcher.Update();
 

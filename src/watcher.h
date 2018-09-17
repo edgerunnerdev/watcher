@@ -9,6 +9,7 @@
 #include "geo_info.h"
 #include "geo_scanner.h"
 
+class AtlasGrid;
 class Configuration;
 class IPGenerator;
 class CameraScanner;

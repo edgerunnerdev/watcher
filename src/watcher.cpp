@@ -102,7 +102,7 @@ void sWebScannerThreadMain( InternetScanner* pScanner )
 	{
 		if ( pScanner->Scan( address, ports ) )
 		{
-			address = g_pWatcher->GetIPGenerator()->GetNext();
+			address = g_pWatcher->GetIPGenerator()->GetNext( 16 );
 		}
 	}
 }
@@ -168,6 +168,7 @@ void Watcher::InitialiseGeoScanner()
 
 void Watcher::Update()
 {
+	m_pRep->Update();
 	m_pRep->Render();
 
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
@@ -368,6 +369,10 @@ void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& resul
 	else
 	{
 		printf("No camera detected at %s, title: %s\n", result.address.ToString().c_str(), result.title.c_str() );
+
+		std::ofstream titleFile;
+		titleFile.open("titles.txt", std::ios_base::app);
+		titleFile << result.address.ToString() << ": " << result.title << "\n";
 	}
 }
 

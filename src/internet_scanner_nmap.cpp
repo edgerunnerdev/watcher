@@ -27,12 +27,13 @@ bool InternetScannerNmap::ScanInternal( Network::IPAddress address, const Networ
 	SetStatusText( "Probing " + nmapAddress.str() );
 
 	std::stringstream portss;
-	for ( int i = 0; i < (int)ports.size(); ++i )
+	int numPorts = (int)ports.size();
+	for ( int i = 0; i < numPorts; ++i )
 	{
 		portss << ports[ i ];
-		if ( i < ( i - 1 ) )
+		if ( i < ( numPorts - 1 ) )
 		{
-			ports << ',';
+			portss << ',';
 		}
 	}
 
@@ -46,6 +47,8 @@ bool InternetScannerNmap::ScanInternal( Network::IPAddress address, const Networ
 		"--host-timeout 5s " <<
 		"-T5 " <<
 		nmapAddress.str();
+
+	printf("%s\n", ss.str().c_str());
 
 	FILE* pStream = popen( ss.str().c_str(), "r" );
 	char pOutputBuffer[ 1024 ] = { 0 };
