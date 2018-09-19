@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <GL/gl3w.h>    // This example is using gl3w to access OpenGL functions (because it is small). You may use glew/glad/glLoadGen/etc. whatever already works for you.
 #include <SDL.h>
+#include <SDL_image.h>
 #include <curl/curl.h>
 #include "network/network.h"
 #include "watcher.h"
@@ -17,9 +18,17 @@ int main(int, char**)
     // Setup SDL
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) != 0 )
     {
-        printf("Error: %s\n", SDL_GetError());
+        printf( "Error: %s\n", SDL_GetError() );
         return 1;
     }
+
+	// Setup SDL_image
+	int imgFlags = IMG_INIT_PNG;
+	if ( IMG_Init( imgFlags ) != imgFlags )
+	{
+		SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Error in SDL2_image initialisation", IMG_GetError(), nullptr );
+		return 2;
+	}
 
     Network::Result res = Network::Initialise();
     SDL_assert( res == Network::Result::Success );
