@@ -29,8 +29,8 @@ std::vector< int >* AtlasGrid::Pick( int x, int y ) const
 
 void AtlasGrid::Add( float latitude, float longitude, int index )
 {
-	int x = ( longitude + 180.0f ) / 360.0f * static_cast< float >( m_Grid.size() );
-	int y = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( m_Grid[0].size() );
+	int x = static_cast<int>( ( longitude + 180.0f ) / 360.0f * static_cast< float >( m_Grid.size() ) );
+	int y = static_cast<int>( ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( m_Grid[0].size() ) );
 	std::vector< int >* v = m_Grid[ x ][ y ];
 	if ( v == nullptr )
 	{
