@@ -1,3 +1,4 @@
+#include <sstream>
 #include <SDL.h>
 #include <SDL_image.h>
 #include "atlas/atlas.h"
@@ -6,7 +7,9 @@
 Atlas::Atlas(int numTilesX, int numTilesY, int tileResolution) :
 m_NumTilesX( numTilesX ),
 m_NumTilesY( numTilesY ),
-m_TileResolution( tileResolution )
+m_TileResolution( tileResolution ),
+m_LowResTextures( numTilesX * numTilesY ),
+m_HighResTextures( numTilesX * numTilesY )
 {
 	SDL_assert( m_NumTilesX > 0 );
 	SDL_assert( m_NumTilesY > 0 );
@@ -34,4 +37,36 @@ void Atlas::Render()
 			);
 		}
 	}
+}
+
+// Returns the texture for a given tile coordinate, prefering the high resolution version if loaded.
+GLuint Atlas::GetTileTexture( int x, int y ) const
+{
+	int idx = y * m_NumTilesX + x;
+	return m_HighResTextures.at( idx ) == 0 ? m_LowResTextures[ idx ] : m_HighResTextures[ idx ];
+}
+
+void Atlas::LoadTextures()
+{
+
+}
+
+GLuint Atlas::LoadTexture( const std::string& filename )
+{
+	SDL_Surface* pSurface = IMG_Load( filename.c_str() );
+	SDL_assert( pSurface != nullptr );
+	if ( pSurface == nullptr )
+	{
+		return 0;
+	}
+
+	GLuint tex;
+	glGenTextures( 1, &tex );
+	glBindTexture( GL_TEXTURE_2D, tex );
+	int mode = ( pSurface->format->BytesPerPixel == 4 ) ? GL_RGBA : GL_RGB;
+
+	glTexImage2D( GL_TEXTURE_2D, 0, mode, pSurface->w, pSurface->h, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pSurface->pixels );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	return tex;
 }

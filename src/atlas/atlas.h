@@ -11,6 +11,8 @@
 
 #include <array>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <GL/gl.h>
 
@@ -26,7 +28,13 @@ public:
 	void Render();
 
 private:
+	void LoadTextures();
+	GLuint LoadTexture( const std::string& filename );
+	GLuint GetTileTexture( int x, int y ) const;
+
 	int m_NumTilesX;
 	int m_NumTilesY;
 	int m_TileResolution;
+	std::vector< GLuint > m_LowResTextures;
+	std::vector< GLuint > m_HighResTextures;
 };
