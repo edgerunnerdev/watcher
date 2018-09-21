@@ -16,9 +16,15 @@ m_Port( 0 )
 
 }
 
-IPAddress::IPAddress( const std::vector< int >& host, unsigned short port /* = 0u */ )
+IPAddress::IPAddress( const std::vector< int >& host, unsigned short port )
 {
 	SetHost( host );
+	SetPort( port );
+}
+
+IPAddress::IPAddress( unsigned int host, unsigned short port )
+{
+	m_Host = host;
 	SetPort( port );
 }
 

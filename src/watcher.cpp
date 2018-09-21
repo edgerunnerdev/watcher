@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
+#include "port_scanner/coverage.h"
 #include "camera_scanner.h"
 #include "configuration.h"
 #include "database_helpers.h"
@@ -29,6 +30,8 @@ m_pDatabase( nullptr )
 	m_pIPGenerator = std::make_unique< IPGenerator >( m_pConfiguration->GetWebScannerStartAddress() );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 	sqlite3_busy_timeout( m_pDatabase, 1000 );
+
+	m_pPortScannerCoverage = std::make_unique< PortScanner::Coverage >();
 
 	PopulateCameraDetectionQueue();
 	InitialiseGeoScanner();
@@ -170,6 +173,8 @@ void Watcher::Update()
 {
 	m_pRep->Update();
 	m_pRep->Render();
+
+	m_pPortScannerCoverage->DrawUI();
 
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );

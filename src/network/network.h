@@ -23,6 +23,7 @@ class IPAddress
 public:
 	IPAddress();
 	IPAddress( const std::vector< int >& host, unsigned short port );
+	IPAddress( unsigned int host, unsigned short port );
 	IPAddress( const std::string& address );
 	void SetHost( const std::vector< int >& host );
 	unsigned int GetHost() const;

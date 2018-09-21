@@ -9,6 +9,12 @@
 #include "geo_info.h"
 #include "geo_scanner.h"
 
+namespace PortScanner
+{
+	class Coverage;
+	using CoverageUniquePtr = std::unique_ptr< Coverage >;
+}
+
 class AtlasGrid;
 class Configuration;
 class IPGenerator;
@@ -100,6 +106,8 @@ private:
 
 	InternetScannerZmapUniquePtr m_pInternetScannerZmap;
 	std::thread m_InternetScannerZmapThread;
+
+	PortScanner::CoverageUniquePtr m_pPortScannerCoverage;
 };
 
 extern Watcher* g_pWatcher;

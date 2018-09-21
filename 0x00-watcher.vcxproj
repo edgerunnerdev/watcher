@@ -155,6 +155,7 @@
     <ClCompile Include="src\port_probe.cpp" />
     <ClCompile Include="src\internet_scanner_basic.cpp" />
     <ClCompile Include="src\ext\sqlite\sqlite3.c" />
+    <ClCompile Include="src\port_scanner\coverage.cpp" />
     <ClCompile Include="src\watcher.cpp" />
     <ClCompile Include="src\watcher_rep.cpp" />
     <ClCompile Include="src\internet_scanner_nmap.cpp" />
@@ -186,6 +187,8 @@
     <ClInclude Include="src\port_probe.h" />
     <ClInclude Include="src\internet_scanner_basic.h" />
     <ClInclude Include="src\ext\sqlite\sqlite3.h" />
+    <ClInclude Include="src\port_scanner\coverage.h" />
+    <ClInclude Include="src\render.h" />
     <ClInclude Include="src\watcher.h" />
     <ClInclude Include="src\watcher_rep.h" />
     <ClInclude Include="src\internet_scanner_nmap.h" />
