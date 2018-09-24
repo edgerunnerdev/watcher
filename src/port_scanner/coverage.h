@@ -27,7 +27,7 @@ public:
 	void Read();
 	void Write();
 
-	void DrawUI();
+	void DrawUI( bool& isWindowOpen );
 
 private:
 	using IndexType = unsigned short;
@@ -36,12 +36,12 @@ private:
 	void CreateUserInterfaceTexture();
 	void UpdateUserInterfaceTexture();
 
+	static constexpr size_t cCoverageFileSize = 8192;
 	static constexpr size_t cBitSetSize = 256 * 256;
 	std::bitset< cBitSetSize > m_BitSet;
 	std::vector< IndexType > m_FreeIndices;
 	bool m_HasInProgressBlock;
 	IndexType m_InProgressBlockIndex;
-	bool m_UI;
 	GLuint m_UITexture;
 	GLsizei m_UITextureWidth;
 	GLsizei m_UITextureHeight;

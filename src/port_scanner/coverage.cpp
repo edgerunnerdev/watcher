@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <array>
+#include <fstream>
+#include <sstream>
 #include <SDL.h>
 #include "imgui/imgui.h"
 #include "coverage.h"
@@ -6,7 +10,6 @@ namespace PortScanner
 {
 
 Coverage::Coverage() :
-m_UI( true ),
 m_UITexture( 0 ),
 m_UITextureWidth( 256 ),
 m_UITextureHeight( 256 ),
@@ -25,6 +28,7 @@ void Coverage::ClearBlockStates()
 	m_BitSet.reset();
 	m_HasInProgressBlock = false;
 	m_InProgressBlockIndex = 0;
+	m_RebuildUITexture = true;
 	for ( int i = 0; i < cBitSetSize; i++ )
 	{
 		m_FreeIndices.push_back( i );
@@ -61,21 +65,25 @@ void Coverage::UpdateUserInterfaceTexture()
 			int textureDataIndex = bitSetIndex * 3;
 			if ( m_HasInProgressBlock && m_InProgressBlockIndex == bitSetIndex )
 			{
-				m_pUITextureData[ textureDataIndex     ] = 0;
-				m_pUITextureData[ textureDataIndex + 1 ] = 0;
-				m_pUITextureData[ textureDataIndex + 2 ] = 255;
+				// Green
+				m_pUITextureData[ textureDataIndex     ] = 0x00;
+				m_pUITextureData[ textureDataIndex + 1 ] = 0xFF;
+				m_pUITextureData[ textureDataIndex + 2 ] = 0x00;
 			}
+
 			else if ( m_BitSet.test( bitSetIndex ) )
 			{
-				m_pUITextureData[ textureDataIndex     ] = 0;
-				m_pUITextureData[ textureDataIndex + 1 ] = 255;
-				m_pUITextureData[ textureDataIndex + 2 ] = 0;
+				// Cyan
+				m_pUITextureData[ textureDataIndex     ] = 0x88;
+				m_pUITextureData[ textureDataIndex + 1 ] = 0xFF;
+				m_pUITextureData[ textureDataIndex + 2 ] = 0xD7;
 			}
 			else
 			{
-				m_pUITextureData[ textureDataIndex     ] = 128;
-				m_pUITextureData[ textureDataIndex + 1 ] = 0;
-				m_pUITextureData[ textureDataIndex + 2 ] = 0;
+				// Dark blue
+				m_pUITextureData[ textureDataIndex     ] = 0x0E;
+				m_pUITextureData[ textureDataIndex + 1 ] = 0x11;
+				m_pUITextureData[ textureDataIndex + 2 ] = 0x18;
 			}
 		}
 	}
@@ -138,8 +146,14 @@ void Coverage::SetBlockState( const Network::IPAddress& ipAddress, Coverage::Blo
 
 bool Coverage::GetNextBlock( Network::IPAddress& ipAddress )
 {
-	// TODO
-	return false;
+	if ( m_FreeIndices.empty() )
+	{
+		return false;
+	}
+
+	IndexType idx = m_FreeIndices[ rand() % m_FreeIndices.size() ];
+	ipAddress = IndexToIPAddress( idx );
+	return true;
 }
 
 Coverage::IndexType Coverage::IPAddressToIndex( const Network::IPAddress& ipAddress ) const
@@ -156,28 +170,116 @@ Network::IPAddress Coverage::IndexToIPAddress( Coverage::IndexType index ) const
 
 void Coverage::Read()
 {
-	m_FreeIndices.clear();
-	// TODO
+	ClearBlockStates();
+	
+	std::ifstream fs( "coverage", std::ios_base::in | std::ios_base::binary );
+	if ( fs.good() )
+	{
+		fs.seekg( 0, fs.end );
+		std::streamoff fileSize = fs.tellg();
+		fs.seekg( 0, fs.beg );
+		SDL_assert( fileSize == cCoverageFileSize );
+		if ( fileSize == cCoverageFileSize )
+		{
+			std::array< unsigned char, cCoverageFileSize > buffer;
+			fs.read( reinterpret_cast< char* >( buffer.data() ), cCoverageFileSize );
+
+			unsigned char v = 0u;
+			unsigned int bitSetIndex = 0u;
+			for ( size_t s = 0u; s < cCoverageFileSize; ++s )
+			{
+				unsigned char v = static_cast< unsigned char >( buffer[ s ] );
+				for ( int i = 0; i < 8; ++i )
+				{
+					const bool isSet = v & ( 0x80 >> i );
+					m_BitSet.set( s * 8 + i, isSet );
+				}
+			}
+
+		}
+		fs.close();
+	}
 }
 
+//-----------------------------------------------------------------------------
+// Coverage::Write()
+// Writes the coverage bitset to disk in binary format.
+// There's no easy way to write out a std::bitset so we have to populate bytes
+// individually before writing the resulting buffer to disk.
+//-----------------------------------------------------------------------------
 void Coverage::Write()
 {
-	// TODO
+	static_assert( cCoverageFileSize == cBitSetSize / 8, "Size mismatch" );
+
+	std::ofstream fs( "coverage", std::ios_base::out | std::ios_base::binary );
+	if ( fs.good() )
+	{
+		constexpr size_t cNumBytes = cBitSetSize / 8;
+		std::array< char, cNumBytes > buffer;
+		buffer.fill( 0 );
+
+		unsigned char v = 0u;
+		unsigned int bufferIndex = 0u;
+		for ( size_t s = 0u; s < cBitSetSize; s++ )
+		{
+			if ( s != 0 && s % 8 == 0 )
+			{
+				buffer[ bufferIndex++ ] = v;
+				v = 0x0;
+			}
+
+			if ( m_BitSet[ s ] )
+			{
+				int bitPosition = s % 8;
+				v |= 0x80 >> bitPosition;
+			}
+		}
+
+		fs.write( buffer.data(), cNumBytes * sizeof( char ));
+		fs.close();
+	}
+	else
+	{
+		SDL_assert(false);
+	}
 }
 
-void Coverage::DrawUI()
+void Coverage::DrawUI( bool& isWindowOpen )
 {
-	UpdateUserInterfaceTexture();
+	if ( !isWindowOpen )
+	{
+		return;
+	}
 
 	ImGui::SetNextWindowSize( ImVec2( 512, 512 ), ImGuiCond_FirstUseEver );
-	ImGui::Begin( "Port scanner coverage", &m_UI );
+	if (!ImGui::Begin( "Port scanner coverage", &isWindowOpen ))
+	{
+		ImGui::End();
+		return;
+	}
 
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-	pDrawList->AddImage( reinterpret_cast< ImTextureID >( m_UITexture ), ImVec2( 0, 0 ), ImVec2( 512, 512 ) );
+	if (ImGui::Button( "Random address") )
+	{
+		Network::IPAddress addr;
+		GetNextBlock(addr);
+		printf("addr: %s\n", addr.ToString().c_str());
+		SetBlockState( addr, BlockState::Scanned );
+	}
 
+	if ( ImGui::Button( "Write" ) )
+	{
+		Write();
+	}
+
+	if ( ImGui::Button( "Read" ) )
+	{
+		Read();
+	}
+
+	UpdateUserInterfaceTexture();
+
+	ImGui::Image( reinterpret_cast< ImTextureID >( m_UITexture ), ImVec2( 512, 512 ) );
 	ImGui::End();
-
 }
-
 
 }

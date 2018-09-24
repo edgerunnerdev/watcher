@@ -66,22 +66,18 @@ void WatcherRep::Render()
 	ImGui::SetNextWindowSize( windowSize );
 	ImGui::PushStyleColor( ImGuiCol_FrameBg, ImColor(0, 0, 0, 0).Value );
 	ImGui::Begin( "Watcher", nullptr, flags );
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-	//pDrawList->AddQuadFilled( ImVec2( 0, 0 ), ImVec2( 512, 0 ), ImVec2( 512, 512 ), ImVec2( 0, 512 ), ImColor(255, 0, 0));
-	pDrawList->AddImage( (ImTextureID)m_BackgroundTexture, ImVec2(0,0), windowSize );
 
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	m_pAtlas->Render();
 
 	ImGui::PopStyleColor();
 	ImGui::End();
 
-	// TODO: replace interface with longitude / latitude
 	const GeoInfoVector& geoInfos = g_pWatcher->GetGeoInfos();
 	for ( const GeoInfo& geoInfo : geoInfos )
 	{
 		float locationX, locationY;
-		locationX = ( geoInfo.GetLongitude() + 180.0f ) / 360.0f * static_cast< float >( windowWidth );
-		locationY = ( 1.0f - ( geoInfo.GetLatitude() + 90.0f ) / 180.0f ) * static_cast< float >( windowHeight );
+		m_pAtlas->GetScreenCoordinates( geoInfo.GetLongitude(), geoInfo.GetLatitude(), locationX, locationY );
 		pDrawList->AddCircle( ImVec2( locationX, locationY ), 4.0f, ImColor( 255, 0, 0 ), 4 );
 	}
 }

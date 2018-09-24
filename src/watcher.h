@@ -56,6 +56,7 @@ public:
 	~Watcher();
 	void Update();
 	bool IsActive() const;
+	PortScanner::Coverage* GetPortScannerCoverage() const;
 	IPGenerator* GetIPGenerator() const;
 	Configuration* GetConfiguration() const;
 
@@ -108,6 +109,7 @@ private:
 	std::thread m_InternetScannerZmapThread;
 
 	PortScanner::CoverageUniquePtr m_pPortScannerCoverage;
+	bool m_PortScannerCoverageOpen;
 };
 
 extern Watcher* g_pWatcher;
@@ -130,4 +132,9 @@ inline Configuration* Watcher::GetConfiguration() const
 inline const GeoInfoVector& Watcher::GetGeoInfos() const
 {
 	return m_GeoInfos;
+}
+
+inline PortScanner::Coverage* Watcher::GetPortScannerCoverage() const
+{
+	return m_pPortScannerCoverage.get();
 }

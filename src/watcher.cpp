@@ -21,7 +21,8 @@ Watcher* g_pWatcher = nullptr;
 Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
 m_WebServerScannerMode( InternetScannerMode::None ),
-m_pDatabase( nullptr )
+m_pDatabase( nullptr ),
+m_PortScannerCoverageOpen( false )
 {
 	g_pWatcher = this;
 	m_pConfiguration = std::make_unique< Configuration >();
@@ -32,6 +33,7 @@ m_pDatabase( nullptr )
 	sqlite3_busy_timeout( m_pDatabase, 1000 );
 
 	m_pPortScannerCoverage = std::make_unique< PortScanner::Coverage >();
+	m_pPortScannerCoverage->Read();
 
 	PopulateCameraDetectionQueue();
 	InitialiseGeoScanner();
@@ -79,33 +81,45 @@ Watcher::~Watcher()
 
 void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
 {
-	auto threadMain = []( InternetScanner* pScanner )
-	{
-		const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
-		while ( g_pWatcher->IsActive() )
-		{
-			Network::IPAddress address = g_pWatcher->GetIPGenerator()->GetNext();
-			pScanner->Scan( address, ports );
-		}
-	};
+	//auto threadMain = []( InternetScanner* pScanner )
+	//{
+	//	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
+	//	while ( g_pWatcher->IsActive() )
+	//	{
+	//		Network::IPAddress address;
+	//		if ( g_pWatcher->m_pPortScannerCoverage->GetNextBlock( address ) )
+	//		{
+	//			g_pWatcher->m_pPortScannerCoverage->SetBlockState( address, PortScanner::Coverage::BlockState::InProgress );
+	//			pScanner->Scan( address, ports );
+	//		}
+	//	}
+	//};
 
-	for ( unsigned int i = 0u; i < scannerCount; i++ )
-	{
-		InternetScannerBasicUniquePtr pScanner = std::make_unique< InternetScannerBasic >();
-		m_InternetScannerBasicThreads.emplace_back( threadMain, pScanner.get() );
-		m_InternetScannerBasic.push_back( std::move( pScanner ) );
-	}
+	//for ( unsigned int i = 0u; i < scannerCount; i++ )
+	//{
+	//	InternetScannerBasicUniquePtr pScanner = std::make_unique< InternetScannerBasic >();
+	//	m_InternetScannerBasicThreads.emplace_back( threadMain, pScanner.get() );
+	//	m_InternetScannerBasic.push_back( std::move( pScanner ) );
+	//}
 }
 
 void sWebScannerThreadMain( InternetScanner* pScanner )
 {
 	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
-	Network::IPAddress address = g_pWatcher->GetIPGenerator()->GetCurrent();
 	while ( g_pWatcher->IsActive() )
 	{
-		if ( pScanner->Scan( address, ports ) )
+		Network::IPAddress address = g_pWatcher->GetIPGenerator()->GetCurrent();
+		if ( g_pWatcher->GetPortScannerCoverage()->GetNextBlock( address ) )
 		{
-			address = g_pWatcher->GetIPGenerator()->GetNext( 16 );
+			if ( pScanner->Scan( address, ports ) )
+			{
+				g_pWatcher->GetPortScannerCoverage()->SetBlockState( address, PortScanner::Coverage::BlockState::Scanned );
+				g_pWatcher->GetPortScannerCoverage()->Write();
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 }
@@ -174,7 +188,7 @@ void Watcher::Update()
 	m_pRep->Update();
 	m_pRep->Render();
 
-	m_pPortScannerCoverage->DrawUI();
+	m_pPortScannerCoverage->DrawUI( m_PortScannerCoverageOpen );
 
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
@@ -182,6 +196,11 @@ void Watcher::Update()
 
 	if ( ImGui::CollapsingHeader( "Webserver scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
+		if ( ImGui::Button( "See coverage" ) )
+		{
+			m_PortScannerCoverageOpen = !m_PortScannerCoverageOpen;
+		}
+
 		if ( m_WebServerScannerMode == InternetScannerMode::None )
 		{
 			if ( ImGui::Button( "Begin scan (basic)" ) )

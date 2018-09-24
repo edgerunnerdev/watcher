@@ -1,4 +1,5 @@
 #include <sstream>
+#include <string>
 #include <SDL.h>
 #include <SDL_image.h>
 #include "atlas/atlas.h"
@@ -14,6 +15,8 @@ m_HighResTextures( numTilesX * numTilesY )
 	SDL_assert( m_NumTilesX > 0 );
 	SDL_assert( m_NumTilesY > 0 );
 	SDL_assert( m_TileResolution >= 256 );
+
+	LoadTextures();
 }
 
 Atlas::~Atlas()
@@ -30,25 +33,45 @@ void Atlas::Render()
 	{
 		for ( int y = 0; y < m_NumTilesY; ++y )
 		{
-			pDrawList->AddRectFilled(
-				ImVec2( tileSize * (float)x, tileSize * (float)y ),
-				ImVec2( tileSize * (float)( x + 1u ), tileSize * (float)( y + 1u ) ),
-				( ( x + y ) % 2 == 0 ) ? ImColor( 1.0f, 0.0f, 0.0f, 0.5f ) : ImColor( 0.0f, 0.0f, 1.0f, 0.5f ) 
-			);
+			GLuint texture = GetTileTexture( x, y );
+			if ( texture != 0u )
+			{
+				pDrawList->AddImage( 
+					reinterpret_cast< ImTextureID >( texture ), 
+					ImVec2( tileSize * (float)x, tileSize * (float)y ), 
+					ImVec2( tileSize * (float)( x + 1u ), tileSize * (float)( y + 1u ) )
+				);
+			}
 		}
 	}
+}
+
+void Atlas::GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const
+{
+	x = ( longitude + 180.0f ) / 360.0f * static_cast< float >( m_NumTilesX * m_TileResolution );
+	y = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( m_NumTilesY * m_TileResolution );
 }
 
 // Returns the texture for a given tile coordinate, prefering the high resolution version if loaded.
 GLuint Atlas::GetTileTexture( int x, int y ) const
 {
-	int idx = y * m_NumTilesX + x;
+	int idx = x * m_NumTilesY + y;
 	return m_HighResTextures.at( idx ) == 0 ? m_LowResTextures[ idx ] : m_HighResTextures[ idx ];
 }
 
 void Atlas::LoadTextures()
 {
-
+	int textureIndex = 0;
+	for ( int x = 0u; x < m_NumTilesX; ++x )
+	{
+		for ( int y = 0u; y < m_NumTilesY; ++y )
+		{
+			std::stringstream filename;
+			filename << "textures/earth_small_" << textureIndex + 1 << ".png";
+			GLuint texture = LoadTexture( filename.str() );
+			m_LowResTextures[ textureIndex++ ] = texture;
+		}
+	}
 }
 
 GLuint Atlas::LoadTexture( const std::string& filename )
@@ -57,6 +80,7 @@ GLuint Atlas::LoadTexture( const std::string& filename )
 	SDL_assert( pSurface != nullptr );
 	if ( pSurface == nullptr )
 	{
+ 		printf("Atlas::LoadTexture error: %s\n", IMG_GetError());
 		return 0;
 	}
 

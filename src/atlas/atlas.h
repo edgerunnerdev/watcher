@@ -26,6 +26,7 @@ public:
 	~Atlas();
 
 	void Render();
+	void GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const;
 
 private:
 	void LoadTextures();
