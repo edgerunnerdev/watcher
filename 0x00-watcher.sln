@@ -3,18 +3,34 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "0x00-watcher", "0x00-watcher.vcxproj", "{DB2A96BA-0101-4462-A586-2435A7F03FDC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "0x00-watcher", "src\0x00-watcher\0x00-watcher.vcxproj", "{DB2A96BA-0101-4462-A586-2435A7F03FDC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "geolocation", "src\geolocation\geolocation.vcxproj", "{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Debug|x64.ActiveCfg = Debug|x64
+		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Debug|x64.Build.0 = Debug|x64
 		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Debug|x86.ActiveCfg = Debug|Win32
 		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Debug|x86.Build.0 = Debug|Win32
+		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Release|x64.ActiveCfg = Release|x64
+		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Release|x64.Build.0 = Release|x64
 		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Release|x86.ActiveCfg = Release|Win32
 		{DB2A96BA-0101-4462-A586-2435A7F03FDC}.Release|x86.Build.0 = Release|Win32
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Debug|x64.ActiveCfg = Debug|x64
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Debug|x64.Build.0 = Debug|x64
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Debug|x86.ActiveCfg = Debug|Win32
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Debug|x86.Build.0 = Debug|Win32
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Release|x64.ActiveCfg = Release|x64
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Release|x64.Build.0 = Release|x64
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Release|x86.ActiveCfg = Release|Win32
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

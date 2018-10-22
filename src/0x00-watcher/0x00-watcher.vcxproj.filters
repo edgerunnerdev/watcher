@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="atlas_grid.cpp" />
+    <ClCompile Include="camera_detection_rule.cpp" />
+    <ClCompile Include="camera_scanner.cpp" />
+    <ClCompile Include="configuration.cpp" />
+    <ClCompile Include="database_helpers.cpp" />
+    <ClCompile Include="geo_info.cpp" />
+    <ClCompile Include="geo_scanner.cpp" />
+    <ClCompile Include="internet_scanner.cpp" />
+    <ClCompile Include="ip_generator.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="port_probe.cpp" />
+    <ClCompile Include="internet_scanner_basic.cpp" />
+    <ClCompile Include="watcher.cpp" />
+    <ClCompile Include="watcher_rep.cpp" />
+    <ClCompile Include="internet_scanner_nmap.cpp" />
+    <ClCompile Include="internet_scanner_zmap.cpp" />
+    <ClCompile Include="ext\GL\gl3w.cpp">
+      <Filter>ext\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\imgui\imgui.cpp">
+      <Filter>ext\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\imgui\imgui_demo.cpp">
+      <Filter>ext\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\imgui\imgui_draw.cpp">
+      <Filter>ext\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>ext\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\sqlite\sqlite3.c">
+      <Filter>ext\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="ext\htmlstreamparser.c">
+      <Filter>ext</Filter>
+    </ClCompile>
+    <ClCompile Include="port_scanner\coverage.cpp">
+      <Filter>port_scanner</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network_linux.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network_windows.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas\atlas.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_manager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="network">
+      <UniqueIdentifier>{1901017b-5a52-4df5-9cea-d554c170682c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext">
+      <UniqueIdentifier>{6e3f66dd-35b8-47f3-bcd3-23f6e12531f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\sqlite">
+      <UniqueIdentifier>{786d36b5-9ffd-46e6-803f-fe7487a52e34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\imgui">
+      <UniqueIdentifier>{1617b02e-d6cc-4ddc-8dad-31a433a32189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\GL">
+      <UniqueIdentifier>{ecf9ed37-6611-42bc-a912-5456f2d6286b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="atlas">
+      <UniqueIdentifier>{d2fa59ad-5c7e-465c-9132-431688af48b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="port_scanner">
+      <UniqueIdentifier>{c29ecc7c-600c-4e3c-bac2-97f2d1655af0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="atlas_grid.h" />
+    <ClInclude Include="camera_detection_rule.h" />
+    <ClInclude Include="camera_scanner.h" />
+    <ClInclude Include="configuration.h" />
+    <ClInclude Include="database_helpers.h" />
+    <ClInclude Include="geo_info.h" />
+    <ClInclude Include="geo_scanner.h" />
+    <ClInclude Include="internet_scanner.h" />
+    <ClInclude Include="ip_generator.h" />
+    <ClInclude Include="port_probe.h" />
+    <ClInclude Include="internet_scanner_basic.h" />
+    <ClInclude Include="render.h" />
+    <ClInclude Include="watcher.h" />
+    <ClInclude Include="watcher_rep.h" />
+    <ClInclude Include="internet_scanner_nmap.h" />
+    <ClInclude Include="internet_scanner_zmap.h" />
+    <ClInclude Include="ext\GL\gl3w.h">
+      <Filter>ext\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\GL\glcorearb.h">
+      <Filter>ext\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\imgui.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\imgui_impl_sdl_gl3.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\imgui_internal.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\stb_rect_pack.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\stb_textedit.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\stb_truetype.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\sqlite\sqlite3.h">
+      <Filter>ext\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\htmlstreamparser.h">
+      <Filter>ext</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\json.h">
+      <Filter>ext</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\imgui\imconfig.h">
+      <Filter>ext\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="port_scanner\coverage.h">
+      <Filter>port_scanner</Filter>
+    </ClInclude>
+    <ClInclude Include="network\network.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\atlas.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin.h" />
+    <ClInclude Include="plugin_manager.h" />
+  </ItemGroup>
+</Project>

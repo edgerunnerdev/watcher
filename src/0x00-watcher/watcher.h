@@ -23,6 +23,7 @@ class InternetScannerNmap;
 class WebMasscanParser;
 class InternetScannerZmap;
 class InternetScannerBasic;
+class PluginManager;
 class WatcherRep;
 struct sqlite3;
 struct SDL_Window;
@@ -40,6 +41,7 @@ using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
 using GeoInfoVector = std::vector< GeoInfo >;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
+using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
 
 enum class InternetScannerMode
 {
@@ -110,6 +112,8 @@ private:
 
 	PortScanner::CoverageUniquePtr m_pPortScannerCoverage;
 	bool m_PortScannerCoverageOpen;
+
+	PluginManagerUniquePtr m_pPluginManager;
 };
 
 extern Watcher* g_pWatcher;

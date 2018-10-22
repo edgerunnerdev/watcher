@@ -23,6 +23,7 @@
     <ProjectGuid>{DB2A96BA-0101-4462-A586-2435A7F03FDC}</ProjectGuid>
     <RootNamespace>0x00-watcher</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <ProjectName>0x00-watcher</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -79,14 +80,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\ext;$(ProjectDir)libs\SDL2-2.0.8\include;$(ProjectDir)libs\SDL2_image-2.0.3\include;$(ProjectDir)libs\gl3w;$(ProjectDir)libs\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)ext;$(SolutionDir)libs\SDL2-2.0.8\include;$(SolutionDir)libs\SDL2_image-2.0.3\include;$(SolutionDir)libs\gl3w;$(SolutionDir)libs\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>normaliz.lib;wldap32.lib;crypt32.lib;libcurl_a.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)libs\SDL2-2.0.8\lib\x86;$(ProjectDir)libs\SDL2_image-2.0.3\lib\x86;$(ProjectDir)libs\curl\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SDL2-2.0.8\lib\x86;$(SolutionDir)libs\SDL2_image-2.0.3\lib\x86;$(SolutionDir)libs\curl\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,67 +133,70 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\atlas\atlas.cpp" />
-    <ClCompile Include="src\atlas_grid.cpp" />
-    <ClCompile Include="src\camera_detection_rule.cpp" />
-    <ClCompile Include="src\camera_scanner.cpp" />
-    <ClCompile Include="src\configuration.cpp" />
-    <ClCompile Include="src\database_helpers.cpp" />
-    <ClCompile Include="src\ext\GL\gl3w.cpp" />
-    <ClCompile Include="src\ext\htmlstreamparser.c" />
-    <ClCompile Include="src\ext\imgui\imgui.cpp" />
-    <ClCompile Include="src\ext\imgui\imgui_demo.cpp" />
-    <ClCompile Include="src\ext\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\ext\imgui\imgui_impl_sdl_gl3.cpp" />
-    <ClCompile Include="src\geo_info.cpp" />
-    <ClCompile Include="src\geo_scanner.cpp" />
-    <ClCompile Include="src\internet_scanner.cpp" />
-    <ClCompile Include="src\ip_generator.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\network\network.cpp" />
-    <ClCompile Include="src\network\network_linux.cpp" />
-    <ClCompile Include="src\network\network_windows.cpp" />
-    <ClCompile Include="src\port_probe.cpp" />
-    <ClCompile Include="src\internet_scanner_basic.cpp" />
-    <ClCompile Include="src\ext\sqlite\sqlite3.c" />
-    <ClCompile Include="src\port_scanner\coverage.cpp" />
-    <ClCompile Include="src\watcher.cpp" />
-    <ClCompile Include="src\watcher_rep.cpp" />
-    <ClCompile Include="src\internet_scanner_nmap.cpp" />
-    <ClCompile Include="src\internet_scanner_zmap.cpp" />
+    <ClCompile Include="atlas\atlas.cpp" />
+    <ClCompile Include="atlas_grid.cpp" />
+    <ClCompile Include="camera_detection_rule.cpp" />
+    <ClCompile Include="camera_scanner.cpp" />
+    <ClCompile Include="configuration.cpp" />
+    <ClCompile Include="database_helpers.cpp" />
+    <ClCompile Include="ext\GL\gl3w.cpp" />
+    <ClCompile Include="ext\htmlstreamparser.c" />
+    <ClCompile Include="ext\imgui\imgui.cpp" />
+    <ClCompile Include="ext\imgui\imgui_demo.cpp" />
+    <ClCompile Include="ext\imgui\imgui_draw.cpp" />
+    <ClCompile Include="ext\imgui\imgui_impl_sdl_gl3.cpp" />
+    <ClCompile Include="geo_info.cpp" />
+    <ClCompile Include="geo_scanner.cpp" />
+    <ClCompile Include="internet_scanner.cpp" />
+    <ClCompile Include="ip_generator.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="network\network.cpp" />
+    <ClCompile Include="network\network_linux.cpp" />
+    <ClCompile Include="network\network_windows.cpp" />
+    <ClCompile Include="plugin_manager.cpp" />
+    <ClCompile Include="port_probe.cpp" />
+    <ClCompile Include="internet_scanner_basic.cpp" />
+    <ClCompile Include="ext\sqlite\sqlite3.c" />
+    <ClCompile Include="port_scanner\coverage.cpp" />
+    <ClCompile Include="watcher.cpp" />
+    <ClCompile Include="watcher_rep.cpp" />
+    <ClCompile Include="internet_scanner_nmap.cpp" />
+    <ClCompile Include="internet_scanner_zmap.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\atlas\atlas.h" />
-    <ClInclude Include="src\atlas_grid.h" />
-    <ClInclude Include="src\camera_detection_rule.h" />
-    <ClInclude Include="src\camera_scanner.h" />
-    <ClInclude Include="src\configuration.h" />
-    <ClInclude Include="src\database_helpers.h" />
-    <ClInclude Include="src\ext\GL\gl3w.h" />
-    <ClInclude Include="src\ext\GL\glcorearb.h" />
-    <ClInclude Include="src\ext\htmlstreamparser.h" />
-    <ClInclude Include="src\ext\imgui\imconfig.h" />
-    <ClInclude Include="src\ext\imgui\imgui.h" />
-    <ClInclude Include="src\ext\imgui\imgui_impl_sdl_gl3.h" />
-    <ClInclude Include="src\ext\imgui\imgui_internal.h" />
-    <ClInclude Include="src\ext\imgui\stb_rect_pack.h" />
-    <ClInclude Include="src\ext\imgui\stb_textedit.h" />
-    <ClInclude Include="src\ext\imgui\stb_truetype.h" />
-    <ClInclude Include="src\geo_info.h" />
-    <ClInclude Include="src\geo_scanner.h" />
-    <ClInclude Include="src\internet_scanner.h" />
-    <ClInclude Include="src\ip_generator.h" />
-    <ClInclude Include="src\ext\json.h" />
-    <ClInclude Include="src\network\network.h" />
-    <ClInclude Include="src\port_probe.h" />
-    <ClInclude Include="src\internet_scanner_basic.h" />
-    <ClInclude Include="src\ext\sqlite\sqlite3.h" />
-    <ClInclude Include="src\port_scanner\coverage.h" />
-    <ClInclude Include="src\render.h" />
-    <ClInclude Include="src\watcher.h" />
-    <ClInclude Include="src\watcher_rep.h" />
-    <ClInclude Include="src\internet_scanner_nmap.h" />
-    <ClInclude Include="src\internet_scanner_zmap.h" />
+    <ClInclude Include="atlas\atlas.h" />
+    <ClInclude Include="atlas_grid.h" />
+    <ClInclude Include="camera_detection_rule.h" />
+    <ClInclude Include="camera_scanner.h" />
+    <ClInclude Include="configuration.h" />
+    <ClInclude Include="database_helpers.h" />
+    <ClInclude Include="ext\GL\gl3w.h" />
+    <ClInclude Include="ext\GL\glcorearb.h" />
+    <ClInclude Include="ext\htmlstreamparser.h" />
+    <ClInclude Include="ext\imgui\imconfig.h" />
+    <ClInclude Include="ext\imgui\imgui.h" />
+    <ClInclude Include="ext\imgui\imgui_impl_sdl_gl3.h" />
+    <ClInclude Include="ext\imgui\imgui_internal.h" />
+    <ClInclude Include="ext\imgui\stb_rect_pack.h" />
+    <ClInclude Include="ext\imgui\stb_textedit.h" />
+    <ClInclude Include="ext\imgui\stb_truetype.h" />
+    <ClInclude Include="geo_info.h" />
+    <ClInclude Include="geo_scanner.h" />
+    <ClInclude Include="internet_scanner.h" />
+    <ClInclude Include="ip_generator.h" />
+    <ClInclude Include="ext\json.h" />
+    <ClInclude Include="network\network.h" />
+    <ClInclude Include="plugin.h" />
+    <ClInclude Include="plugin_manager.h" />
+    <ClInclude Include="port_probe.h" />
+    <ClInclude Include="internet_scanner_basic.h" />
+    <ClInclude Include="ext\sqlite\sqlite3.h" />
+    <ClInclude Include="port_scanner\coverage.h" />
+    <ClInclude Include="render.h" />
+    <ClInclude Include="watcher.h" />
+    <ClInclude Include="watcher_rep.h" />
+    <ClInclude Include="internet_scanner_nmap.h" />
+    <ClInclude Include="internet_scanner_zmap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

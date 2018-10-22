@@ -15,6 +15,7 @@
 #include "internet_scanner_basic.h"
 #include "internet_scanner_nmap.h"
 #include "internet_scanner_zmap.h"
+#include "plugin_manager.h"
 
 Watcher* g_pWatcher = nullptr;
 
@@ -38,6 +39,8 @@ m_PortScannerCoverageOpen( false )
 	PopulateCameraDetectionQueue();
 	InitialiseGeoScanner();
 	InitialiseCameraScanners( 8 );
+
+	m_pPluginManager = std::make_unique< PluginManager >();
 }
 
 Watcher::~Watcher()
