@@ -1,5 +1,7 @@
 .vs/
 0x00-watcher.vcxproj.user
 bin/
+bin
 imgui.ini
 temp/
+x64/
