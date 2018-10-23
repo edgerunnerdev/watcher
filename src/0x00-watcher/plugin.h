@@ -1,11 +1,9 @@
 #include "json.h"
 
 #ifdef _WIN32
-#ifdef _USRDLL
 #define PLUGIN_API __declspec(dllexport)
 #else
-#define PLUGIN_API __declspec(dllimport)
-#endif // _USRDLL
+#define PLUGIN_API
 #endif //_WIN32
 
 class Plugin
@@ -15,12 +13,7 @@ public:
 	virtual void OnMessage( const nlohmann::json& message ) = 0;
 };
 
-extern "C"
-{
-	PLUGIN_API Plugin* GetPlugin();
-}
-
-#define DECLARE_PLUGIN( PluginClass ) \
+#define DECLARE_PLUGIN( PluginClass, MajorVersion, MinorVersion, PatchVersion ) \
 	extern "C" \
 	{ \
 		PLUGIN_API Plugin* GetPlugin() \
@@ -31,6 +24,12 @@ extern "C"
 		PLUGIN_API const char* GetPluginName() \
 		{ \
 			return #PluginClass; \
+		} \
+		PLUGIN_API void GetPluginVersion( int& major, int& minor, int &patch ) \
+		{ \
+			major = MajorVersion; \
+			minor = MinorVersion; \
+			patch = PatchVersion; \
 		} \
 	}
 		
