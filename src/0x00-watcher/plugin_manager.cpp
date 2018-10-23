@@ -74,5 +74,12 @@ void PluginManager::LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths )
 			m_Plugins.push_back( pluginData );
 		}
 	}
+}
 
+void PluginManager::BroadcastMessage( const nlohmann::json& message )
+{
+	for ( auto& pluginData : m_Plugins )
+	{
+		pluginData.pPlugin->OnMessage( message );
+	}
 }

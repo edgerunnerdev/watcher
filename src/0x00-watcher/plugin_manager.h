@@ -10,6 +10,7 @@ class PluginManager
 {
 public:
 	PluginManager();
+	void BroadcastMessage( const nlohmann::json& message );
 
 private:
 	using SharedLibraryPaths = std::vector< std::string >;

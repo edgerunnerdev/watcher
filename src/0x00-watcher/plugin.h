@@ -1,3 +1,5 @@
+#pragma once
+
 #include "json.h"
 
 #ifdef _WIN32
@@ -6,10 +8,12 @@
 #define PLUGIN_API
 #endif //_WIN32
 
+using PluginMessageCallback = void (*)( const nlohmann::json& message );
+
 class Plugin
 {
 public:
-	virtual bool Initialise() = 0;
+	virtual bool Initialise( PluginMessageCallback pMessageCallback ) = 0;
 	virtual void OnMessage( const nlohmann::json& message ) = 0;
 };
 
