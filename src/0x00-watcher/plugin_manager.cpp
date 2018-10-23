@@ -19,6 +19,7 @@ PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 #ifdef _WIN32
 	HANDLE hFind;
 	WIN32_FIND_DATA data;
+	std::string pluginsFolder( "plugins\\" );
 	for ( hFind = FindFirstFile( "plugins\\*.dll", &data ); hFind != INVALID_HANDLE_VALUE; FindNextFile( hFind, &data ) )
 	{
 		if ( GetLastError() == ERROR_NO_MORE_FILES )
@@ -27,7 +28,7 @@ PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 		}
 		else if ( ( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
 		{
-			paths.push_back( data.cFileName );
+			paths.push_back( pluginsFolder + data.cFileName );
 		}
 	}
 	FindClose( hFind );
