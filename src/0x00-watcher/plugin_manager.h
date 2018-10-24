@@ -17,6 +17,7 @@ private:
 	SharedLibraryPaths DiscoverSharedLibraries();
 
 	void LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths );
+	void InitialisePlugins();
 
 	struct PluginData
 	{

@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "0x00-watcher", "src\0x00-watcher\0x00-watcher.vcxproj", "{DB2A96BA-0101-4462-A586-2435A7F03FDC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B146900D-470F-4035-B8B9-7A7D1D709F9E} = {B146900D-470F-4035-B8B9-7A7D1D709F9E}
+		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053} = {EAACEE98-823E-4458-BCC8-4C1BCC3EC053}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "geolocation", "src\geolocation\geolocation.vcxproj", "{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}"

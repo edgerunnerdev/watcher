@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <SDL.h>
+#include "ext/json.h"
 #include "imgui/imgui.h"
 #include "sqlite/sqlite3.h"
 #include "port_scanner/coverage.h"
@@ -41,6 +42,7 @@ m_PortScannerCoverageOpen( false )
 	InitialiseCameraScanners( 8 );
 
 	m_pPluginManager = std::make_unique< PluginManager >();
+	InitialiseGeolocation();
 }
 
 Watcher::~Watcher()
@@ -80,6 +82,31 @@ Watcher::~Watcher()
 	sqlite3_close( m_pDatabase );
 
 	m_pConfiguration->SetWebScannerStartAddress( m_pIPGenerator->GetCurrent() );
+}
+
+void Watcher::InitialiseGeolocation()
+{
+	using json = nlohmann::json;
+	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
+	{
+		PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pOwner );
+		for ( int i = 0; i < argc; i++ )
+		{
+			json message;
+			message[ "geolocation_request" ] = argv[ i ];
+			pPluginManager->BroadcastMessage( message );
+		}
+		return 0;
+	};
+
+	std::string query = "SELECT IP FROM Cameras WHERE Geo=0";
+	char* pError = nullptr;
+	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, m_pPluginManager.get(), &pError );
+	if( rc != SQLITE_OK )
+	{
+		fprintf( stderr, "SQL error: %s\n", pError );
+		sqlite3_free( pError );
+	}
 }
 
 void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )

@@ -10,6 +10,7 @@ PluginManager::PluginManager()
 	SharedLibraryPaths sharedLibraryPaths;
 	sharedLibraryPaths = DiscoverSharedLibraries();
 	LoadPlugins( sharedLibraryPaths );
+	InitialisePlugins();
 }
 
 PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
@@ -76,10 +77,18 @@ void PluginManager::LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths )
 	}
 }
 
+void PluginManager::InitialisePlugins()
+{
+	for ( auto& pluginData : m_Plugins )
+	{
+		pluginData.pPlugin->Initialise( nullptr ); // TODO: pass a proper callback.
+	}
+}
+
 void PluginManager::BroadcastMessage( const nlohmann::json& message )
 {
 	for ( auto& pluginData : m_Plugins )
 	{
-		pluginData.pPlugin->OnMessage( message );
+		pluginData.pPlugin->OnMessageReceived( message );
 	}
 }

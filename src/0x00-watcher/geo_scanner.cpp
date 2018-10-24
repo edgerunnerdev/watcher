@@ -101,25 +101,25 @@ void GeoScanner::QueueScan( Network::IPAddress address )
 
 void GeoScanner::PopulateQueueFromDatabase()
 {
-	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
-	{
-		GeoScanner* pGeoScanner = reinterpret_cast< GeoScanner* >( pOwner);
-		for ( int i = 0; i < argc; i++ )
-		{
-			Network::IPAddress address( argv[i] );
-			pGeoScanner->QueueScan( address );
-		}
-		return 0;
-	};
+	//auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
+	//{
+	//	GeoScanner* pGeoScanner = reinterpret_cast< GeoScanner* >( pOwner);
+	//	for ( int i = 0; i < argc; i++ )
+	//	{
+	//		Network::IPAddress address( argv[i] );
+	//		pGeoScanner->QueueScan( address );
+	//	}
+	//	return 0;
+	//};
 
-	std::string query = "SELECT IP FROM Cameras WHERE Geo=0";
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, this, &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}
+	//std::string query = "SELECT IP FROM Cameras WHERE Geo=0";
+	//char* pError = nullptr;
+	//int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, this, &pError );
+	//if( rc != SQLITE_OK )
+	//{
+	//	fprintf( stderr, "SQL error: %s\n", pError );
+	//	sqlite3_free( pError );
+	//}
 }
 
 void GeoScanner::PopulateResultsFromDatabase()

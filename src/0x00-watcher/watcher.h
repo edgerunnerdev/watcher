@@ -80,6 +80,7 @@ private:
 	void InitialiseCameraScanners( unsigned int scannerCount );
 	void InitialiseGeoScanner();
 	void RestartCameraDetection();
+	void InitialiseGeolocation();
 
 	bool m_Active;
 	ThreadVector m_InternetScannerBasicThreads;

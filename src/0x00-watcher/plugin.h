@@ -14,7 +14,7 @@ class Plugin
 {
 public:
 	virtual bool Initialise( PluginMessageCallback pMessageCallback ) = 0;
-	virtual void OnMessage( const nlohmann::json& message ) = 0;
+	virtual void OnMessageReceived( const nlohmann::json& message ) = 0;
 };
 
 #define DECLARE_PLUGIN( PluginClass, MajorVersion, MinorVersion, PatchVersion ) \
