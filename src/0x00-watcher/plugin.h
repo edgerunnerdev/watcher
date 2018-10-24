@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.h"
+using json = nlohmann::json;
 
 #ifdef _WIN32
 #define PLUGIN_API __declspec(dllexport)
@@ -8,13 +9,13 @@
 #define PLUGIN_API
 #endif //_WIN32
 
-using PluginMessageCallback = void (*)( const nlohmann::json& message );
+using PluginMessageCallback = void (*)( const json& message );
 
 class Plugin
 {
 public:
 	virtual bool Initialise( PluginMessageCallback pMessageCallback ) = 0;
-	virtual void OnMessageReceived( const nlohmann::json& message ) = 0;
+	virtual void OnMessageReceived( const json& message ) = 0;
 };
 
 #define DECLARE_PLUGIN( PluginClass, MajorVersion, MinorVersion, PatchVersion ) \

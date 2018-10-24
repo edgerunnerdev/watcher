@@ -92,8 +92,11 @@ void Watcher::InitialiseGeolocation()
 		PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pOwner );
 		for ( int i = 0; i < argc; i++ )
 		{
-			json message;
-			message[ "geolocation_request" ] = argv[ i ];
+			json message = 
+			{
+				{ "type", "geolocation_request" },
+				{ "address", argv[ i ] },
+			};
 			pPluginManager->BroadcastMessage( message );
 		}
 		return 0;

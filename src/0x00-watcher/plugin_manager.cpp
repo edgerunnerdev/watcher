@@ -3,7 +3,13 @@
 #endif
 #include "plugin.h"
 #include "plugin_manager.h"
+#include "watcher.h"
 
+extern Watcher* g_pWatcher;
+void WatcherMessageCallback( const json& message )
+{
+	int a = 0;
+}
 
 PluginManager::PluginManager()
 {
@@ -81,7 +87,7 @@ void PluginManager::InitialisePlugins()
 {
 	for ( auto& pluginData : m_Plugins )
 	{
-		pluginData.pPlugin->Initialise( nullptr ); // TODO: pass a proper callback.
+		pluginData.pPlugin->Initialise( &WatcherMessageCallback );
 	}
 }
 

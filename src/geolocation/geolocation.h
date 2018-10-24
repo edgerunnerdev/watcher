@@ -26,4 +26,5 @@ private:
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
 	CURL* m_pCurlHandle;
+	std::string m_Data;
 };
