@@ -5,3 +5,6 @@ bin
 imgui.ini
 temp/
 x64/
+
+# watcher_shared library is build as part of the compilation process.
+libs/watcher_shared

@@ -41,24 +41,12 @@
     <ClCompile Include="port_scanner\coverage.cpp">
       <Filter>port_scanner</Filter>
     </ClCompile>
-    <ClCompile Include="network\network.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="network\network_linux.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="network\network_windows.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
     <ClCompile Include="atlas\atlas.cpp">
       <Filter>atlas</Filter>
     </ClCompile>
     <ClCompile Include="plugin_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="network">
-      <UniqueIdentifier>{1901017b-5a52-4df5-9cea-d554c170682c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ext">
       <UniqueIdentifier>{6e3f66dd-35b8-47f3-bcd3-23f6e12531f1}</UniqueIdentifier>
     </Filter>
@@ -133,9 +121,6 @@
     </ClInclude>
     <ClInclude Include="port_scanner\coverage.h">
       <Filter>port_scanner</Filter>
-    </ClInclude>
-    <ClInclude Include="network\network.h">
-      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="atlas\atlas.h">
       <Filter>atlas</Filter>
