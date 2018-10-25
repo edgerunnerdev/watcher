@@ -9,6 +9,7 @@ using json = nlohmann::json;
 #define PLUGIN_API
 #endif //_WIN32
 
+struct ImGuiContext;
 using PluginMessageCallback = void (*)( const json& message );
 
 class Plugin
@@ -16,6 +17,7 @@ class Plugin
 public:
 	virtual bool Initialise( PluginMessageCallback pMessageCallback ) = 0;
 	virtual void OnMessageReceived( const json& message ) = 0;
+	virtual void DrawUI( ImGuiContext* pContext ) = 0;
 };
 
 #define DECLARE_PLUGIN( PluginClass, MajorVersion, MinorVersion, PatchVersion ) \

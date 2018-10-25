@@ -80,7 +80,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)ext;$(SolutionDir)libs\SDL2-2.0.8\include;$(SolutionDir)libs\SDL2_image-2.0.3\include;$(SolutionDir)libs\gl3w;$(SolutionDir)libs\curl\include;$(SolutionDir)src\watcher_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)ext;$(SolutionDir)libs\SDL2-2.0.8\include;$(SolutionDir)libs\SDL2_image-2.0.3\include;$(SolutionDir)libs\curl\include;$(SolutionDir)src\watcher_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -139,14 +139,8 @@
     <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database_helpers.cpp" />
-    <ClCompile Include="ext\GL\gl3w.cpp" />
     <ClCompile Include="ext\htmlstreamparser.c" />
-    <ClCompile Include="ext\imgui\imgui.cpp" />
-    <ClCompile Include="ext\imgui\imgui_demo.cpp" />
-    <ClCompile Include="ext\imgui\imgui_draw.cpp" />
-    <ClCompile Include="ext\imgui\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="geo_info.cpp" />
-    <ClCompile Include="geo_scanner.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
     <ClCompile Include="ip_generator.cpp" />
     <ClCompile Include="main.cpp" />
@@ -167,18 +161,8 @@
     <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database_helpers.h" />
-    <ClInclude Include="ext\GL\gl3w.h" />
-    <ClInclude Include="ext\GL\glcorearb.h" />
     <ClInclude Include="ext\htmlstreamparser.h" />
-    <ClInclude Include="ext\imgui\imconfig.h" />
-    <ClInclude Include="ext\imgui\imgui.h" />
-    <ClInclude Include="ext\imgui\imgui_impl_sdl_gl3.h" />
-    <ClInclude Include="ext\imgui\imgui_internal.h" />
-    <ClInclude Include="ext\imgui\stb_rect_pack.h" />
-    <ClInclude Include="ext\imgui\stb_textedit.h" />
-    <ClInclude Include="ext\imgui\stb_truetype.h" />
     <ClInclude Include="geo_info.h" />
-    <ClInclude Include="geo_scanner.h" />
     <ClInclude Include="internet_scanner.h" />
     <ClInclude Include="ip_generator.h" />
     <ClInclude Include="ext\json.h" />

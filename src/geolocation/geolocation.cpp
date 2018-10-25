@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <curl/curl.h>
+#include <imgui/imgui.h>
 
 DECLARE_PLUGIN( Geolocation, 0, 1, 0 )
 
@@ -50,6 +51,20 @@ void Geolocation::OnMessageReceived( const nlohmann::json& message )
 		}
 
 		ConsumeQueue();
+	}
+}
+
+void Geolocation::DrawUI( ImGuiContext* pContext )
+{
+	ImGui::SetCurrentContext( pContext );
+
+	if ( ImGui::CollapsingHeader( "Geolocation", ImGuiTreeNodeFlags_DefaultOpen ) )
+	{
+		std::lock_guard< std::mutex > lock( m_QueueMutex );
+		ImGui::Text( "Provider: ipinfo.io" );
+		std::stringstream ss;
+		ss << "Queue size: " << m_Queue.size();
+		ImGui::Text( ss.str().c_str() );
 	}
 }
 

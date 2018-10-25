@@ -16,6 +16,7 @@ public:
 	virtual ~Geolocation();
 	bool Initialise( PluginMessageCallback pMessageCallback ) override;
 	void OnMessageReceived( const nlohmann::json& message ) override;
+	void DrawUI( ImGuiContext* pContext ) override;
 
 private:
 	void ConsumeQueue();

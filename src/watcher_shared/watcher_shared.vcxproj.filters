@@ -10,15 +10,63 @@
     <ClCompile Include="network\network_linux.cpp">
       <Filter>network</Filter>
     </ClCompile>
+    <ClCompile Include="GL\gl3w.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="network">
       <UniqueIdentifier>{7c5a5b7c-3e30-48c9-a4db-4e08671b378f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{76707622-d05b-4249-b441-46c107e5bb4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{affb0e66-7cb4-4901-a568-9742d6f71bcb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="network\network.h">
       <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\gl3w.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\glcorearb.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_sdl_gl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_rect_pack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_truetype.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

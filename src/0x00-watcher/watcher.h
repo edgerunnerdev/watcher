@@ -7,7 +7,9 @@
 #include "network/network.h"
 #include "camera_scanner.h"
 #include "geo_info.h"
-#include "geo_scanner.h"
+
+#include "json.h"
+using json = nlohmann::json;
 
 namespace PortScanner
 {
@@ -38,7 +40,6 @@ using IPVector = std::vector< Network::IPAddress >;
 using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
 using CameraScannerVector = std::vector< CameraScannerUniquePtr >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
-using GeoScannerUniquePtr = std::unique_ptr< GeoScanner >;
 using GeoInfoVector = std::vector< GeoInfo >;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
 using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
@@ -78,9 +79,9 @@ private:
 	void InitialiseNmap();
 	void InitialiseZmap();
 	void InitialiseCameraScanners( unsigned int scannerCount );
-	void InitialiseGeoScanner();
 	void RestartCameraDetection();
 	void InitialiseGeolocation();
+	void LoadGeoInfos();
 
 	bool m_Active;
 	ThreadVector m_InternetScannerBasicThreads;
@@ -95,9 +96,6 @@ private:
 	ThreadVector m_CameraScannerThreads;
 	std::mutex m_CameraScanResultsMutex;
 	CameraScanResultList m_CameraScanResults;
-
-	std::thread m_GeoScannerThread;
-	GeoScannerUniquePtr m_pGeoScanner;
 
 	std::mutex m_GeoInfoMutex;
 	GeoInfoVector m_GeoInfos;

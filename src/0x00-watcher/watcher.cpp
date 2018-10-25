@@ -17,8 +17,10 @@
 #include "internet_scanner_nmap.h"
 #include "internet_scanner_zmap.h"
 #include "plugin_manager.h"
+#include "plugin.h"
 
 Watcher* g_pWatcher = nullptr;
+extern IMGUI_API ImGuiContext* GImGui;
 
 Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
@@ -38,7 +40,6 @@ m_PortScannerCoverageOpen( false )
 	m_pPortScannerCoverage->Read();
 
 	PopulateCameraDetectionQueue();
-	InitialiseGeoScanner();
 	InitialiseCameraScanners( 8 );
 
 	m_pPluginManager = std::make_unique< PluginManager >();
@@ -64,11 +65,6 @@ Watcher::~Watcher()
 		}
 	}
 
-	if ( m_GeoScannerThread.joinable() )
-	{
-		m_GeoScannerThread.join();
-	}
-
 	if ( m_InternetScannerNmapThread.joinable() )
 	{
 		m_InternetScannerNmapThread.join();
@@ -86,7 +82,8 @@ Watcher::~Watcher()
 
 void Watcher::InitialiseGeolocation()
 {
-	using json = nlohmann::json;
+	LoadGeoInfos();
+
 	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
 	{
 		PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pOwner );
@@ -202,20 +199,6 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 	}
 }
 
-void Watcher::InitialiseGeoScanner()
-{
-	auto scannerThreadMain = []( Watcher* pWatcher, GeoScanner* pScanner )
-	{
-		while ( pWatcher->IsActive() )
-		{
-			pScanner->Update();
-		}
-	};
-	
-	m_pGeoScanner = std::make_unique< GeoScanner >();
-	m_GeoScannerThread = std::thread( scannerThreadMain, this, m_pGeoScanner.get() );
-}
-
 void Watcher::Update()
 {
 	m_pRep->Update();
@@ -327,20 +310,9 @@ void Watcher::Update()
 		}
 	}
 
-	if ( ImGui::CollapsingHeader( "Geolocation", ImGuiTreeNodeFlags_DefaultOpen ) )
+	for ( auto& pluginData : m_pPluginManager->GetPlugins() )
 	{
-		ImGui::Text( "Provider: ipinfo.io" );
-		std::stringstream ss;
-		ss << "Queue size: " << m_pGeoScanner->GetQueueSize();
-		ImGui::Text( ss.str().c_str() );
-	}
-
-	if ( ImGui::CollapsingHeader( "Database operations" ) )
-	{
-		if ( ImGui::Button( "Restart camera scan" ) )
-		{
-			RestartCameraDetection();
-		}
+		pluginData.pPlugin->DrawUI( GImGui );
 	}
 
 	ImGui::End();
@@ -454,4 +426,32 @@ void Watcher::OnGeoInfoAdded( const GeoInfo& geoInfo )
 {
 	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
 	m_GeoInfos.push_back( geoInfo );
+}
+
+// Loads all geolocation information which had previously been stored in the database.
+void Watcher::LoadGeoInfos()
+{
+	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
+	{
+		Network::IPAddress address( argv[ 0 ] );
+		std::string city = argv[ 1 ];
+		std::string region = argv[ 2 ];
+		std::string country = argv[ 3 ];
+		std::string organisation = argv[ 4 ];
+		float latitude = static_cast< float >( atof( argv[ 5 ] ) );
+		float longitude = static_cast< float >( atof( argv[ 6 ] ) );
+		GeoInfo geoInfo( address );
+		geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
+		g_pWatcher->m_GeoInfos.push_back( geoInfo );
+		return 0;
+	};
+
+	std::string query = "SELECT * FROM Geolocation";
+	char* pError = nullptr;
+	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, this, &pError );
+	if( rc != SQLITE_OK )
+	{
+		fprintf( stderr, "SQL error: %s\n", pError );
+		sqlite3_free( pError );
+	}	
 }
