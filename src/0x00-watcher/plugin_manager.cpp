@@ -49,52 +49,42 @@ PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 void PluginManager::LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths )
 {
 	using GetPluginFnPtr = Plugin * (*)();
-	using GetPluginNameFnPtr = const char* (*)();
-	using GetPluginVersionFnPtr = void(*)( int& major, int& minor, int& patch );
 
 	m_Plugins.reserve( sharedLibraryPaths.size() );
 
 	for ( const std::string& sharedLibraryPath : sharedLibraryPaths )
 	{
 		GetPluginFnPtr getPluginFnPtr = nullptr;
-		GetPluginNameFnPtr getPluginNameFnPtr = nullptr;
-		GetPluginVersionFnPtr getPluginVersionFnPtr = nullptr;
 
 #ifdef _WIN32
 		HINSTANCE pluginDll = LoadLibrary( sharedLibraryPath.c_str() );
 		if ( pluginDll )
 		{
 			getPluginFnPtr = (GetPluginFnPtr)GetProcAddress( pluginDll, "GetPlugin" );
-			getPluginNameFnPtr = (GetPluginNameFnPtr)GetProcAddress( pluginDll, "GetPluginName" );
-			getPluginVersionFnPtr = (GetPluginVersionFnPtr)GetProcAddress( pluginDll, "GetPluginVersion" );
 		}
 #else
 		static_assert( false );
 #endif
 
-		if ( getPluginFnPtr != nullptr && getPluginNameFnPtr != nullptr && getPluginVersionFnPtr != nullptr )
+		if ( getPluginFnPtr != nullptr )
 		{
-			PluginData pluginData;
-			pluginData.pPlugin = getPluginFnPtr();
-			pluginData.name = std::string( getPluginNameFnPtr() );
-			getPluginVersionFnPtr( pluginData.versionMajor, pluginData.versionMinor, pluginData.versionPatch );
-			m_Plugins.push_back( pluginData );
+			m_Plugins.push_back( getPluginFnPtr() );
 		}
 	}
 }
 
 void PluginManager::InitialisePlugins()
 {
-	for ( auto& pluginData : m_Plugins )
+	for ( Plugin* pPlugin : m_Plugins )
 	{
-		pluginData.pPlugin->Initialise( &WatcherMessageCallback );
+		pPlugin->Initialise( &WatcherMessageCallback );
 	}
 }
 
 void PluginManager::BroadcastMessage( const nlohmann::json& message )
 {
-	for ( auto& pluginData : m_Plugins )
+	for ( Plugin* pPlugin : m_Plugins )
 	{
-		pluginData.pPlugin->OnMessageReceived( message );
+		pPlugin->OnMessageReceived( message );
 	}
 }

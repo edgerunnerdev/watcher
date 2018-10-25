@@ -11,12 +11,13 @@ using CURL = void;
 
 class Geolocation : public Plugin
 {
+	DECLARE_PLUGIN( Geolocation, 0, 2, 0 );
 public:
 	Geolocation();
 	virtual ~Geolocation();
-	bool Initialise( PluginMessageCallback pMessageCallback ) override;
-	void OnMessageReceived( const nlohmann::json& message ) override;
-	void DrawUI( ImGuiContext* pContext ) override;
+	virtual bool Initialise( PluginMessageCallback pMessageCallback ) override;
+	virtual void OnMessageReceived( const nlohmann::json& message ) override;
+	virtual void DrawUI( ImGuiContext* pContext ) override;
 
 private:
 	void ConsumeQueue();

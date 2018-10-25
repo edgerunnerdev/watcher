@@ -310,9 +310,9 @@ void Watcher::Update()
 		}
 	}
 
-	for ( auto& pluginData : m_pPluginManager->GetPlugins() )
+	for ( Plugin* pPlugin : m_pPluginManager->GetPlugins() )
 	{
-		pluginData.pPlugin->DrawUI( GImGui );
+		pPlugin->DrawUI( GImGui );
 	}
 
 	ImGui::End();

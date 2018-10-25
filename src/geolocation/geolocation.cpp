@@ -5,7 +5,7 @@
 #include <curl/curl.h>
 #include <imgui/imgui.h>
 
-DECLARE_PLUGIN( Geolocation, 0, 1, 0 )
+IMPLEMENT_PLUGIN( Geolocation )
 
 // This needs to be a static function as libcurl is a C library and will segfault if passed
 // a local lambda.
