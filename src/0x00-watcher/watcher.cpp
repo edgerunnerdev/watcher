@@ -471,4 +471,6 @@ void Watcher::AddGeoInfo( const json& message )
 		std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
 		m_GeoInfos.push_back( geoInfo );
 	}
+
+	geoInfo.SaveToDatabase( m_pDatabase );
 }
