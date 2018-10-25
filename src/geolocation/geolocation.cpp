@@ -128,15 +128,18 @@ void Geolocation::ConsumeQueue()
 				if ( data.find( "city" ) != data.end() && 
 					 data.find( "region" ) != data.end() &&
 					 data.find( "country" ) != data.end() &&
-					 data.find( "org" ) != data.end() )
+					 data.find( "org" ) != data.end() &&
+					 data.find( "loc" ) != data.end() )
 				{
 					message = 
 					{
 						{ "type", "geolocation_result" },
+						{ "address", address.ToString() },
 						{ "city", data[ "city" ] },
 						{ "region", data[ "region" ] },
 						{ "country", data[ "country" ] },
-						{ "org", data[ "org " ] }
+						{ "org", data[ "org" ] },
+						{ "loc", data[ "loc" ] }
 					};
 				}
 				else

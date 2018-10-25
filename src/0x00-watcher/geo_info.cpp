@@ -21,10 +21,8 @@ bool GeoInfo::LoadFromDatabase( const std::string& city, const std::string& regi
 	return true;
 }
 
-bool GeoInfo::LoadFromJSON( const std::string& data )
+bool GeoInfo::LoadFromJSON( const json& geoInfoJson )
 {
-	using json = nlohmann::json;
-	json geoInfoJson = json::parse( data );
 	m_City = geoInfoJson[ "city" ];
 	m_Region = geoInfoJson[ "region" ];
 	m_Country = geoInfoJson[ "country" ];

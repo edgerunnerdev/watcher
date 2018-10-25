@@ -10,6 +10,7 @@
 #include "camera_scanner.h"
 #include "configuration.h"
 #include "database_helpers.h"
+#include "geo_info.h"
 #include "ip_generator.h"
 #include "watcher.h"
 #include "watcher_rep.h"
@@ -318,6 +319,15 @@ void Watcher::Update()
 	ImGui::End();
 }
 
+void Watcher::OnMessageReceived( const json& message )
+{
+	const std::string& messageType = message[ "type" ];
+	if ( messageType == "geolocation_result" )
+	{
+		AddGeoInfo( message );
+	}
+}
+
 void Watcher::OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address )
 {
 	if ( pDatabase != nullptr )
@@ -422,12 +432,6 @@ bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
 	}
 }
 
-void Watcher::OnGeoInfoAdded( const GeoInfo& geoInfo )
-{
-	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
-	m_GeoInfos.push_back( geoInfo );
-}
-
 // Loads all geolocation information which had previously been stored in the database.
 void Watcher::LoadGeoInfos()
 {
@@ -454,4 +458,17 @@ void Watcher::LoadGeoInfos()
 		fprintf( stderr, "SQL error: %s\n", pError );
 		sqlite3_free( pError );
 	}	
+}
+
+void Watcher::AddGeoInfo( const json& message )
+{
+	std::string addressStr = message[ "address" ];
+	const Network::IPAddress address( addressStr );
+	GeoInfo geoInfo( address );
+	geoInfo.LoadFromJSON( message );
+
+	{
+		std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
+		m_GeoInfos.push_back( geoInfo );
+	}
 }

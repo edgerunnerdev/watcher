@@ -8,7 +8,7 @@
 extern Watcher* g_pWatcher;
 void WatcherMessageCallback( const json& message )
 {
-	int a = 0;
+	g_pWatcher->OnMessageReceived( message );
 }
 
 PluginManager::PluginManager()

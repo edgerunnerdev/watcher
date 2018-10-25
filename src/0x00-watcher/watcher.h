@@ -67,7 +67,7 @@ public:
 	// database connection.
 	void OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address );
 	void OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& result );
-	void OnGeoInfoAdded( const GeoInfo& geoInfo );
+	void OnMessageReceived( const json& message );
 
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
 
@@ -82,6 +82,7 @@ private:
 	void RestartCameraDetection();
 	void InitialiseGeolocation();
 	void LoadGeoInfos();
+	void AddGeoInfo( const json& message );
 
 	bool m_Active;
 	ThreadVector m_InternetScannerBasicThreads;
