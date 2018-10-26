@@ -12,6 +12,7 @@
 #include "database_helpers.h"
 #include "geo_info.h"
 #include "ip_generator.h"
+#include "log.h"
 #include "watcher.h"
 #include "watcher_rep.h"
 #include "internet_scanner_basic.h"
@@ -30,6 +31,12 @@ m_pDatabase( nullptr ),
 m_PortScannerCoverageOpen( false )
 {
 	g_pWatcher = this;
+
+	Log::AddLogTarget( std::make_shared< FileLogger >( "log.txt" ) );
+#ifdef _WIN32
+	Log::AddLogTarget( std::make_shared< VisualStudioLogger >() );
+#endif
+
 	m_pConfiguration = std::make_unique< Configuration >();
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
@@ -41,7 +48,7 @@ m_PortScannerCoverageOpen( false )
 	m_pPortScannerCoverage->Read();
 
 	PopulateCameraDetectionQueue();
-	InitialiseCameraScanners( 8 );
+	InitialiseCameraScanners( 32 );
 
 	m_pPluginManager = std::make_unique< PluginManager >();
 	InitialiseGeolocation();
@@ -322,7 +329,16 @@ void Watcher::Update()
 void Watcher::OnMessageReceived( const json& message )
 {
 	const std::string& messageType = message[ "type" ];
-	if ( messageType == "geolocation_result" )
+	if ( messageType == "log" )
+	{
+		const std::string& messageLevel = message[ "level" ];
+		const std::string& messagePlugin = message[ "plugin" ];
+		const std::string& messageText = message[ "message" ];
+		if ( messageLevel == "warning" ) Log::Warning( "%s %s", messagePlugin.c_str(), messageText.c_str() );
+		else if ( messageLevel == "error" ) Log::Error( "%s %s", messagePlugin.c_str(), messageText.c_str() );
+		else Log::Info( "%s %s", messagePlugin.c_str(), messageText.c_str() );
+	}
+	else if ( messageType == "geolocation_result" )
 	{
 		AddGeoInfo( message );
 	}
@@ -374,14 +390,19 @@ void Watcher::PopulateCameraDetectionQueue()
 
 void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& result )
 {
+	if ( result.title.empty() == false || result.isCamera )
 	{
-		std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
-		m_CameraScanResults.push_front( result );
-		if ( m_CameraScanResults.size() > 100 )
 		{
-			m_CameraScanResults.pop_back();
-		}
-	}	
+			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+			m_CameraScanResults.push_front( result );
+			if ( m_CameraScanResults.size() > 100 )
+			{
+				m_CameraScanResults.pop_back();
+			}
+		}	
+
+		Log::Info( "[%s] -> %s", result.address.ToString().c_str(), result.title.c_str() );
+	}
 
 	std::stringstream wss;
 	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.GetHostAsString() << "';";

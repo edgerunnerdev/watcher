@@ -29,6 +29,7 @@
       <Filter>atlas</Filter>
     </ClCompile>
     <ClCompile Include="plugin_manager.cpp" />
+    <ClCompile Include="log.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -77,5 +78,6 @@
     </ClInclude>
     <ClInclude Include="plugin.h" />
     <ClInclude Include="plugin_manager.h" />
+    <ClInclude Include="log.h" />
   </ItemGroup>
 </Project>

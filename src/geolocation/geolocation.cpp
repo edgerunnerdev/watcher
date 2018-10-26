@@ -115,7 +115,8 @@ void Geolocation::ConsumeQueue()
 			{
 				json message = 
 				{
-					{ "type",  "error" },
+					{ "type", "log" },
+					{ "level", "error" }, 
 					{ "plugin", "geolocation" },
 					{ "message", pErrorBuffer }
 				};
@@ -146,7 +147,8 @@ void Geolocation::ConsumeQueue()
 				{
 					message =
 					{
-						{ "type", "error" },
+						{ "type", "log" },
+						{ "level", "error" }, 
 						{ "plugin", "geolocation" },
 						{ "message", "Error processing JSON response." }
 					};
