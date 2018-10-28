@@ -29,14 +29,14 @@ void Log::RemoveLogTarget( LogTargetSharedPtr pLogTarget )
 
 // Internal logging function. Should be called by one of the public functions (LogInfo / LogWarning / LogError).
 // Assumes that m_Mutex is locked at this stage.
-void Log::LogInternal( const char* pText, LogLevel level )
+void Log::LogInternal( const std::string& text, LogLevel level )
 {
 	std::string prefix;
 	if ( level == LogLevel::Info ) prefix = "INFO: ";
 	else if ( level == LogLevel::Warning ) prefix = "WARNING: ";
 	else if ( level == LogLevel::Error ) prefix = "ERROR: ";
 
-    sprintf_s( m_Buffer.data(), m_Buffer.size(), "%s%s\n", prefix.c_str(), pText );
+    snprintf( m_Buffer.data(), m_Buffer.size(), "%s%s\n", prefix.c_str(), text.c_str() );
 
     for ( auto& pTarget : m_Targets )
     {
@@ -50,7 +50,7 @@ void Log::Info( const char* format, ... )
 
     va_list args;
     va_start( args, format );
-	vsprintf_s( m_VABuffer.data(), m_VABuffer.size(), format, args );
+	vsnprintf( m_VABuffer.data(), m_VABuffer.size(), format, args );
     LogInternal( m_VABuffer.data(), LogLevel::Info );
     va_end( args );
 }
@@ -61,7 +61,7 @@ void Log::Warning( const char* format, ... )
 
     va_list args;
     va_start( args, format );
-    vsprintf_s( m_VABuffer.data(), m_VABuffer.size(), format, args );
+    vsnprintf( m_VABuffer.data(), m_VABuffer.size(), format, args );
     LogInternal( m_VABuffer.data(), LogLevel::Warning );
     va_end( args );
 }
@@ -72,7 +72,7 @@ void Log::Error( const char* format, ... )
 
     va_list args;
     va_start( args, format );
-    vsprintf_s( m_VABuffer.data(), m_VABuffer.size(), format, args );
+    vsnprintf( m_VABuffer.data(), m_VABuffer.size(), format, args );
     LogInternal( m_VABuffer.data(), LogLevel::Error );
     va_end( args );
 }
@@ -95,14 +95,14 @@ FileLogger::~FileLogger()
     }
 }
 
-void FileLogger::Log( char* pText, LogLevel level )
+void FileLogger::Log( const std::string& text, LogLevel level )
 {
     if ( !m_File.is_open() )
     {
         return;
     }
 
-    m_File.write( pText, strlen( pText ) );
+    m_File.write( text.c_str(), text.size() );
     m_File.flush();
 }
 
@@ -129,8 +129,8 @@ void FileLogger::Log( char* pText, LogLevel level )
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef _WIN32
-void VisualStudioLogger::Log( char* pText, LogLevel level )
+void VisualStudioLogger::Log( const std::string& text, LogLevel level )
 {
-    OutputDebugStringA( pText );
+    OutputDebugStringA( text.c_str() );
 }
 #endif

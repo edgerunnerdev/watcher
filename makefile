@@ -14,7 +14,8 @@ SDL_LDFLAGS=$(shell sdl2-config --libs) -lSDL2_image
 CURL_CFLAGS=$(shell curl-config --cflags)
 CURL_LDFLAGS=$(shell curl-config --libs)
 CPPFLAGS=-g -std=c++17 -I$(SRC_DIR) -I$(SRC_DIR)/ext -Isrc/watcher_shared $(SDL_CFLAGS) $(CURL_CFLAGS) -Wno-format-security
-CFLAGS=-g -I$(SRC_DIR)
+CFLAGS=-g -I$(SRC_DIR) -I$(SRC_DIR)/ext
+LDFLAGS=-g $(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL -lboost_system -lboost_filesystem -pthread
 
 0x00-watcher: $(OBJ_FILES)
 	g++ -o bin/$@ $^ $(LDFLAGS)
@@ -23,13 +24,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
 	g++ $(CPPFLAGS) -c -o $@ $<
 
-#$(OBJ_DIR)/ext/sqlite/sqlite3.o: $(SRC_DIR)/ext/sqlite/sqlite3.c
-#	mkdir -p $(@D)
-#	gcc $(CFLAGS) -c -o $@ $<
+$(OBJ_DIR)/ext/sqlite/sqlite3.o: $(SRC_DIR)/ext/sqlite/sqlite3.c
+	mkdir -p $(@D)
+	gcc $(CFLAGS) -c -o $@ $<
 
-#$(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
-#	mkdir -p $(@D)
-#	gcc $(CFLAGS) -c -o $@ $<
+$(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
+	mkdir -p $(@D)
+	gcc $(CFLAGS) -c -o $@ $<
 
 
 #####################################################################
@@ -45,13 +46,17 @@ $(WATCHER_SHARED_OBJ_DIR)/%.o: $(WATCHER_SHARED_SRC_FILES)
 	mkdir -p $(@D)
 	g++ -c -o $@ $<
 
-watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
+libwatcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 	mkdir -p $(WATCHER_SHARED_LIB_DIR)
-	ar rcs $(WATCHER_SHARED_LIB_DIR)/$@ $(WATCHER_SHARED_OBJ_FILES)
+	ar -cvr $(WATCHER_SHARED_LIB_DIR)/$@ $(WATCHER_SHARED_OBJ_FILES)
 
+
+#####################################################################
 # Support actions
+#####################################################################
 
 .PHONY: clean
 
 clean:
 	rm -rf $(TEMP)
+	rm -rf $(WATCHER_SHARED_LIB_DIR)

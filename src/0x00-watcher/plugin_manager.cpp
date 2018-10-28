@@ -1,5 +1,8 @@
 #ifdef _WIN32
 #include <Windows.h>
+#elif defined __linux__
+#include <sys/types.h>
+#include <dirent.h>
 #endif
 #include "plugin.h"
 #include "plugin_manager.h"
@@ -22,11 +25,11 @@ PluginManager::PluginManager()
 PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 {
 	SharedLibraryPaths paths;
+	std::string pluginsFolder( "plugins" );
 
 #ifdef _WIN32
 	HANDLE hFind;
 	WIN32_FIND_DATA data;
-	std::string pluginsFolder( "plugins\\" );
 	for ( hFind = FindFirstFile( "plugins\\*.dll", &data ); hFind != INVALID_HANDLE_VALUE; FindNextFile( hFind, &data ) )
 	{
 		if ( GetLastError() == ERROR_NO_MORE_FILES )
@@ -35,12 +38,20 @@ PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 		}
 		else if ( ( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
 		{
-			paths.push_back( pluginsFolder + data.cFileName );
+			paths.push_back( pluginsFolder + "\\" + data.cFileName );
 		}
 	}
 	FindClose( hFind );
+#elif defined __linux__
+	DIR* dirp = opendir( "plugins" );
+	struct dirent* dp;
+	while ( ( dp = readdir( dirp ) ) != nullptr ) 
+	{
+		paths.push_back( pluginsFolder + "/" + dp->d_name );
+	}
+	closedir( dirp );
 #else
-	static_assert( false ); // Not implemented.
+	static_assert( false, "" ); // Not implemented.
 #endif
 
 	return paths;
@@ -62,8 +73,10 @@ void PluginManager::LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths )
 		{
 			getPluginFnPtr = (GetPluginFnPtr)GetProcAddress( pluginDll, "GetPlugin" );
 		}
+#elif defined __linux__
+
 #else
-		static_assert( false );
+		static_assert( false, "" ); // Not implemented
 #endif
 
 		if ( getPluginFnPtr != nullptr )

@@ -7,6 +7,7 @@
 #include <mutex>
 #include <list>
 #include <stdarg.h>
+#include <string>
 #include <vector>
 
 class ILogTarget;
@@ -41,7 +42,7 @@ public:
 private:
 	using LogTargetList = std::list< LogTargetSharedPtr >;
 
-    static void LogInternal( const char* pText, LogLevel level );
+    static void LogInternal( const std::string& text, LogLevel level );
 
     static std::mutex m_Mutex;
     static LogTargetList m_Targets;
@@ -59,7 +60,7 @@ class ILogTarget
 {
 public:
 	virtual ~ILogTarget() {}
-    virtual void Log( char* pText, LogLevel level ) = 0;
+    virtual void Log( const std::string& text, LogLevel level ) = 0;
 };
 
 
@@ -74,7 +75,7 @@ class FileLogger : public ILogTarget
 public:
     FileLogger( const char* pFilename );
     virtual ~FileLogger() override;
-    virtual void Log( char* pText, LogLevel type ) override;
+    virtual void Log( const std::string& text, LogLevel type ) override;
 
 private:
     std::ofstream m_File;
@@ -89,7 +90,7 @@ private:
 class MessageBoxLogger : public ILogTarget
 {
 public:
-	virtual void Log( char* pText, LogLevel type ) override;
+	virtual void Log( const std::string& text, LogLevel type ) override;
 };
 
 
@@ -103,6 +104,6 @@ public:
 class VisualStudioLogger : public ILogTarget
 {
 public:
-	virtual void Log( char* pText, LogLevel type ) override;
+	virtual void Log( const std::string& text, LogLevel type ) override;
 };
 #endif
