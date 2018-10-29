@@ -1,4 +1,7 @@
 TEMP=temp/linux
+WATCHER_SHARED_OBJ_DIR=$(TEMP)/watcher_shared
+WATCHER_SHARED_LIB_DIR=libs/watcher_shared
+
 
 #####################################################################
 # 0x00-watcher
@@ -17,7 +20,7 @@ CPPFLAGS=-g -std=c++17 -I$(SRC_DIR) -I$(SRC_DIR)/ext -Isrc/watcher_shared $(SDL_
 CFLAGS=-g -I$(SRC_DIR) -I$(SRC_DIR)/ext
 LDFLAGS=-g $(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL -lboost_system -lboost_filesystem -pthread
 
-0x00-watcher: $(OBJ_FILES)
+0x00-watcher: $(OBJ_FILES) $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
 	g++ -o bin/$@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -39,16 +42,15 @@ $(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
 #####################################################################
 
 WATCHER_SHARED_SRC_FILES=$(shell find src/watcher_shared -name "*.cpp")
-WATCHER_SHARED_OBJ_DIR=$(TEMP)/watcher_shared
 WATCHER_SHARED_OBJ_FILES=$(patsubst src/watcher_shared/%.cpp,$(WATCHER_SHARED_OBJ_DIR)/%.o,$(WATCHER_SHARED_SRC_FILES))
-WATCHER_SHARED_LIB_DIR=libs/watcher_shared
-$(WATCHER_SHARED_OBJ_DIR)/%.o: $(WATCHER_SHARED_SRC_FILES)
+WATCHER_SHARED_CPP_FLAGS=-g -std=c++17 -Isrc/watcher_shared $(SDL_CFLAGS)
+$(WATCHER_SHARED_OBJ_DIR)/%.o: src/watcher_shared/%.cpp
 	mkdir -p $(@D)
-	g++ -c -o $@ $<
+	g++ $(WATCHER_SHARED_CPP_FLAGS) -c -o $@ $<
 
-libwatcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
+$(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 	mkdir -p $(WATCHER_SHARED_LIB_DIR)
-	ar -cvr $(WATCHER_SHARED_LIB_DIR)/$@ $(WATCHER_SHARED_OBJ_FILES)
+	ar -cvr $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a $(WATCHER_SHARED_OBJ_FILES)
 
 
 #####################################################################
@@ -56,7 +58,11 @@ libwatcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 #####################################################################
 
 .PHONY: clean
-
 clean:
 	rm -rf $(TEMP)
+	rm -rf $(WATCHER_SHARED_LIB_DIR)
+
+.PHONY: cleanlib
+cleanlib:
+	rm -rf $(WATCHER_SHARED_OBJ_FILES)
 	rm -rf $(WATCHER_SHARED_LIB_DIR)
