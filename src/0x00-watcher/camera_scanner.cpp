@@ -81,7 +81,7 @@ CameraScanResult CameraScanner::Scan( Network::IPAddress address )
 	curl_easy_cleanup(pCurl);
 
 	CameraScanResult result;
-	result.isCamera = EvaluateDetectionRules();
+	result.isCamera = EvaluateDetectionRules( url );
 	result.address = address;
 	result.title = m_Title;
 	return std::move( result );
@@ -118,17 +118,21 @@ void CameraScanner::LoadCameraDetectionRules()
 						}
 					}
 				}
+				else if ( key == "pageexists" )
+				{
+					cameraDetectionRule.AddFilter( CameraDetectionRule::FilterType::PageExists, it.value() );
+				}
 			}
 			m_CameraDetectionRules.push_back( cameraDetectionRule );
 		}
 	}
 }
 
-bool CameraScanner::EvaluateDetectionRules() const
+bool CameraScanner::EvaluateDetectionRules( const std::string& url ) const
 {
 	for ( auto& rule : m_CameraDetectionRules )
 	{
-		if ( rule.Match( m_Title ) )
+		if ( rule.Match( url, m_Title ) )
 		{
 			return true;
 		}

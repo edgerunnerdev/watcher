@@ -29,7 +29,7 @@ public:
 
 private:
 	void LoadCameraDetectionRules();
-	bool EvaluateDetectionRules() const;
+	bool EvaluateDetectionRules( const std::string& url ) const;
 
 	std::string m_Title;
 	CameraDetectionRuleVector m_CameraDetectionRules;
