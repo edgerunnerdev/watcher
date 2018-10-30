@@ -2,9 +2,10 @@
 
 #include <atomic>
 #include <mutex>
+#include <thread>
 #include <vector>
 
-#include "..\0x00-watcher\plugin.h"
+#include "../0x00-watcher/plugin.h"
 #include "network/network.h"
 
 using CURL = void;

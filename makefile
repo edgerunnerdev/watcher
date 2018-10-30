@@ -11,6 +11,7 @@ SRC_DIR=src/0x00-watcher
 SRC_FILES=$(shell find $(SRC_DIR) -name "*.cpp")
 OBJ_DIR=$(TEMP)/0x00-watcher
 OBJ_FILES=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(OBJ_DIR)/ext/sqlite/sqlite3.o $(OBJ_DIR)/ext/htmlstreamparser.o
+PLUGINS_FOLDER=bin/plugins
 
 SDL_CFLAGS=$(shell sdl2-config --cflags)
 SDL_LDFLAGS=$(shell sdl2-config --libs) -lSDL2_image
@@ -20,7 +21,7 @@ CPPFLAGS=-g -std=c++17 -I$(SRC_DIR) -I$(SRC_DIR)/ext -Isrc/watcher_shared $(SDL_
 CFLAGS=-g -I$(SRC_DIR) -I$(SRC_DIR)/ext
 LDFLAGS=-g $(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL -lboost_system -lboost_filesystem -pthread
 
-0x00-watcher: $(OBJ_FILES) $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
+0x00-watcher: $(OBJ_FILES) $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a $(PLUGINS_FOLDER)/geolocation.so
 	g++ -o bin/$@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -51,6 +52,15 @@ $(WATCHER_SHARED_OBJ_DIR)/%.o: src/watcher_shared/%.cpp
 $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 	mkdir -p $(WATCHER_SHARED_LIB_DIR)
 	ar -cvr $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a $(WATCHER_SHARED_OBJ_FILES)
+
+
+#####################################################################
+# Plugins
+#####################################################################
+
+PLUGINS_CPP_FLAGS=-g -std=c++17 -fPIC -shared -Isrc/watcher_shared -I$(SRC_DIR)/ext
+$(PLUGINS_FOLDER)/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h
+	g++ $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $<
 
 
 #####################################################################
