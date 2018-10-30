@@ -323,6 +323,29 @@ void Watcher::Update()
 		pPlugin->DrawUI( GImGui );
 	}
 
+	if ( ImGui::CollapsingHeader( "Plugins", ImGuiTreeNodeFlags_DefaultOpen ) )
+	{
+		if ( m_pPluginManager->GetPlugins().empty() )
+		{
+			ImGui::Text( "No plugins found." );
+		}
+		else
+		{
+			ImGui::Columns( 2 );
+			for ( Plugin* pPlugin : m_pPluginManager->GetPlugins() )
+			{
+				ImGui::Text( pPlugin->GetName().c_str() );
+				ImGui::NextColumn();
+
+				int version[ 3 ] = { 0, 0, 0 };
+				pPlugin->GetVersion( version[ 0 ], version[ 1 ], version[ 2 ] );
+				ImGui::Text( "%d.%d.%d", version[ 0 ], version[ 1 ], version[ 2 ] );
+				ImGui::NextColumn();
+			}
+			ImGui::Columns( 1 );
+		}
+	}
+
 	ImGui::End();
 }
 
