@@ -8,7 +8,6 @@
     <ClCompile Include="database_helpers.cpp" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
-    <ClCompile Include="ip_generator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="port_probe.cpp" />
     <ClCompile Include="internet_scanner_basic.cpp" />
@@ -53,7 +52,6 @@
     <ClInclude Include="database_helpers.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="internet_scanner.h" />
-    <ClInclude Include="ip_generator.h" />
     <ClInclude Include="port_probe.h" />
     <ClInclude Include="internet_scanner_basic.h" />
     <ClInclude Include="render.h" />

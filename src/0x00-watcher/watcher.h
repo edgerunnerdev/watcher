@@ -19,7 +19,6 @@ namespace PortScanner
 
 class AtlasGrid;
 class Configuration;
-class IPGenerator;
 class CameraScanner;
 class InternetScannerNmap;
 class WebMasscanParser;
@@ -33,7 +32,6 @@ struct SDL_Window;
 using InternetScannerBasicUniquePtr = std::unique_ptr< InternetScannerBasic >;
 using InternetScannerNmapUniquePtr = std::unique_ptr< InternetScannerNmap >;
 using InternetScannerZmapUniquePtr = std::unique_ptr< InternetScannerZmap >;
-using IPGeneratorUniquePtr = std::unique_ptr< IPGenerator >;
 using InternetScannerBasicVector = std::vector< InternetScannerBasicUniquePtr >;
 using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
@@ -60,7 +58,6 @@ public:
 	void Update();
 	bool IsActive() const;
 	PortScanner::Coverage* GetPortScannerCoverage() const;
-	IPGenerator* GetIPGenerator() const;
 	Configuration* GetConfiguration() const;
 
 	// Any callback which has to write into the database needs to receive its own
@@ -88,7 +85,6 @@ private:
 	ThreadVector m_InternetScannerBasicThreads;
 	InternetScannerBasicVector m_InternetScannerBasic;
 	InternetScannerMode m_WebServerScannerMode;
-	IPGeneratorUniquePtr m_pIPGenerator;
 	sqlite3* m_pDatabase;
 
 	std::mutex m_CameraScannerQueueMutex;
@@ -121,11 +117,6 @@ extern Watcher* g_pWatcher;
 inline bool Watcher::IsActive() const
 {
 	return m_Active;
-}
-
-inline IPGenerator* Watcher::GetIPGenerator() const
-{
-	return m_pIPGenerator.get();
 }
 
 inline Configuration* Watcher::GetConfiguration() const

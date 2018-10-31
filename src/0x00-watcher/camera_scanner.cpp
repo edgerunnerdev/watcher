@@ -70,11 +70,11 @@ CameraScanResult CameraScanner::Scan( Network::IPAddress address )
 
 	CameraScannerCallbackData data = { hsp, this };
 	std::string url = "http://" + address.ToString();
-	curl_easy_setopt(pCurl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, write_callback);
-	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &data);
-	curl_easy_setopt(pCurl, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 10L);
+	curl_easy_setopt( pCurl, CURLOPT_URL, url.c_str() );
+	curl_easy_setopt( pCurl, CURLOPT_WRITEFUNCTION, write_callback );
+	curl_easy_setopt( pCurl, CURLOPT_WRITEDATA, &data );
+	curl_easy_setopt( pCurl, CURLOPT_FOLLOWLOCATION, 1L );
+	curl_easy_setopt( pCurl, CURLOPT_TIMEOUT, 10L );
 
 	curl_easy_perform(pCurl);
 

@@ -11,7 +11,6 @@
 #include "configuration.h"
 #include "database_helpers.h"
 #include "geo_info.h"
-#include "ip_generator.h"
 #include "log.h"
 #include "watcher.h"
 #include "watcher_rep.h"
@@ -40,7 +39,6 @@ m_PortScannerCoverageOpen( false )
 	m_pConfiguration = std::make_unique< Configuration >();
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
-	m_pIPGenerator = std::make_unique< IPGenerator >( m_pConfiguration->GetWebScannerStartAddress() );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
 	sqlite3_busy_timeout( m_pDatabase, 1000 );
 
@@ -84,8 +82,6 @@ Watcher::~Watcher()
 	}
 
 	sqlite3_close( m_pDatabase );
-
-	m_pConfiguration->SetWebScannerStartAddress( m_pIPGenerator->GetCurrent() );
 }
 
 void Watcher::InitialiseGeolocation()
@@ -146,7 +142,7 @@ void sWebScannerThreadMain( InternetScanner* pScanner )
 	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
 	while ( g_pWatcher->IsActive() )
 	{
-		Network::IPAddress address = g_pWatcher->GetIPGenerator()->GetCurrent();
+		Network::IPAddress address;
 		if ( g_pWatcher->GetPortScannerCoverage()->GetNextBlock( address ) )
 		{
 			if ( pScanner->Scan( address, ports ) )
@@ -245,38 +241,38 @@ void Watcher::Update()
 		}
 		else if ( m_WebServerScannerMode == InternetScannerMode::Basic )
 		{
-			std::stringstream wss;
-			unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
-			unsigned int maxIP = ~0u;
-			double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
-			float percent = static_cast< float >( ratio * 100.0f );
-			wss <<  "Address space scanned: " << percent << "%%";
-			ImGui::Text( wss.str().c_str() );
+			//std::stringstream wss;
+			//unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
+			//unsigned int maxIP = ~0u;
+			//double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
+			//float percent = static_cast< float >( ratio * 100.0f );
+			//wss <<  "Address space scanned: " << percent << "%%";
+			//ImGui::Text( wss.str().c_str() );
 
-			{
-				std::stringstream ss;
-				ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
-				ImGui::Text( ss.str().c_str() );
-			}
+			//{
+			//	std::stringstream ss;
+			//	ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
+			//	ImGui::Text( ss.str().c_str() );
+			//}
 
-			if ( ImGui::TreeNode( "Active threads" ) )
-			{
-				ImGui::Columns( 2 );
-				ImGui::SetColumnWidth( 0, 32 );
-				unsigned int numScanners = m_InternetScannerBasic.size();
-				for ( unsigned int i = 0; i < numScanners; i++ )
-				{
-					std::stringstream ss;
-					ss << "#" << ( i + 1 );
-					ImGui::Text( ss.str().c_str() );
-					ImGui::NextColumn();
-					ImGui::Text( m_InternetScannerBasic[ i ]->GetStatusText().c_str() );
-					ImGui::NextColumn();
-				}
-				ImGui::Columns( 1 );
+			//if ( ImGui::TreeNode( "Active threads" ) )
+			//{
+			//	ImGui::Columns( 2 );
+			//	ImGui::SetColumnWidth( 0, 32 );
+			//	unsigned int numScanners = m_InternetScannerBasic.size();
+			//	for ( unsigned int i = 0; i < numScanners; i++ )
+			//	{
+			//		std::stringstream ss;
+			//		ss << "#" << ( i + 1 );
+			//		ImGui::Text( ss.str().c_str() );
+			//		ImGui::NextColumn();
+			//		ImGui::Text( m_InternetScannerBasic[ i ]->GetStatusText().c_str() );
+			//		ImGui::NextColumn();
+			//	}
+			//	ImGui::Columns( 1 );
 
-				ImGui::TreePop();
-			}
+			//	ImGui::TreePop();
+			//}
 		}
 		else if ( m_WebServerScannerMode == InternetScannerMode::Nmap )
 		{
@@ -332,6 +328,8 @@ void Watcher::Update()
 		else
 		{
 			ImGui::Columns( 2 );
+			ImGui::Text( "Plugin" ); ImGui::NextColumn();
+			ImGui::Text( "Version" ); ImGui::NextColumn();
 			for ( Plugin* pPlugin : m_pPluginManager->GetPlugins() )
 			{
 				ImGui::Text( pPlugin->GetName().c_str() );
@@ -423,8 +421,6 @@ void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& resul
 				m_CameraScanResults.pop_back();
 			}
 		}	
-
-		Log::Info( "[%s] -> %s", result.address.ToString().c_str(), result.title.c_str() );
 	}
 
 	std::stringstream wss;
@@ -448,14 +444,17 @@ void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& resul
 		sqlite3_bind_int( pAddCameraStatement, 5, 0 ); // Geolocation pending.
 		ExecuteDatabaseQuery( pDatabase, pAddCameraStatement );
 		sqlite3_finalize( pAddCameraStatement );
+
+		json message = 
+		{
+			{ "type", "geolocation_request" },
+			{ "address", result.address.ToString() },
+		};
+		m_pPluginManager->BroadcastMessage( message );
 	}
 	else
 	{
-		printf("No camera detected at %s, title: %s\n", result.address.ToString().c_str(), result.title.c_str() );
-
-		std::ofstream titleFile;
-		titleFile.open("titles.txt", std::ios_base::app);
-		titleFile << result.address.ToString() << ": " << result.title << "\n";
+		Log::Info( "No camera detected at %s, title: %s", result.address.ToString().c_str(), result.title.c_str() );
 	}
 }
 
