@@ -21,6 +21,7 @@ static size_t WriteMemoryCallback( void* pContents, size_t size, size_t nmemb, v
 
 Geolocation::Geolocation()
 {
+	m_RateLimitExceeded = false;
 	m_pCurlHandle = curl_easy_init();
 }
 
@@ -62,9 +63,17 @@ void Geolocation::DrawUI( ImGuiContext* pContext )
 	{
 		std::lock_guard< std::mutex > lock( m_QueueMutex );
 		ImGui::Text( "Provider: ipinfo.io" );
-		std::stringstream ss;
-		ss << "Queue size: " << m_Queue.size();
-		ImGui::Text( ss.str().c_str() );
+		
+		if ( m_RateLimitExceeded )
+		{
+			ImGui::Text( "Rate limit exceeded." );
+		}
+		else
+		{
+			std::stringstream ss;
+			ss << "Queue size: " << m_Queue.size();
+			ImGui::Text( ss.str().c_str() );
+		}
 	}
 }
 
@@ -125,33 +134,47 @@ void Geolocation::ConsumeQueue()
 			else
 			{
 				json message;
-				json data = json::parse( pGeolocation->m_Data );
-				if ( data.find( "city" ) != data.end() && 
-					 data.find( "region" ) != data.end() &&
-					 data.find( "country" ) != data.end() &&
-					 data.find( "org" ) != data.end() &&
-					 data.find( "loc" ) != data.end() )
-				{
-					message = 
-					{
-						{ "type", "geolocation_result" },
-						{ "address", address.ToString() },
-						{ "city", data[ "city" ] },
-						{ "region", data[ "region" ] },
-						{ "country", data[ "country" ] },
-						{ "org", data[ "org" ] },
-						{ "loc", data[ "loc" ] }
-					};
-				}
-				else
+				if ( pGeolocation->m_Data.find( "Rate limit exceeded." ) != std::string::npos )
 				{
 					message =
 					{
 						{ "type", "log" },
-						{ "level", "error" }, 
+						{ "level", "warning" }, 
 						{ "plugin", "geolocation" },
-						{ "message", "Error processing JSON response." }
+						{ "message", "Rate limit exceeded." }
 					};
+					pGeolocation->m_RateLimitExceeded = true;
+				}
+				else
+				{
+					json data = json::parse( pGeolocation->m_Data );
+					if ( data.find( "city" ) != data.end() && 
+						 data.find( "region" ) != data.end() &&
+						 data.find( "country" ) != data.end() &&
+						 data.find( "org" ) != data.end() &&
+						 data.find( "loc" ) != data.end() )
+					{
+						message = 
+						{
+							{ "type", "geolocation_result" },
+							{ "address", address.ToString() },
+							{ "city", data[ "city" ] },
+							{ "region", data[ "region" ] },
+							{ "country", data[ "country" ] },
+							{ "org", data[ "org" ] },
+							{ "loc", data[ "loc" ] }
+						};
+					}
+					else
+					{
+						message =
+						{
+							{ "type", "log" },
+							{ "level", "error" }, 
+							{ "plugin", "geolocation" },
+							{ "message", "Error processing JSON response." }
+						};
+					}
 				}
 				pGeolocation->m_pMessageCallback( message );
 			}
