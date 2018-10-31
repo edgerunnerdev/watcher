@@ -142,7 +142,6 @@
     <ClCompile Include="ext\htmlstreamparser.c" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
-    <ClCompile Include="ip_generator.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="plugin_manager.cpp" />
@@ -165,7 +164,6 @@
     <ClInclude Include="ext\htmlstreamparser.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="internet_scanner.h" />
-    <ClInclude Include="ip_generator.h" />
     <ClInclude Include="ext\json.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="plugin.h" />
