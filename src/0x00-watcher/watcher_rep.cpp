@@ -3,6 +3,7 @@
 
 #include "atlas/atlas.h"
 #include "atlas_grid.h"
+#include "log.h"
 #include "watcher_rep.h"
 #include "watcher.h"
 

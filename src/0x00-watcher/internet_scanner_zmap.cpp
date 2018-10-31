@@ -30,7 +30,7 @@ bool InternetScannerZmap::ScanInternal( Network::IPAddress address, const Networ
 		std::stringstream ss;
 		ss << "/usr/sbin/zmap " <<
 			"--target-port=" << port << " " <<
-			"-B 2M " <<
+			"-B 1M " <<
 			address.GetHostAsString() <<
 			"/16";
 
