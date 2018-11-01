@@ -44,7 +44,7 @@ $(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
 
 WATCHER_SHARED_SRC_FILES=$(shell find src/watcher_shared -name "*.cpp")
 WATCHER_SHARED_OBJ_FILES=$(patsubst src/watcher_shared/%.cpp,$(WATCHER_SHARED_OBJ_DIR)/%.o,$(WATCHER_SHARED_SRC_FILES))
-WATCHER_SHARED_CPP_FLAGS=-g -std=c++17 -Isrc/watcher_shared $(SDL_CFLAGS)
+WATCHER_SHARED_CPP_FLAGS=-g -std=c++17 -fPIC -Isrc/watcher_shared $(SDL_CFLAGS)
 $(WATCHER_SHARED_OBJ_DIR)/%.o: src/watcher_shared/%.cpp
 	mkdir -p $(@D)
 	g++ $(WATCHER_SHARED_CPP_FLAGS) -c -o $@ $<
@@ -59,8 +59,8 @@ $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 #####################################################################
 
 PLUGINS_CPP_FLAGS=-g -std=c++17 -fPIC -shared -Isrc/watcher_shared -I$(SRC_DIR)/ext
-$(PLUGINS_FOLDER)/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h
-	g++ $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $<
+$(PLUGINS_FOLDER)/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
+	g++ $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $< $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
 
 
 #####################################################################

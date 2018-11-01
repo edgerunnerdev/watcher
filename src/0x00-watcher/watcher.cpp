@@ -509,6 +509,7 @@ void Watcher::AddGeoInfo( const json& message )
 	const Network::IPAddress address( addressStr );
 	GeoInfo geoInfo( address );
 	geoInfo.LoadFromJSON( message );
+	Log::Info( "Added geo info for %s: %s, %s", addressStr.c_str(), geoInfo.GetCity().c_str(), geoInfo.GetCountry().c_str() );
 
 	{
 		std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
