@@ -4,7 +4,10 @@
 #include "json.h"
 using json = nlohmann::json;
 
-struct sqlite3;
+namespace Database
+{
+	class Database;
+};
 
 class GeoInfo
 {
@@ -12,7 +15,7 @@ public:
 	GeoInfo( Network::IPAddress address );
 	bool LoadFromDatabase( const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float x, float y );
 	bool LoadFromJSON( const json& message );
-	void SaveToDatabase( sqlite3* pDatabase );
+	void SaveToDatabase( Database::Database* pDatabase );
 
 	const Network::IPAddress& GetIPAddress() const;
 	const std::string& GetCity() const;

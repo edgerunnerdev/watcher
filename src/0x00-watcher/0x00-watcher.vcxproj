@@ -138,7 +138,8 @@
     <ClCompile Include="camera_detection_rule.cpp" />
     <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
-    <ClCompile Include="database_helpers.cpp" />
+    <ClCompile Include="database\database.cpp" />
+    <ClCompile Include="database\prepared_statement.cpp" />
     <ClCompile Include="ext\htmlstreamparser.c" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
@@ -160,7 +161,8 @@
     <ClInclude Include="camera_detection_rule.h" />
     <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
-    <ClInclude Include="database_helpers.h" />
+    <ClInclude Include="database\database.h" />
+    <ClInclude Include="database\prepared_statement.h" />
     <ClInclude Include="ext\htmlstreamparser.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="internet_scanner.h" />

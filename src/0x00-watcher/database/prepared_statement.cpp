@@ -8,9 +8,9 @@ namespace Database
 {
 
 PreparedStatement::PreparedStatement( Database* pDatabase, const std::string& query ) :
-m_pDatabase( pDatabase ),
 m_Query( query ),
-m_pStatement( nullptr )
+m_pStatement( nullptr ),
+m_Executed( false )
 {
 	sqlite3_prepare_v2( pDatabase->m_pDatabase, query.c_str(), -1, &m_pStatement, nullptr );
 }
@@ -21,7 +21,6 @@ void PreparedStatement::Bind( unsigned int index, const std::string& text )
 	{
 		Log::Error( "Error binding value to prepared statement." );
 	}
-
 }
 
 void PreparedStatement::Bind( unsigned int index, int value )
@@ -32,8 +31,17 @@ void PreparedStatement::Bind( unsigned int index, int value )
 	}
 }
 
+void PreparedStatement::Bind( unsigned int index, double value )
+{
+	if ( sqlite3_bind_double( m_pStatement, index, value ) != SQLITE_OK )
+	{
+		Log::Error( "Error binding value to prepared statement." );
+	}
+}
+
 void PreparedStatement::Execute()
 {
+	assert( !m_Executed );
 	while ( 1 )
 	{
 		int result = sqlite3_step( m_pStatement );
@@ -50,6 +58,9 @@ void PreparedStatement::Execute()
 			Log::Error( "Error during PreparedStatement::Execute" );
 		}
 	}
+
+	sqlite3_finalize( m_pStatement );
+	m_Executed = true;
 }
 
 }

@@ -4,6 +4,7 @@
 #include <thread>
 #include <vector>
 
+#include "database/database.h"
 #include "network/network.h"
 #include "camera_scanner.h"
 #include "geo_info.h"
@@ -86,6 +87,7 @@ private:
 	InternetScannerBasicVector m_InternetScannerBasic;
 	InternetScannerMode m_WebServerScannerMode;
 	sqlite3* m_pDatabase;
+	Database::DatabaseUniquePtr m_pDatabase2;
 
 	std::mutex m_CameraScannerQueueMutex;
 	IPVector m_CameraScannerQueue;

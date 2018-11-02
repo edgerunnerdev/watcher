@@ -1,5 +1,4 @@
-#include "sqlite/sqlite3.h"
-#include "database_helpers.h"
+#include "database/database.h"
 #include "json.h"
 #include "geo_info.h"
 
@@ -44,23 +43,19 @@ bool GeoInfo::LoadFromJSON( const json& geoInfoJson )
 	}
 }
 
-void GeoInfo::SaveToDatabase( sqlite3* pDatabase )
+void GeoInfo::SaveToDatabase( Database::Database* pDatabase )
 {
-	sqlite3_stmt* pAddGeoInfoStatement;
-	const char* pAddGeoInfoQuery = "INSERT OR REPLACE INTO Geolocation VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);";
-	sqlite3_prepare_v2( pDatabase, pAddGeoInfoQuery, -1, &pAddGeoInfoStatement, nullptr );
+	Database::PreparedStatement addGeoInfoStatement( pDatabase, "INSERT OR REPLACE INTO Geolocation VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);" );
+	addGeoInfoStatement.Bind( 1, m_Address.ToString() );
+	addGeoInfoStatement.Bind( 2, m_City );
+	addGeoInfoStatement.Bind( 3, m_Region );
+	addGeoInfoStatement.Bind( 4, m_Country );
+	addGeoInfoStatement.Bind( 5, m_Organisation );
+	addGeoInfoStatement.Bind( 6, static_cast< double >( m_Latitude ) );
+	addGeoInfoStatement.Bind( 7, static_cast< double >( m_Longitude ) );
+	pDatabase->Execute( addGeoInfoStatement );
 
-	sqlite3_bind_text( pAddGeoInfoStatement, 1, m_Address.ToString().c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_text( pAddGeoInfoStatement, 2, m_City.c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_text( pAddGeoInfoStatement, 3, m_Region.c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_text( pAddGeoInfoStatement, 4, m_Country.c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_text( pAddGeoInfoStatement, 5, m_Organisation.c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_double( pAddGeoInfoStatement, 6, (double)m_Latitude );
-	sqlite3_bind_double( pAddGeoInfoStatement, 7, (double)m_Longitude );
-	ExecuteDatabaseQuery( pDatabase, pAddGeoInfoStatement );
-	sqlite3_finalize( pAddGeoInfoStatement );
-
-	std::stringstream updateCameraQuery;
-	updateCameraQuery << "UPDATE Cameras SET Geo=1 WHERE IP='" << m_Address.ToString() << "';";
-	ExecuteDatabaseQuery( pDatabase, updateCameraQuery.str() );
+	Database::PreparedStatement updateCameraStatement( pDatabase, "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
+	updateCameraStatement.Bind( 1, m_Address.ToString() );
+	pDatabase->Execute( updateCameraStatement );
 }

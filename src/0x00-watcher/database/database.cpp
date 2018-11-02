@@ -1,3 +1,4 @@
+#include <chrono>
 #include "sqlite/sqlite3.h"
 #include "database.h"
 #include "log.h"
@@ -14,13 +15,16 @@ m_RunThread( true )
 		Log::Error( "Couldn't open database '%s'", filename.c_str() );
 	}
 
-	LaunchThread();
+	m_Thread = std::thread( sThreadMain, this );
 }
 
 Database::~Database()
 {
 	m_RunThread = false;
-	m_Thread.join();
+	if ( m_Thread.joinable() )
+	{
+		m_Thread.join();
+	}
 
 	if ( m_pDatabase != nullptr )
 	{
@@ -28,17 +32,19 @@ Database::~Database()
 	}
 }
 
-void Database::LaunchThread()
+void Database::Execute( PreparedStatement statement )
 {
-
+	std::lock_guard< std::mutex > pendingLock( m_PendingStatementsMutex );
+	m_PendingStatements.push_back( statement );
 }
 
-void Database::ThreadMain( Database* pDatabase )
+void Database::sThreadMain( Database* pDatabase )
 {
 	while ( pDatabase->m_RunThread )
 	{
 		pDatabase->ConsumeStatements();
 		pDatabase->ExecuteActiveStatements();
+		std::this_thread::sleep_for( std::chrono::seconds( 2 ) );
 	}
 }
 
@@ -55,14 +61,17 @@ void Database::ConsumeStatements()
 
 void Database::ExecuteActiveStatements()
 {
-	BlockingQuery( "BEGIN TRANSACTION;" );
 	std::lock_guard< std::mutex > activeLock( m_ActiveStatementsMutex );
-	for ( PreparedStatement& statement : m_ActiveStatements )
+	if ( m_ActiveStatements.empty() == false )
 	{
-		statement.Execute();
+		BlockingQuery( "BEGIN TRANSACTION;" );
+		for ( PreparedStatement& statement : m_ActiveStatements )
+		{
+			statement.Execute();
+		}
+		m_ActiveStatements.clear();
+		BlockingQuery( "COMMIT;" );
 	}
-	m_ActiveStatements.clear();
-	BlockingQuery( "COMMIT;" );
 }
 
 void Database::BlockingQuery( const std::string& query )

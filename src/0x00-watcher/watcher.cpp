@@ -9,7 +9,6 @@
 #include "port_scanner/coverage.h"
 #include "camera_scanner.h"
 #include "configuration.h"
-#include "database_helpers.h"
 #include "geo_info.h"
 #include "log.h"
 #include "watcher.h"
@@ -37,6 +36,7 @@ m_PortScannerCoverageOpen( false )
 #endif
 
 	m_pConfiguration = std::make_unique< Configuration >();
+	m_pDatabase2 = std::make_unique< Database::Database >( "0x00-watcher.db" );
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
 	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
@@ -367,13 +367,11 @@ void Watcher::OnMessageReceived( const json& message )
 
 void Watcher::OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address )
 {
-	if ( pDatabase != nullptr )
-	{
-		// Store this web server into the database, mark it as not parsed.
-		std::stringstream ss;
-		ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.GetHostAsString() << "', " << address.GetPort() << ", 0);";
-		ExecuteDatabaseQuery( pDatabase, ss.str() );
-	}
+	// Store this web server into the database, mark it as not parsed.
+	Database::PreparedStatement statement( m_pDatabase2.get(), "INSERT OR REPLACE INTO WebServers VALUES(?1, ?2, 0);" );
+	statement.Bind( 1, address.GetHostAsString() );
+	statement.Bind( 2, address.GetPort() );
+	m_pDatabase2->Execute( statement );
 
 	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
 	m_CameraScannerQueue.push_back( address );
@@ -381,7 +379,8 @@ void Watcher::OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address )
 
 void Watcher::RestartCameraDetection()
 {
-	ExecuteDatabaseQuery( m_pDatabase, "UPDATE WebServers SET Scanned=0;" );
+	Database::PreparedStatement statement( m_pDatabase2.get(), "UPDATE WebServers SET Scanned=0;" );
+	m_pDatabase2->Execute( statement );
 }
 
 // Loads from the database any IP addresses for web servers which have been
@@ -423,27 +422,23 @@ void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& resul
 		}	
 	}
 
-	std::stringstream wss;
-	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.GetHostAsString() << "';";
-	ExecuteDatabaseQuery( pDatabase, wss.str() );
+	Database::PreparedStatement statement( m_pDatabase2.get(), "UPDATE WebServers SET Scanned=1 WHERE IP=?1;" );
+	statement.Bind( 1, result.address.GetHostAsString() );
+	m_pDatabase2->Execute( statement );
 
 	if ( result.isCamera )
 	{
-		std::stringstream updateCameraQuery;
-		updateCameraQuery << "UPDATE Cameras SET Geo=1 WHERE IP='" << result.address.ToString() << "';";
-		ExecuteDatabaseQuery( pDatabase, updateCameraQuery.str() );
+		Database::PreparedStatement updateCameraStatement( m_pDatabase2.get(), "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
+		updateCameraStatement.Bind( 1, result.address.ToString() );
+		m_pDatabase2->Execute( updateCameraStatement );
 
-		sqlite3_stmt* pAddCameraStatement;
-		const char* pAddCameraQuery = "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);";
-		sqlite3_prepare_v2( pDatabase, pAddCameraQuery, -1, &pAddCameraStatement, nullptr );
-
-		sqlite3_bind_text( pAddCameraStatement, 1, result.address.GetHostAsString().c_str(), -1, SQLITE_TRANSIENT );
-		sqlite3_bind_int( pAddCameraStatement, 2, result.address.GetPort() );
-		sqlite3_bind_int( pAddCameraStatement, 3, 0 ); // Type (unused at the moment).
-		sqlite3_bind_text( pAddCameraStatement, 4, result.title.c_str(), -1, SQLITE_TRANSIENT );
-		sqlite3_bind_int( pAddCameraStatement, 5, 0 ); // Geolocation pending.
-		ExecuteDatabaseQuery( pDatabase, pAddCameraStatement );
-		sqlite3_finalize( pAddCameraStatement );
+		Database::PreparedStatement addCameraStatement( m_pDatabase2.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);" );
+		addCameraStatement.Bind( 1, result.address.GetHostAsString() );
+		addCameraStatement.Bind( 2, result.address.GetPort() );
+		addCameraStatement.Bind( 3, 0 ); // Type (unused at the moment).
+		addCameraStatement.Bind( 4, result.title );
+		addCameraStatement.Bind( 5, 0 ); // Geolocation pending.
+		m_pDatabase2->Execute( addCameraStatement );
 
 		json message = 
 		{
@@ -516,5 +511,5 @@ void Watcher::AddGeoInfo( const json& message )
 		m_GeoInfos.push_back( geoInfo );
 	}
 
-	geoInfo.SaveToDatabase( m_pDatabase );
+	geoInfo.SaveToDatabase( m_pDatabase2.get() );
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -12,6 +13,9 @@ struct sqlite3;
 namespace Database
 {
 
+class Database;
+using DatabaseUniquePtr = std::unique_ptr< Database >;
+
 class Database
 {
 public:
@@ -19,12 +23,10 @@ public:
 
 	Database( const std::string& filename );
 	~Database();
-	void Update( float delta );
 	void Execute( PreparedStatement statement );
 
 private:
-	static void ThreadMain( Database* pDatabase );
-	void LaunchThread();
+	static void sThreadMain( Database* pDatabase );
 	void ConsumeStatements();
 	void ExecuteActiveStatements();
 	void BlockingQuery( const std::string& query );
