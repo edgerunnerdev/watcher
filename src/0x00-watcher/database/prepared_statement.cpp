@@ -1,6 +1,7 @@
 #include <cassert>
 #include "sqlite/sqlite3.h"
-#include "database.h"
+#include "database/database.h"
+#include "database/query_result.h"
 #include "log.h"
 #include "prepared_statement.h"
 
@@ -43,12 +44,32 @@ void PreparedStatement::Bind( unsigned int index, double value )
 void PreparedStatement::Execute()
 {
 	assert( !m_Executed );
+
+	QueryResult result;
+	int numColumns = sqlite3_column_count( m_pStatement );
 	while ( 1 )
 	{
 		int result = sqlite3_step( m_pStatement );
 		if ( result == SQLITE_ROW )
 		{
-
+			QueryResultRow row;
+			for ( int i = 0; i < numColumns; i++ )
+			{
+				int columnType = sqlite3_column_type( m_pStatement, i );
+				if ( columnType == SQLITE3_TEXT )
+				{
+					row.push_back( sqlite3_column_text( m_pStatement, i ) );
+				}
+				else if ( column == SQLITE_INTEGER )
+				{
+					row.push_back( sqlite3_column_int( m_pStatement, i ) );
+				}
+				else if ( column == SQLITE_FLOAT )
+				{
+					row.push_back( sqlite3_column_double( m_pStatement, i ) );
+				}
+			}
+			result.Add( row );
 		}
 		else if ( result == SQLITE_DONE )
 		{
@@ -58,6 +79,11 @@ void PreparedStatement::Execute()
 		{
 			Log::Error( "Error during PreparedStatement::Execute" );
 		}
+	}
+
+	if ( m_pCallback )
+	{
+		m_pCallback( result, nullptr );
 	}
 
 	sqlite3_finalize( m_pStatement );

@@ -7,27 +7,22 @@
 namespace Database
 {
 
-using ColumnValue = std::optional< std::variant< int, double, std::string > >;
-using ColumnVector = std::vector< ColumnValue >;
+using QueryResultCell = std::optional< std::variant< int, double, std::string > >;
+using QueryResultRow = std::vector< ResultCell >;
+using QueryResultTable = std::vector< ResultRow >;
 
 class QueryResult
 {
 public:
-	void Add( int value );
-	void Add( double value );
-	void Add( const std::string& value );
-	void Add( std::nullopt_t value );
-	const ColumnVector& Get() const;
+	void Add( const QueryResultRow& row );
+	const QueryResultTable& Get() const;
 
 private:
-	ColumnVector m_Results;
+	QueryResultTable m_Result;
 };
 
-inline void QueryResult::Add( int value ) { m_Results.push_back( value ); }
-inline void QueryResult::Add( double value ) { m_Results.push_back( value ); }
-inline void QueryResult::Add( const std::string& value ) { m_Results.push_back( value ); }
-inline void QueryResult::Add( std::nullopt_t ) { m_Results.push_back( std::nullopt ); }
-inline const ColumnVector& QueryResult::Get() const { return m_Results; }
+inline void QueryResult::Add( const QueryResultRow& row ) { m_Result.push_back( row ); }
+inline const QueryResultTable& QueryResult::Get() const { return m_Result; }
 
 using QueryResultCallback = void (*)( const QueryResult& result, void* pData );
 
