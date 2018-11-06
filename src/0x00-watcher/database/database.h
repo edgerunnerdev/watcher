@@ -29,7 +29,7 @@ private:
 	static void sThreadMain( Database* pDatabase );
 	void ConsumeStatements();
 	void ExecuteActiveStatements();
-	void BlockingQuery( const std::string& query );
+	void BlockingNonQuery( const std::string& query );
 
 	using StatementVector = std::vector< PreparedStatement >;
 	sqlite3* m_pDatabase;

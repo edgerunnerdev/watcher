@@ -7,10 +7,11 @@
 namespace Database
 {
 
-PreparedStatement::PreparedStatement( Database* pDatabase, const std::string& query ) :
+PreparedStatement::PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback /* = nullptr */ ) :
 m_Query( query ),
 m_pStatement( nullptr ),
-m_Executed( false )
+m_Executed( false ),
+m_pCallback( pCallback )
 {
 	sqlite3_prepare_v2( pDatabase->m_pDatabase, query.c_str(), -1, &m_pStatement, nullptr );
 }

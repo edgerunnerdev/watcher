@@ -64,28 +64,27 @@ void Database::ExecuteActiveStatements()
 	std::lock_guard< std::mutex > activeLock( m_ActiveStatementsMutex );
 	if ( m_ActiveStatements.empty() == false )
 	{
-		BlockingQuery( "BEGIN TRANSACTION;" );
+		BlockingNonQuery( "BEGIN TRANSACTION;" );
 		for ( PreparedStatement& statement : m_ActiveStatements )
 		{
 			statement.Execute();
 		}
 		m_ActiveStatements.clear();
-		BlockingQuery( "COMMIT;" );
+		BlockingNonQuery( "COMMIT;" );
 	}
 }
 
-void Database::BlockingQuery( const std::string& query )
+void Database::BlockingNonQuery( const std::string& query )
 {
 	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), nullptr, 0, &pError );
-	if ( rc == SQLITE_OK )
+	while ( 1 )
 	{
-		
-	}
-	else
-	{
-		Log::Error( "SQL query error: %s", pError );
-		sqlite3_free( pError );
+		int rc = sqlite3_exec( m_pDatabase, query.c_str(), nullptr, 0, &pError );
+		if ( rc != SQLITE_OK && rc != SQLITE_BUSY )
+		{
+			Log::Error( "SQL query error: %s", pError );
+			sqlite3_free( pError );		
+		}
 	}
 }
 
