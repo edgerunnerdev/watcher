@@ -34,9 +34,6 @@
     <ClCompile Include="database\prepared_statement.cpp">
       <Filter>database</Filter>
     </ClCompile>
-    <ClCompile Include="database\query_result.cpp">
-      <Filter>database</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">

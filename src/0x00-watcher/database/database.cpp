@@ -85,6 +85,10 @@ void Database::BlockingNonQuery( const std::string& query )
 			Log::Error( "SQL query error: %s", pError );
 			sqlite3_free( pError );		
 		}
+		else if ( rc == SQLITE_OK )
+		{
+			break;
+		}
 	}
 }
 

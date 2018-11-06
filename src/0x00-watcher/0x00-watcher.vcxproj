@@ -140,7 +140,6 @@
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
     <ClCompile Include="database\prepared_statement.cpp" />
-    <ClCompile Include="database\query_result.cpp" />
     <ClCompile Include="ext\htmlstreamparser.c" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
