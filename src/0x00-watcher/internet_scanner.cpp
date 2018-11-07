@@ -1,19 +1,15 @@
 #include <sstream>
 #include <chrono>
-#include "ext/sqlite/sqlite3.h"
 #include "internet_scanner.h"
 
 InternetScanner::InternetScanner()
 {
-	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
-	sqlite3_busy_timeout( m_pDatabase, 1000 );
-
 	SetStatusText( "Inactive" );
 }
 
 InternetScanner::~InternetScanner()
 {
-	sqlite3_close( m_pDatabase );
+
 }
 
 bool InternetScanner::Scan( Network::IPAddress address, const Network::PortVector& ports )

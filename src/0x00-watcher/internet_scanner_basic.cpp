@@ -13,7 +13,7 @@ bool InternetScannerBasic::ScanInternal( Network::IPAddress address, const Netwo
 		PortProbe probe;
 		if ( probe.Probe( address ) == PortProbe::Result::Open )
 		{
-			g_pWatcher->OnWebServerFound( m_pDatabase, address );
+			g_pWatcher->OnWebServerFound( address );
 		}
 	}
 	

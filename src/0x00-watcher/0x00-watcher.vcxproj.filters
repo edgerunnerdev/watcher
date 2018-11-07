@@ -5,7 +5,6 @@
     <ClCompile Include="camera_detection_rule.cpp" />
     <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
-    <ClCompile Include="database_helpers.cpp" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
     <ClCompile Include="main.cpp" />
@@ -29,6 +28,12 @@
     </ClCompile>
     <ClCompile Include="plugin_manager.cpp" />
     <ClCompile Include="log.cpp" />
+    <ClCompile Include="database\database.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="database\prepared_statement.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -43,13 +48,15 @@
     <Filter Include="port_scanner">
       <UniqueIdentifier>{c29ecc7c-600c-4e3c-bac2-97f2d1655af0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="database">
+      <UniqueIdentifier>{6185a3f2-6956-4fd1-92ad-3e0299894968}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas_grid.h" />
     <ClInclude Include="camera_detection_rule.h" />
     <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
-    <ClInclude Include="database_helpers.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="internet_scanner.h" />
     <ClInclude Include="port_probe.h" />
@@ -77,5 +84,14 @@
     <ClInclude Include="plugin.h" />
     <ClInclude Include="plugin_manager.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="database\database.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\prepared_statement.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\query_result.h">
+      <Filter>database</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

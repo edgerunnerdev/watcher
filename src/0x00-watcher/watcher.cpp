@@ -5,11 +5,9 @@
 #include <SDL.h>
 #include "ext/json.h"
 #include "imgui/imgui.h"
-#include "sqlite/sqlite3.h"
 #include "port_scanner/coverage.h"
 #include "camera_scanner.h"
 #include "configuration.h"
-#include "database_helpers.h"
 #include "geo_info.h"
 #include "log.h"
 #include "watcher.h"
@@ -37,10 +35,9 @@ m_PortScannerCoverageOpen( false )
 #endif
 
 	m_pConfiguration = std::make_unique< Configuration >();
+	m_pDatabase = std::make_unique< Database::Database >( "0x00-watcher.db" );
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
-	sqlite3_open( "0x00-watcher.db", &m_pDatabase );
-	sqlite3_busy_timeout( m_pDatabase, 1000 );
 
 	m_pPortScannerCoverage = std::make_unique< PortScanner::Coverage >();
 	m_pPortScannerCoverage->Read();
@@ -80,37 +77,34 @@ Watcher::~Watcher()
 	{
 		m_InternetScannerZmapThread.join();
 	}
+}
 
-	sqlite3_close( m_pDatabase );
+void Watcher::GeolocationRequestCallback( const Database::QueryResult& result, void* pData )
+{
+	PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pData );
+	for ( auto& row : result.Get() )
+	{
+		for ( auto& cell : row )
+		{
+			if ( cell.has_value() )
+			{
+				json message = 
+				{
+					{ "type", "geolocation_request" },
+					{ "address", std::get< std::string >( *cell ) },
+				};
+				pPluginManager->BroadcastMessage( message );
+			}
+		}
+	}
 }
 
 void Watcher::InitialiseGeolocation()
 {
 	LoadGeoInfos();
 
-	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
-	{
-		PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pOwner );
-		for ( int i = 0; i < argc; i++ )
-		{
-			json message = 
-			{
-				{ "type", "geolocation_request" },
-				{ "address", argv[ i ] },
-			};
-			pPluginManager->BroadcastMessage( message );
-		}
-		return 0;
-	};
-
-	std::string query = "SELECT IP FROM Cameras WHERE Geo=0";
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, m_pPluginManager.get(), &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}
+	Database::PreparedStatement query( m_pDatabase.get(), "SELECT IP FROM Cameras WHERE Geo=0", &Watcher::GeolocationRequestCallback, m_pPluginManager.get() );
+	m_pDatabase->Execute( query );
 }
 
 void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
@@ -174,25 +168,19 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 {
 	auto threadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
 	{
-		sqlite3* pDatabase;
-		sqlite3_open( "0x00-watcher.db", &pDatabase );
-		sqlite3_busy_timeout( pDatabase, 1000 );
-
 		while ( pWatcher->IsActive() )
 		{
 			Network::IPAddress address;
 			if ( pWatcher->ConsumeCameraScannerQueue( address ) )
 			{ 
 				CameraScanResult scanResult = pScanner->Scan( address );
-				pWatcher->OnCameraScanned( pDatabase, scanResult );
+				pWatcher->OnCameraScanned( scanResult );
 			}
 			else
 			{
 				std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
 			}
 		}
-
-		sqlite3_close( pDatabase );
 	};
 
 	for ( unsigned int i = 0u; i < scannerCount; i++ )
@@ -365,15 +353,13 @@ void Watcher::OnMessageReceived( const json& message )
 	}
 }
 
-void Watcher::OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address )
+void Watcher::OnWebServerFound( Network::IPAddress address )
 {
-	if ( pDatabase != nullptr )
-	{
-		// Store this web server into the database, mark it as not parsed.
-		std::stringstream ss;
-		ss << "INSERT OR REPLACE INTO WebServers VALUES('" << address.GetHostAsString() << "', " << address.GetPort() << ", 0);";
-		ExecuteDatabaseQuery( pDatabase, ss.str() );
-	}
+	// Store this web server into the database, mark it as not parsed.
+	Database::PreparedStatement statement( m_pDatabase.get(), "INSERT OR REPLACE INTO WebServers VALUES(?1, ?2, 0);" );
+	statement.Bind( 1, address.GetHostAsString() );
+	statement.Bind( 2, address.GetPort() );
+	m_pDatabase->Execute( statement );
 
 	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
 	m_CameraScannerQueue.push_back( address );
@@ -381,7 +367,32 @@ void Watcher::OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address )
 
 void Watcher::RestartCameraDetection()
 {
-	ExecuteDatabaseQuery( m_pDatabase, "UPDATE WebServers SET Scanned=0;" );
+	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=0;" );
+	m_pDatabase->Execute( statement );
+}
+
+void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData )
+{
+	for ( auto& row : result.Get() )
+	{
+		const int numCells = 2;
+		if ( row.size() != 2 )
+		{
+			Log::Error( "Invalid number of rows returned from query in PopulateCameraDetectionQueueCallback(). Expected %d, got %d.", numCells, row.size() );
+		}
+		else if ( row[ 0 ].has_value() == false || row [ 1 ].has_value() == false )
+		{
+			Log::Error( "Unexpected null in cell returned from query in PopulateCameraDetectionQueueCallback()." );
+		}
+		else
+		{
+			Network::IPAddress ipAddress( std::get< std::string >( *row[ 0 ] ) );
+			ipAddress.SetPort( std::get< int >( *row[ 1 ] ) );
+
+			std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
+			g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
+		}
+	}
 }
 
 // Loads from the database any IP addresses for web servers which have been
@@ -390,26 +401,11 @@ void Watcher::RestartCameraDetection()
 // OnWebServerFound() callback instead.
 void Watcher::PopulateCameraDetectionQueue()
 {
-	auto callback = []( void* notUsed, int argc, char** argv, char** azColName )
-	{
-		SDL_assert( argc == 2 );
-		Network::IPAddress ipAddress( argv[0] );
-		ipAddress.SetPort( atoi( argv[1] ) );
-		g_pWatcher->OnWebServerFound( nullptr, ipAddress );
-		return 0;
-	};
-
-	std::string query = "SELECT IP, Port FROM WebServers WHERE Scanned=0";
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, 0, &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}
+	Database::PreparedStatement statement( m_pDatabase.get(), "SELECT IP, Port FROM WebServers WHERE Scanned=0", &Watcher::PopulateCameraDetectionQueueCallback );
+	m_pDatabase->Execute( statement );
 }
 
-void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& result )
+void Watcher::OnCameraScanned( const CameraScanResult& result )
 {
 	if ( result.title.empty() == false || result.isCamera )
 	{
@@ -423,27 +419,23 @@ void Watcher::OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& resul
 		}	
 	}
 
-	std::stringstream wss;
-	wss << "UPDATE WebServers SET Scanned=1 WHERE IP='" << result.address.GetHostAsString() << "';";
-	ExecuteDatabaseQuery( pDatabase, wss.str() );
+	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=1 WHERE IP=?1;" );
+	statement.Bind( 1, result.address.GetHostAsString() );
+	m_pDatabase->Execute( statement );
 
 	if ( result.isCamera )
 	{
-		std::stringstream updateCameraQuery;
-		updateCameraQuery << "UPDATE Cameras SET Geo=1 WHERE IP='" << result.address.ToString() << "';";
-		ExecuteDatabaseQuery( pDatabase, updateCameraQuery.str() );
+		Database::PreparedStatement updateCameraStatement( m_pDatabase.get(), "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
+		updateCameraStatement.Bind( 1, result.address.ToString() );
+		m_pDatabase->Execute( updateCameraStatement );
 
-		sqlite3_stmt* pAddCameraStatement;
-		const char* pAddCameraQuery = "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);";
-		sqlite3_prepare_v2( pDatabase, pAddCameraQuery, -1, &pAddCameraStatement, nullptr );
-
-		sqlite3_bind_text( pAddCameraStatement, 1, result.address.GetHostAsString().c_str(), -1, SQLITE_TRANSIENT );
-		sqlite3_bind_int( pAddCameraStatement, 2, result.address.GetPort() );
-		sqlite3_bind_int( pAddCameraStatement, 3, 0 ); // Type (unused at the moment).
-		sqlite3_bind_text( pAddCameraStatement, 4, result.title.c_str(), -1, SQLITE_TRANSIENT );
-		sqlite3_bind_int( pAddCameraStatement, 5, 0 ); // Geolocation pending.
-		ExecuteDatabaseQuery( pDatabase, pAddCameraStatement );
-		sqlite3_finalize( pAddCameraStatement );
+		Database::PreparedStatement addCameraStatement( m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);" );
+		addCameraStatement.Bind( 1, result.address.GetHostAsString() );
+		addCameraStatement.Bind( 2, result.address.GetPort() );
+		addCameraStatement.Bind( 3, 0 ); // Type (unused at the moment).
+		addCameraStatement.Bind( 4, result.title );
+		addCameraStatement.Bind( 5, 0 ); // Geolocation pending.
+		m_pDatabase->Execute( addCameraStatement );
 
 		json message = 
 		{
@@ -475,32 +467,48 @@ bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
 	}
 }
 
+void Watcher::LoadGeoInfosCallback( const Database::QueryResult& result, void* pData )
+{
+	for ( auto& row : result.Get() )
+	{
+		const int numCells = 7;
+		if ( numCells != row.size() )
+		{
+			Log::Error( "Invalid number of rows returned from query in LoadGeoInfosCallback(). Expected %d, got %d.", numCells, row.size() );
+			continue;
+		}
+
+		bool validResults = true;
+		for ( int i = 0; i < numCells; i++ )
+		{
+			if ( row[ i ].has_value() == false )
+			{
+				validResults = false;
+				break;
+			}
+		}
+
+		if ( validResults )
+		{
+			Network::IPAddress address( std::get< std::string >( *row[ 0 ] ) );
+			std::string city = std::get< std::string >( *row[ 1 ] );
+			std::string region = std::get< std::string >( *row[ 2 ] );
+			std::string country = std::get< std::string >( *row[ 3 ] );
+			std::string organisation = std::get< std::string >( *row[ 4 ] );
+			float latitude = static_cast< float >( std::get< double >( *row[ 5 ] ) );
+			float longitude = static_cast< float >( std::get< double >( *row[ 6 ] ) );
+			GeoInfo geoInfo( address );
+			geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
+			g_pWatcher->m_GeoInfos.push_back( geoInfo );
+		}
+	}
+}
+
 // Loads all geolocation information which had previously been stored in the database.
 void Watcher::LoadGeoInfos()
 {
-	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
-	{
-		Network::IPAddress address( argv[ 0 ] );
-		std::string city = argv[ 1 ];
-		std::string region = argv[ 2 ];
-		std::string country = argv[ 3 ];
-		std::string organisation = argv[ 4 ];
-		float latitude = static_cast< float >( atof( argv[ 5 ] ) );
-		float longitude = static_cast< float >( atof( argv[ 6 ] ) );
-		GeoInfo geoInfo( address );
-		geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
-		g_pWatcher->m_GeoInfos.push_back( geoInfo );
-		return 0;
-	};
-
-	std::string query = "SELECT * FROM Geolocation";
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, this, &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}	
+	Database::PreparedStatement statement( m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeoInfosCallback );
+	m_pDatabase->Execute( statement );
 }
 
 void Watcher::AddGeoInfo( const json& message )
@@ -516,5 +524,5 @@ void Watcher::AddGeoInfo( const json& message )
 		m_GeoInfos.push_back( geoInfo );
 	}
 
-	geoInfo.SaveToDatabase( m_pDatabase );
+	geoInfo.SaveToDatabase( m_pDatabase.get() );
 }
