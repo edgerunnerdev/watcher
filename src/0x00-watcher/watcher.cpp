@@ -84,33 +84,32 @@ Watcher::~Watcher()
 	sqlite3_close( m_pDatabase );
 }
 
+static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData )
+{
+	PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pData );
+	for ( auto& row : result.Get() )
+	{
+		for ( auto& cell : row )
+		{
+			if ( cell.has_value() )
+			{
+				json message = 
+				{
+					{ "type", "geolocation_request" },
+					{ "address", std::get< std::string >( *cell ) },
+				};
+				pPluginManager->BroadcastMessage( message );
+			}
+		}
+	}
+}
+
 void Watcher::InitialiseGeolocation()
 {
 	LoadGeoInfos();
 
-	auto callback = []( void* pOwner, int argc, char** argv, char** azColName )
-	{
-		PluginManager* pPluginManager = reinterpret_cast< PluginManager* >( pOwner );
-		for ( int i = 0; i < argc; i++ )
-		{
-			json message = 
-			{
-				{ "type", "geolocation_request" },
-				{ "address", argv[ i ] },
-			};
-			pPluginManager->BroadcastMessage( message );
-		}
-		return 0;
-	};
-
-	std::string query = "SELECT IP FROM Cameras WHERE Geo=0";
-	char* pError = nullptr;
-	int rc = sqlite3_exec( m_pDatabase, query.c_str(), callback, m_pPluginManager.get(), &pError );
-	if( rc != SQLITE_OK )
-	{
-		fprintf( stderr, "SQL error: %s\n", pError );
-		sqlite3_free( pError );
-	}
+	Database::PreparedStatement query( m_pDatabase2.get(), "SELECT IP FROM Cameras WHERE Geo=0", &GeolocationRequestCallback, m_pPluginManager.get() );
+	m_pDatabase2->Execute( query );
 }
 
 void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
@@ -394,7 +393,10 @@ void Watcher::PopulateCameraDetectionQueue()
 		SDL_assert( argc == 2 );
 		Network::IPAddress ipAddress( argv[0] );
 		ipAddress.SetPort( atoi( argv[1] ) );
-		g_pWatcher->OnWebServerFound( nullptr, ipAddress );
+
+		std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
+		g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
+
 		return 0;
 	};
 

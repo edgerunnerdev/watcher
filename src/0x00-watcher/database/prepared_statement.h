@@ -14,7 +14,7 @@ class Database;
 class PreparedStatement
 {
 public:
-	PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback = nullptr ); 
+	PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback = nullptr, void* pCallbackData = nullptr ); 
 	void Execute();
 	void Bind( unsigned int index, const std::string& text );
 	void Bind( unsigned int index, int value );
@@ -25,6 +25,7 @@ private:
 	sqlite3_stmt* m_pStatement;
 	bool m_Executed;
 	QueryResultCallback m_pCallback;
+	void* m_pCallbackData;
 };
 
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <optional>
 #include <string>
 #include <utility>
@@ -8,8 +10,8 @@ namespace Database
 {
 
 using QueryResultCell = std::optional< std::variant< int, double, std::string > >;
-using QueryResultRow = std::vector< ResultCell >;
-using QueryResultTable = std::vector< ResultRow >;
+using QueryResultRow = std::vector< QueryResultCell >;
+using QueryResultTable = std::vector< QueryResultRow >;
 
 class QueryResult
 {

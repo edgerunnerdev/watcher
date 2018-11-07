@@ -8,11 +8,12 @@
 namespace Database
 {
 
-PreparedStatement::PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback /* = nullptr */ ) :
+PreparedStatement::PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback /* = nullptr */, void* pCallbackData /* = nullptr */ ) :
 m_Query( query ),
 m_pStatement( nullptr ),
 m_Executed( false ),
-m_pCallback( pCallback )
+m_pCallback( pCallback ),
+m_pCallbackData( pCallbackData )
 {
 	sqlite3_prepare_v2( pDatabase->m_pDatabase, query.c_str(), -1, &m_pStatement, nullptr );
 }
@@ -49,8 +50,8 @@ void PreparedStatement::Execute()
 	int numColumns = sqlite3_column_count( m_pStatement );
 	while ( 1 )
 	{
-		int result = sqlite3_step( m_pStatement );
-		if ( result == SQLITE_ROW )
+		int rc = sqlite3_step( m_pStatement );
+		if ( rc == SQLITE_ROW )
 		{
 			QueryResultRow row;
 			for ( int i = 0; i < numColumns; i++ )
@@ -58,20 +59,20 @@ void PreparedStatement::Execute()
 				int columnType = sqlite3_column_type( m_pStatement, i );
 				if ( columnType == SQLITE3_TEXT )
 				{
-					row.push_back( sqlite3_column_text( m_pStatement, i ) );
+					row.push_back( std::string( reinterpret_cast< const char* >( sqlite3_column_text( m_pStatement, i ) ) ) );
 				}
-				else if ( column == SQLITE_INTEGER )
+				else if ( columnType == SQLITE_INTEGER )
 				{
 					row.push_back( sqlite3_column_int( m_pStatement, i ) );
 				}
-				else if ( column == SQLITE_FLOAT )
+				else if ( columnType == SQLITE_FLOAT )
 				{
 					row.push_back( sqlite3_column_double( m_pStatement, i ) );
 				}
 			}
 			result.Add( row );
 		}
-		else if ( result == SQLITE_DONE )
+		else if ( rc == SQLITE_DONE )
 		{
 			break;
 		}
@@ -83,7 +84,7 @@ void PreparedStatement::Execute()
 
 	if ( m_pCallback )
 	{
-		m_pCallback( result, nullptr );
+		m_pCallback( result, m_pCallbackData );
 	}
 
 	sqlite3_finalize( m_pStatement );
