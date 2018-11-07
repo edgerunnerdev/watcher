@@ -5,16 +5,21 @@
 #include "atlas/atlas.h"
 #include "imgui/imgui.h"
 
-Atlas::Atlas(int numTilesX, int numTilesY, int tileResolution) :
-m_NumTilesX( numTilesX ),
-m_NumTilesY( numTilesY ),
-m_TileResolution( tileResolution ),
-m_LowResTextures( numTilesX * numTilesY ),
-m_HighResTextures( numTilesX * numTilesY )
+Atlas::Atlas( int windowWidth, int windowHeight ) :
+m_NumTilesX( 8 ),
+m_NumTilesY( 4 ),
+m_TileResolution( 256 ),
+m_LowResTextures( 8 * 4 ),
+m_HighResTextures( 8 * 4 ),
+m_MinimumZoomLevel( 0 ),
+m_CurrentZoomLevel( 0 )
 {
 	SDL_assert( m_NumTilesX > 0 );
 	SDL_assert( m_NumTilesY > 0 );
 	SDL_assert( m_TileResolution >= 256 );
+
+	InitialiseTileMaps();
+	OnWindowSizeChanged( windowWidth, windowHeight );
 
 	LoadTextures();
 }
@@ -22,6 +27,34 @@ m_HighResTextures( numTilesX * numTilesY )
 Atlas::~Atlas()
 {
 
+}
+
+void Atlas::InitialiseTileMaps()
+{
+	const int maxZoomLevels = 8;
+	m_TileMaps.resize( maxZoomLevels );
+	for ( int zoomLevel = 0; zoomLevel < maxZoomLevels; ++zoomLevel )
+	{
+		const int numTiles = static_cast< int >( pow( 4, zoomLevel ) );
+		m_TileMaps[ zoomLevel ].resize( numTiles, 0 );
+	}
+}
+
+void Atlas::OnWindowSizeChanged( int width, int height )
+{ 
+	const int maxView = max( width, height );
+	const float maxAxisVisibleTiles = static_cast< float >( maxView ) / m_sTileSize;
+	const int maxZoomLevels = static_cast< int >( m_TileMaps.size() );
+	for ( int zoomLevel = 0; zoomLevel < maxZoomLevels; ++zoomLevel )
+	{
+		const int squareSize = static_cast< int >( sqrt( m_TileMaps[ zoomLevel ].size() ) );
+		if ( maxAxisVisibleTiles <= squareSize )
+		{
+			m_MinimumZoomLevel = m_CurrentZoomLevel = zoomLevel;
+			break;
+		}
+	}
+	int a = 0;
 }
 
 void Atlas::Render()

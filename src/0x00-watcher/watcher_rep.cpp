@@ -18,7 +18,7 @@ m_CellSize( 128.0f )
 	int windowHeight;
 	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
 	m_pAtlasGrid = std::make_unique< AtlasGrid >( windowWidth, windowHeight, 16 );
-	m_pAtlas = std::make_unique< Atlas >( 8, 4, 256 );
+	m_pAtlas = std::make_unique< Atlas >( windowWidth, windowHeight );
 
 	for ( GLuint x = 0u; x < m_BackgroundTextures.size(); ++x )
 	{
