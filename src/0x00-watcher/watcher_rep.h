@@ -17,10 +17,14 @@
 
 struct SDL_Surface;
 struct SDL_Window;
+
+namespace Atlas
+{
 class Atlas;
+using AtlasUniquePtr = std::unique_ptr< Atlas >;
+}
 
 using AtlasGridUniquePtr = std::unique_ptr< AtlasGrid >;
-using AtlasUniquePtr = std::unique_ptr< Atlas >;
 
 class WatcherRep
 {
@@ -39,7 +43,7 @@ private:
 
 	SDL_Window* m_pWindow;
 	GLuint m_BackgroundTexture;
-	AtlasUniquePtr m_pAtlas;
+	Atlas::AtlasUniquePtr m_pAtlas;
 	AtlasGridUniquePtr m_pAtlasGrid;
 	std::array< std::array< GLuint, 4 >, 8 > m_BackgroundTextures;
 	float m_CellSize;

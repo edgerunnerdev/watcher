@@ -48,7 +48,7 @@ void Geolocation::OnMessageReceived( const nlohmann::json& message )
 	if ( message[ "type" ] == "geolocation_request" )
 	{
 		{
-			std::lock_guard< std::mutex > lock( m_QueueMutex );
+			std::lock_guard< std::mutex > lock( m_AccessMutex );
 			std::string address = message[ "address" ];
 			m_Queue.emplace_back( address );
 		}
@@ -63,7 +63,7 @@ void Geolocation::DrawUI( ImGuiContext* pContext )
 
 	if ( ImGui::CollapsingHeader( "Geolocation", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
-		std::lock_guard< std::mutex > lock( m_QueueMutex );
+		std::lock_guard< std::mutex > lock( m_AccessMutex );
 		ImGui::Text( "Provider: ipinfo.io" );
 		
 		if ( m_RateLimitExceeded )
@@ -96,7 +96,7 @@ void Geolocation::ConsumeQueue()
 		{
 			Network::IPAddress address;
 			{
-				std::lock_guard< std::mutex > lock( pGeolocation->m_QueueMutex );
+				std::lock_guard< std::mutex > lock( pGeolocation->m_AccessMutex );
 				if ( pGeolocation->m_Queue.empty() )
 				{
 					break;

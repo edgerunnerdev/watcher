@@ -34,6 +34,12 @@
     <ClCompile Include="database\prepared_statement.cpp">
       <Filter>database</Filter>
     </ClCompile>
+    <ClCompile Include="atlas\tile_streamer.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas\tile.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -92,6 +98,12 @@
     </ClInclude>
     <ClInclude Include="database\query_result.h">
       <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\tile_streamer.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\tile.h">
+      <Filter>atlas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

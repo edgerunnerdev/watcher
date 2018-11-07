@@ -16,7 +16,13 @@
 
 #include <GL/gl.h>
 
+#include "atlas/tile.h"
+
+namespace Atlas
+{
+
 class Atlas;
+class TileStreamer;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 
 class Atlas
@@ -33,6 +39,7 @@ public:
 private:
 	void InitialiseTileMaps();
 	void LoadTextures();
+	void CalculateVisibleTiles( TileVector& visibleTiles );
 	GLuint LoadTexture( const std::string& filename );
 	GLuint GetTileTexture( int x, int y ) const;
 
@@ -49,4 +56,9 @@ private:
 	TileMaps m_TileMaps;
 	int m_MinimumZoomLevel;
 	int m_CurrentZoomLevel;
+
+	std::vector< int > m_TilesToDraw;
+	std::unique_ptr< TileStreamer > m_pTileStreamer;
 };
+
+}

@@ -134,6 +134,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="atlas\atlas.cpp" />
+    <ClCompile Include="atlas\tile.cpp" />
+    <ClCompile Include="atlas\tile_streamer.cpp" />
     <ClCompile Include="atlas_grid.cpp" />
     <ClCompile Include="camera_detection_rule.cpp" />
     <ClCompile Include="camera_scanner.cpp" />
@@ -157,6 +159,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas\atlas.h" />
+    <ClInclude Include="atlas\tile.h" />
+    <ClInclude Include="atlas\tile_streamer.h" />
     <ClInclude Include="atlas_grid.h" />
     <ClInclude Include="camera_detection_rule.h" />
     <ClInclude Include="camera_scanner.h" />
