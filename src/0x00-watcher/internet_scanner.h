@@ -5,8 +5,6 @@
 
 #include "network/network.h"
 
-struct sqlite3;
-
 class InternetScanner
 {
 public:
@@ -21,5 +19,4 @@ protected:
 	void SetStatusText( const std::string& text );
 	std::string m_StatusText;
 	mutable std::mutex m_StatusTextMutex;
-	sqlite3* m_pDatabase;
 };

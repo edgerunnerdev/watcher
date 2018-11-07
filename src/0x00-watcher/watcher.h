@@ -27,7 +27,6 @@ class InternetScannerZmap;
 class InternetScannerBasic;
 class PluginManager;
 class WatcherRep;
-struct sqlite3;
 struct SDL_Window;
 
 using InternetScannerBasicUniquePtr = std::unique_ptr< InternetScannerBasic >;
@@ -61,10 +60,8 @@ public:
 	PortScanner::Coverage* GetPortScannerCoverage() const;
 	Configuration* GetConfiguration() const;
 
-	// Any callback which has to write into the database needs to receive its own
-	// database connection.
-	void OnWebServerFound( sqlite3* pDatabase, Network::IPAddress address );
-	void OnCameraScanned( sqlite3* pDatabase, const CameraScanResult& result );
+	void OnWebServerFound( Network::IPAddress address );
+	void OnCameraScanned( const CameraScanResult& result );
 	void OnMessageReceived( const json& message );
 
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
@@ -72,6 +69,10 @@ public:
 	const GeoInfoVector& GetGeoInfos() const;
 
 private:
+	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
+	static void PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData );
+	static void LoadGeoInfosCallback( const Database::QueryResult& result, void* pData );
+
 	void PopulateCameraDetectionQueue();
 	void InitialiseInternetScannerBasic( unsigned int scannerCount );
 	void InitialiseNmap();
@@ -86,8 +87,7 @@ private:
 	ThreadVector m_InternetScannerBasicThreads;
 	InternetScannerBasicVector m_InternetScannerBasic;
 	InternetScannerMode m_WebServerScannerMode;
-	sqlite3* m_pDatabase;
-	Database::DatabaseUniquePtr m_pDatabase2;
+	Database::DatabaseUniquePtr m_pDatabase;
 
 	std::mutex m_CameraScannerQueueMutex;
 	IPVector m_CameraScannerQueue;

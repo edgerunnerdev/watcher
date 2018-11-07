@@ -64,7 +64,7 @@ bool InternetScannerNmap::ScanInternal( Network::IPAddress address, const Networ
   		if ( Parse( pOutputBuffer, resultAddress ) )
   		{
   			printf("Found potential HTTP server at %s\n", resultAddress.ToString().c_str() );
-			g_pWatcher->OnWebServerFound( m_pDatabase, resultAddress );
+			g_pWatcher->OnWebServerFound( resultAddress );
   		}
 	}
 
