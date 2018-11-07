@@ -28,8 +28,7 @@ class TileStreamer
 public:
 	TileStreamer();
 	~TileStreamer();
-	void RequestLoad( int x, int y, int zoomLevel );
-	void GetLoadedTiles( int zoomLevel, TileVector& loadedTiles );
+	Tile Get( int x, int y, int zoomLevel );
 	
 private:
 	static int TileStreamerThreadMain( TileStreamer* pTileRequester );

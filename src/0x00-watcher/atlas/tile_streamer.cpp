@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 
 #include "atlas/tile_streamer.h"
@@ -24,22 +25,19 @@ TileStreamer::~TileStreamer()
 	}
 }
 
-void TileStreamer::RequestLoad( int x, int y, int zoomLevel )
-{
-	std::lock_guard< std::mutex > lock( m_AccessMutex );
-	m_Queue.emplace( x, y, zoomLevel );
-}
-
-void TileStreamer::GetLoadedTiles( int zoomLevel, TileVector& loadedTiles )
+Tile TileStreamer::Get( int x, int y, int zoomLevel )
 {
 	std::lock_guard< std::mutex > lock( m_AccessMutex );
 	for ( Tile& tile : m_LoadedTiles )
 	{
-		if ( tile.ZoomLevel() == zoomLevel )
+		if ( tile.X() == x && tile.Y() == y && tile.ZoomLevel() == zoomLevel )
 		{
-			loadedTiles.push_back( tile );
+			return tile;
 		}
 	}
+
+	m_Queue.emplace( x, y, zoomLevel );
+	return Tile( x, y, zoomLevel );
 }
 
 int TileStreamer::TileStreamerThreadMain( TileStreamer* pTileRequester )
@@ -63,7 +61,10 @@ int TileStreamer::TileStreamerThreadMain( TileStreamer* pTileRequester )
 			pTileRequester->m_LoadedTiles.push_back( tile );
 		}
 
-		std::this_thread::sleep_for( std::chrono::milliseconds( 30 ) );
+		if ( pTileRequester->m_Queue.empty() )
+		{
+			std::this_thread::sleep_for( std::chrono::milliseconds( 30 ) );
+		}
 	}
 
 	return 0;

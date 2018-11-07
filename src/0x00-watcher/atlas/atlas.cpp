@@ -78,10 +78,8 @@ void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
 		int x = tileId % stride;
 		int y = tileId / stride;
 
-		m_pTileStreamer->RequestLoad( x, y, m_CurrentZoomLevel );
+		visibleTiles.push_back( m_pTileStreamer->Get( x, y, m_CurrentZoomLevel ) );
 	}
-
-	m_pTileStreamer->GetLoadedTiles( m_CurrentZoomLevel, visibleTiles );
 }
 
 void Atlas::Render()
