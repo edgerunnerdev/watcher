@@ -37,19 +37,14 @@ public:
 	void OnWindowSizeChanged( int width, int height );
 
 private:
-	void InitialiseTileMaps();
-	void LoadTextures();
 	void CalculateVisibleTiles( TileVector& visibleTiles );
 	GLuint LoadTexture( const std::string& filename );
-	GLuint GetTileTexture( int x, int y ) const;
 
 	static const int m_sTileSize = 256;
 
 	int m_NumTilesX;
 	int m_NumTilesY;
 	int m_TileResolution;
-	std::vector< GLuint > m_LowResTextures;
-	std::vector< GLuint > m_HighResTextures;
 
 	using TileTextureIdVector = std::vector< GLuint >;
 	using TileMaps = std::vector< TileTextureIdVector >;

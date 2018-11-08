@@ -1,9 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <deque>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <thread>
 #include <vector>
 
@@ -28,15 +28,17 @@ class TileStreamer
 public:
 	TileStreamer();
 	~TileStreamer();
-	Tile Get( int x, int y, int zoomLevel );
+	TileSharedPtr Get( int x, int y, int zoomLevel );
 	
 private:
 	static int TileStreamerThreadMain( TileStreamer* pTileRequester );
+	static bool LoadFromFile( Tile& tile );
+	static bool DownloadFromTileServer( Tile& tile ); 
 
 	std::mutex m_AccessMutex;
-	std::queue< Tile > m_Queue;
-	TileVector m_LoadingTiles;
+	std::deque< TileSharedPtr > m_Queue;
 	TileVector m_LoadedTiles;
+	TileSharedPtr m_LoadingTile;
 	std::thread m_Thread;
 	std::atomic_bool m_RunThread;
 };

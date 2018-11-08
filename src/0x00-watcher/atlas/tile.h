@@ -1,12 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 namespace Atlas
 {
 
 class Tile;
-using TileVector = std::vector< Tile >;
+using TileSharedPtr = std::shared_ptr< Tile >;
+using TileVector = std::vector< TileSharedPtr >;
 
 class Tile
 {
