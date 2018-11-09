@@ -66,7 +66,7 @@ public:
 
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
 
-	const GeoInfoVector& GetGeoInfos() const;
+	GeoInfoVector GetGeoInfos();
 
 private:
 	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
@@ -126,9 +126,11 @@ inline Configuration* Watcher::GetConfiguration() const
 	return m_pConfiguration.get();
 }
 
-inline const GeoInfoVector& Watcher::GetGeoInfos() const
+inline GeoInfoVector Watcher::GetGeoInfos()
 {
-	return m_GeoInfos;
+	std::scoped_lock< std::mutex > lock( m_GeoInfoMutex );
+	GeoInfoVector v = m_GeoInfos;
+	return v;
 }
 
 inline PortScanner::Coverage* Watcher::GetPortScannerCoverage() const

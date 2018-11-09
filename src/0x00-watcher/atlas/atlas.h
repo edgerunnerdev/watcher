@@ -25,6 +25,8 @@ class Atlas;
 class TileStreamer;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 
+static const int sMaxZoomLevels = 8;
+
 class Atlas
 {
 public:
@@ -38,7 +40,6 @@ public:
 
 private:
 	void CalculateVisibleTiles( TileVector& visibleTiles );
-	GLuint LoadTexture( const std::string& filename );
 
 	static const int m_sTileSize = 256;
 

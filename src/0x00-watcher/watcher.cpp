@@ -17,6 +17,7 @@
 #include "internet_scanner_zmap.h"
 #include "plugin_manager.h"
 #include "plugin.h"
+#include "texture_loader.h"
 
 Watcher* g_pWatcher = nullptr;
 extern IMGUI_API ImGuiContext* GImGui;
@@ -33,6 +34,8 @@ m_PortScannerCoverageOpen( false )
 #ifdef _WIN32
 	Log::AddLogTarget( std::make_shared< VisualStudioLogger >() );
 #endif
+
+	TextureLoader::Initialise();
 
 	m_pConfiguration = std::make_unique< Configuration >();
 	m_pDatabase = std::make_unique< Database::Database >( "0x00-watcher.db" );
@@ -193,6 +196,8 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 
 void Watcher::Update()
 {
+	TextureLoader::Update();
+
 	m_pRep->Update();
 	m_pRep->Render();
 

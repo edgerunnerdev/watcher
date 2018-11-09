@@ -34,6 +34,7 @@ private:
 	static int TileStreamerThreadMain( TileStreamer* pTileRequester );
 	static bool LoadFromFile( Tile& tile );
 	static bool DownloadFromTileServer( Tile& tile ); 
+	void CreateDirectories();
 
 	std::mutex m_AccessMutex;
 	std::deque< TileSharedPtr > m_Queue;

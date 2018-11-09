@@ -2,13 +2,18 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <sstream>
 
 #include <curl/curl.h>
 
+#include "atlas/atlas.h"
 #include "atlas/tile_streamer.h"
 #include "atlas/tile.h"
+#include "texture_loader.h"
 #include "log.h"
+
+namespace fs = std::experimental::filesystem;
 
 namespace Atlas
 {
@@ -17,6 +22,7 @@ TileStreamer::TileStreamer()
 {
 	m_RunThread = true;
 	m_Thread = std::thread( &TileStreamer::TileStreamerThreadMain, this );
+	CreateDirectories();
 }
 
 TileStreamer::~TileStreamer()
@@ -106,57 +112,66 @@ int TileStreamer::TileStreamerThreadMain( TileStreamer* pTS )
 
 bool TileStreamer::LoadFromFile( Tile& tile )
 {
-	return false;
+	std::stringstream filename;
+	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
+	if ( fs::exists( filename.str() ) == false )
+	{
+		return false;
+	}
+	else
+	{
+		GLuint texture = TextureLoader::LoadTexture( filename.str() );
+		if ( texture > 0 )
+		{
+			tile.AssignTexture( texture );
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
+static size_t WriteTileFileCallback( void* pBuffer, size_t size, size_t nmemb, void *pStream )
 {
-  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
-  return written;
+  return fwrite( pBuffer, size, nmemb, reinterpret_cast< FILE* >( pStream ) );
 }
 
 bool TileStreamer::DownloadFromTileServer( Tile& tile )
 {
-	CURL* curl_handle;
+	CURL* pCurlHandle;
 	std::stringstream url;
 	url << "http://a.tile.stamen.com/toner/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
 	std::stringstream filename;
 	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
-	FILE* pagefile;
+	FILE* pTileFile = nullptr;
 
-	/* init the curl session */ 
-	curl_handle = curl_easy_init();
- 
-	/* set URL to get here */ 
-	curl_easy_setopt( curl_handle, CURLOPT_URL, url.str().c_str() );
- 
-	/* Switch on full protocol/debug output while testing */ 
-	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
- 
-	/* disable progress meter, set to 0L to enable and disable debug output */ 
-	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
- 
-	/* send all data to this function  */ 
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
- 
-	/* open the file */ 
-	fopen_s( &pagefile, filename.str().c_str(), "wb" );
-	if( pagefile ) 
+	pCurlHandle = curl_easy_init();
+	curl_easy_setopt( pCurlHandle, CURLOPT_URL, url.str().c_str() );
+	curl_easy_setopt( pCurlHandle, CURLOPT_NOPROGRESS, 1L );
+	curl_easy_setopt( pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback );
+	fopen_s( &pTileFile, filename.str().c_str(), "wb" );
+	bool result = false;
+	if( pTileFile != nullptr ) 
 	{
-		/* write the page body to this file handle */ 
-		curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
- 
-		/* get it! */ 
-		curl_easy_perform(curl_handle);
- 
-		/* close the header file */ 
-		fclose(pagefile);
+		curl_easy_setopt( pCurlHandle, CURLOPT_WRITEDATA, pTileFile );
+		result = ( curl_easy_perform( pCurlHandle ) == CURLE_OK );
+		fclose( pTileFile );
 	}
- 
-	/* cleanup curl stuff */ 
-	curl_easy_cleanup(curl_handle);
 
-	return true;
+	curl_easy_cleanup( pCurlHandle );
+	return result;
+}
+
+void TileStreamer::CreateDirectories()
+{
+	for ( int zoomLevel = 0; zoomLevel < sMaxZoomLevels; ++zoomLevel )
+	{
+		std::stringstream path;
+		path << "textures/atlas/" << zoomLevel;
+		fs::create_directories( path.str() );
+	}
 }
 
 }

@@ -24,6 +24,7 @@ class Atlas;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 }
 
+class AtlasGrid;
 using AtlasGridUniquePtr = std::unique_ptr< AtlasGrid >;
 
 class WatcherRep
@@ -38,13 +39,8 @@ public:
 	void AddToAtlas( float latitude, float longitude, int index );
 
 private:
-	void LoadTextures();
-	GLuint LoadTexture( const std::string& filename );	
-
 	SDL_Window* m_pWindow;
-	GLuint m_BackgroundTexture;
 	Atlas::AtlasUniquePtr m_pAtlas;
 	AtlasGridUniquePtr m_pAtlasGrid;
-	std::array< std::array< GLuint, 4 >, 8 > m_BackgroundTextures;
 	float m_CellSize;
 };
