@@ -59,15 +59,15 @@ void PreparedStatement::Execute()
 				int columnType = sqlite3_column_type( m_pStatement, i );
 				if ( columnType == SQLITE3_TEXT )
 				{
-					row.push_back( std::string( reinterpret_cast< const char* >( sqlite3_column_text( m_pStatement, i ) ) ) );
+					row.emplace_back( std::string( reinterpret_cast< const char* >( sqlite3_column_text( m_pStatement, i ) ) ) );
 				}
 				else if ( columnType == SQLITE_INTEGER )
 				{
-					row.push_back( sqlite3_column_int( m_pStatement, i ) );
+					row.emplace_back( sqlite3_column_int( m_pStatement, i ) );
 				}
 				else if ( columnType == SQLITE_FLOAT )
 				{
-					row.push_back( sqlite3_column_double( m_pStatement, i ) );
+					row.emplace_back( sqlite3_column_double( m_pStatement, i ) );
 				}
 			}
 			result.Add( row );

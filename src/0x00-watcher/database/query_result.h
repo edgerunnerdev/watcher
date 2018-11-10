@@ -1,15 +1,41 @@
 #pragma once
 
+#ifdef __linux__
+#include <experimental/optional>
+#else
 #include <optional>
+#endif
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 namespace Database
 {
 
-using QueryResultCell = std::optional< std::variant< int, double, std::string > >;
+// Less than ideal but at the moment std::variant isn't easily
+// usable in GCC / clang without messing around.
+class QueryResultType
+{
+public:
+	QueryResultType( int value );
+	QueryResultType( double value );
+	QueryResultType( const std::string& value );
+
+	int GetInt() const;
+	double GetDouble() const;
+	const std::string& GetString() const;
+
+private:
+	int m_Int;
+	double m_Double;
+	std::string m_String;
+};
+
+#ifdef __linux
+using QueryResultCell = std::experimental::optional< QueryResultType >;
+#else
+using QueryResultCell = std::optional< QueryResultType >;
+#endif
 using QueryResultRow = std::vector< QueryResultCell >;
 using QueryResultTable = std::vector< QueryResultRow >;
 

@@ -128,7 +128,7 @@ inline Configuration* Watcher::GetConfiguration() const
 
 inline GeoInfoVector Watcher::GetGeoInfos()
 {
-	std::scoped_lock< std::mutex > lock( m_GeoInfoMutex );
+	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
 	GeoInfoVector v = m_GeoInfos;
 	return v;
 }

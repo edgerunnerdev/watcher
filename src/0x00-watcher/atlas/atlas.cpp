@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <SDL.h>
@@ -31,7 +32,7 @@ Atlas::~Atlas()
 
 void Atlas::OnWindowSizeChanged( int width, int height )
 { 
-	const int maxView = max( width, height );
+	const int maxView = std::max( width, height );
 	const float maxAxisVisibleTiles = static_cast< float >( maxView ) / m_sTileSize;
 	const int maxZoomLevels = 8;
 	for ( int zoomLevel = 0; zoomLevel < maxZoomLevels; ++zoomLevel )

@@ -16,12 +16,12 @@ void TextureLoader::Initialise()
 
 void TextureLoader::Update()
 {
-	std::scoped_lock< std::mutex > loadLock( m_LoadMutex );
+	std::lock_guard< std::mutex > loadLock( m_LoadMutex );
 	while ( m_TextureLoadQueue.empty() == false )
 	{
 		GLuint texture = LoadTexture( m_TextureLoadQueue.front() );
 		{
-			std::scoped_lock< std::mutex > resultLock( m_ResultMutex );
+			std::lock_guard< std::mutex > resultLock( m_ResultMutex );
 			TextureLoadResult result;
 			result.filename = m_TextureLoadQueue.front();
 			result.texture = texture;
@@ -36,13 +36,13 @@ GLuint TextureLoader::LoadTexture( const std::string& filename )
 	if ( std::this_thread::get_id() != m_MainThreadId )
 	{
 		{
-			std::scoped_lock< std::mutex > lock( m_LoadMutex );
+			std::lock_guard< std::mutex > lock( m_LoadMutex );
 			m_TextureLoadQueue.push( filename );
 		}
 
 		while ( 1 )
 		{
-			std::scoped_lock< std::mutex > lock( m_ResultMutex );
+			std::lock_guard< std::mutex > lock( m_ResultMutex );
 			if ( m_TextureLoadResultQueue.empty() == false && m_TextureLoadResultQueue.front().filename == filename )
 			{
 				GLuint texture = m_TextureLoadResultQueue.front().texture;
