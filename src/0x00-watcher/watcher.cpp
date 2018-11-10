@@ -94,7 +94,7 @@ void Watcher::GeolocationRequestCallback( const Database::QueryResult& result, v
 				json message = 
 				{
 					{ "type", "geolocation_request" },
-					{ "address", std::get< std::string >( *cell ) },
+					{ "address", cell->GetString() },
 				};
 				pPluginManager->BroadcastMessage( message );
 			}
@@ -391,8 +391,8 @@ void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult&
 		}
 		else
 		{
-			Network::IPAddress ipAddress( std::get< std::string >( *row[ 0 ] ) );
-			ipAddress.SetPort( std::get< int >( *row[ 1 ] ) );
+			Network::IPAddress ipAddress( row[ 0 ]->GetString() );
+			ipAddress.SetPort( row[ 1 ]->GetInt() );
 
 			std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
 			g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
@@ -495,13 +495,13 @@ void Watcher::LoadGeoInfosCallback( const Database::QueryResult& result, void* p
 
 		if ( validResults )
 		{
-			Network::IPAddress address( std::get< std::string >( *row[ 0 ] ) );
-			std::string city = std::get< std::string >( *row[ 1 ] );
-			std::string region = std::get< std::string >( *row[ 2 ] );
-			std::string country = std::get< std::string >( *row[ 3 ] );
-			std::string organisation = std::get< std::string >( *row[ 4 ] );
-			float latitude = static_cast< float >( std::get< double >( *row[ 5 ] ) );
-			float longitude = static_cast< float >( std::get< double >( *row[ 6 ] ) );
+			Network::IPAddress address( row[ 0 ]->GetString() );
+			std::string city = row[ 1 ]->GetString();
+			std::string region = row[ 2 ]->GetString();
+			std::string country = row[ 3 ]->GetString();
+			std::string organisation = row[ 4 ]->GetString();
+			float latitude = static_cast< float >( row[ 5 ]->GetDouble() );
+			float longitude = static_cast< float >( row[ 6 ]->GetDouble() );
 			GeoInfo geoInfo( address );
 			geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
 			g_pWatcher->m_GeoInfos.push_back( geoInfo );
