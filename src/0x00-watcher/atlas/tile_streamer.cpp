@@ -147,7 +147,12 @@ bool TileStreamer::DownloadFromTileServer( Tile& tile )
 	curl_easy_setopt( pCurlHandle, CURLOPT_URL, url.str().c_str() );
 	curl_easy_setopt( pCurlHandle, CURLOPT_NOPROGRESS, 1L );
 	curl_easy_setopt( pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback );
+
+#ifdef _WIN32
 	fopen_s( &pTileFile, filename.str().c_str(), "wb" );
+#else
+	pTileFile = fopen( filename.str().c_str(), "wb" );
+#endif
 	bool result = false;
 	if( pTileFile != nullptr ) 
 	{
