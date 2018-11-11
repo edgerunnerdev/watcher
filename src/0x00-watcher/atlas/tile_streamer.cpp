@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <chrono>
-#include <filesystem>
 #include <sstream>
 
 #include <curl/curl.h>
@@ -8,10 +7,9 @@
 #include "atlas/atlas.h"
 #include "atlas/tile_streamer.h"
 #include "atlas/tile.h"
+#include "filesystem.h"
 #include "texture_loader.h"
 #include "log.h"
-
-namespace fs = std::experimental::filesystem;
 
 namespace Atlas
 {
@@ -112,7 +110,7 @@ bool TileStreamer::LoadFromFile( Tile& tile )
 {
 	std::stringstream filename;
 	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
-	if ( fs::exists( filename.str() ) == false )
+	if ( Filesystem::FileExists( filename.str() ) == false )
 	{
 		return false;
 	}
@@ -168,7 +166,7 @@ void TileStreamer::CreateDirectories()
 	{
 		std::stringstream path;
 		path << "textures/atlas/" << zoomLevel;
-		fs::create_directories( path.str() );
+		Filesystem::CreateDirectories( path.str() );
 	}
 }
 

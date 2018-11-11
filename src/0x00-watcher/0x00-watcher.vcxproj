@@ -23,7 +23,7 @@
     <ProjectGuid>{DB2A96BA-0101-4462-A586-2435A7F03FDC}</ProjectGuid>
     <RootNamespace>0x00-watcher</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-    <ProjectName>0x00-watcher</ProjectName>
+    <ProjectName>watcher</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -142,7 +142,9 @@
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
     <ClCompile Include="database\prepared_statement.cpp" />
+    <ClCompile Include="database\query_result.cpp" />
     <ClCompile Include="ext\htmlstreamparser.c" />
+    <ClCompile Include="filesystem.cpp" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="internet_scanner.cpp" />
     <ClCompile Include="log.cpp" />
@@ -170,6 +172,7 @@
     <ClInclude Include="database\prepared_statement.h" />
     <ClInclude Include="database\query_result.h" />
     <ClInclude Include="ext\htmlstreamparser.h" />
+    <ClInclude Include="filesystem.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="internet_scanner.h" />
     <ClInclude Include="ext\json.h" />
