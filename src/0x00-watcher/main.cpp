@@ -101,6 +101,8 @@ int main(int, char**)
 			{
                 done = true;
 			}
+
+			watcher.ProcessEvent( event );
         }
         ImGui_ImplSdlGL3_NewFrame(window);
 

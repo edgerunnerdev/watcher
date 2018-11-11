@@ -15,7 +15,9 @@ m_NumTilesX( 8 ),
 m_NumTilesY( 4 ),
 m_TileResolution( 256 ),
 m_MinimumZoomLevel( 0 ),
-m_CurrentZoomLevel( 0 )
+m_CurrentZoomLevel( 0 ),
+m_OffsetX( 0 ),
+m_OffsetY( 0 )
 {
 	SDL_assert( m_NumTilesX > 0 );
 	SDL_assert( m_NumTilesY > 0 );
@@ -28,6 +30,12 @@ m_CurrentZoomLevel( 0 )
 Atlas::~Atlas()
 {
 
+}
+
+void Atlas::OnMouseDrag( int deltaX, int deltaY )
+{
+	m_OffsetX += deltaX;
+	m_OffsetY += deltaY;
 }
 
 void Atlas::OnWindowSizeChanged( int width, int height )
@@ -74,8 +82,8 @@ void Atlas::Render()
 		const int y = pTile->Y();
 		pDrawList->AddImage(
 			reinterpret_cast< ImTextureID >( pTile->Texture() ), 
-			ImVec2( x * tileSize, y * tileSize ),
-			ImVec2( ( x + 1 ) * tileSize, ( y + 1 ) * tileSize )
+			ImVec2( x * tileSize + m_OffsetX, y * tileSize + m_OffsetY ),
+			ImVec2( ( x + 1 ) * tileSize + m_OffsetX, ( y + 1 ) * tileSize + m_OffsetY )
 		);
 	}
 }

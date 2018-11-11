@@ -37,6 +37,7 @@ public:
 	void GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const;
 
 	void OnWindowSizeChanged( int width, int height );
+	void OnMouseDrag( int deltaX, int deltaY );
 
 private:
 	void CalculateVisibleTiles( TileVector& visibleTiles );
@@ -52,6 +53,8 @@ private:
 	TileMaps m_TileMaps;
 	int m_MinimumZoomLevel;
 	int m_CurrentZoomLevel;
+	int m_OffsetX;
+	int m_OffsetY;
 
 	std::vector< int > m_TilesToDraw;
 	std::unique_ptr< TileStreamer > m_pTileStreamer;

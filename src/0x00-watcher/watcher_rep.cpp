@@ -23,6 +23,18 @@ WatcherRep::~WatcherRep()
 
 }
 
+void WatcherRep::ProcessEvent( const SDL_Event& event )
+{
+	if ( event.type == SDL_MOUSEMOTION )
+	{
+		const SDL_MouseMotionEvent* ev = reinterpret_cast< const SDL_MouseMotionEvent* >( &event );
+		if ( ( ev->state & SDL_BUTTON_LMASK ) > 0 )
+		{
+			m_pAtlas->OnMouseDrag( ev->xrel, ev->yrel );
+		}
+	}
+}
+
 void WatcherRep::Update()
 {
 	static const float sBaseCellSize = 128.0f;

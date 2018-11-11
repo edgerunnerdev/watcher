@@ -194,6 +194,11 @@ void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 	}
 }
 
+void Watcher::ProcessEvent( const SDL_Event& event ) 
+{
+	m_pRep->ProcessEvent( event );
+}
+
 void Watcher::Update()
 {
 	TextureLoader::Update();
@@ -495,6 +500,7 @@ void Watcher::LoadGeoInfosCallback( const Database::QueryResult& result, void* p
 
 		if ( validResults )
 		{
+			std::lock_guard< std::mutex > lock( g_pWatcher->m_GeoInfoMutex );
 			Network::IPAddress address( row[ 0 ]->GetString() );
 			std::string city = row[ 1 ]->GetString();
 			std::string region = row[ 2 ]->GetString();

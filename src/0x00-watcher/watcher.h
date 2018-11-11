@@ -55,6 +55,7 @@ class Watcher
 public:
 	Watcher( SDL_Window* pWindow, unsigned int scannerCount );
 	~Watcher();
+	void ProcessEvent( const SDL_Event& event );
 	void Update();
 	bool IsActive() const;
 	PortScanner::Coverage* GetPortScannerCoverage() const;

@@ -33,6 +33,7 @@ public:
 	WatcherRep( SDL_Window* pWindow );
 	~WatcherRep();
 
+	void ProcessEvent( const SDL_Event& event );
 	void Update();
 	void Render();
 
