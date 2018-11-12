@@ -29,16 +29,20 @@ Atlas::~Atlas()
 
 }
 
-void Atlas::OnMouseDrag( int deltaX, int deltaY )
+void Atlas::ClampOffset()
 {
-	m_OffsetX += deltaX;
-	m_OffsetY += deltaY;
-
 	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
 	if ( m_OffsetX > 0 ) m_OffsetX = 0;
 	if ( m_OffsetY > 0 ) m_OffsetY = 0;
 	if ( -m_OffsetX > ( stride * sTileSize - m_WindowWidth ) ) m_OffsetX = -( stride * sTileSize - m_WindowWidth );
 	if ( -m_OffsetY > ( stride * sTileSize - m_WindowHeight ) ) m_OffsetY = -( stride * sTileSize - m_WindowHeight );
+}
+
+void Atlas::OnMouseDrag( int deltaX, int deltaY )
+{
+	m_OffsetX += deltaX;
+	m_OffsetY += deltaY;
+	ClampOffset();
 }
 
 void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
@@ -57,6 +61,8 @@ void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
 			break;
 		}
 	}
+
+	ClampOffset();
 }
 
 void Atlas::OnZoomIn()

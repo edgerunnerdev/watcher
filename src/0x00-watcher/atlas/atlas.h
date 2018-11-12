@@ -43,6 +43,7 @@ public:
 	void OnZoomOut();
 
 private:
+	void ClampOffset();
 	void CalculateVisibleTiles( TileVector& visibleTiles );
 
 	using TileTextureIdVector = std::vector< GLuint >;

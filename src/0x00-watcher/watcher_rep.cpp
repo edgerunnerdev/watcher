@@ -45,6 +45,13 @@ void WatcherRep::ProcessEvent( const SDL_Event& event )
 			m_pAtlas->OnZoomOut();
 		}
 	}
+	else if ( event.type == SDL_WINDOWEVENT )
+	{
+		if ( event.window.event == SDL_WINDOWEVENT_RESIZED || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED )
+		{
+			m_pAtlas->OnWindowSizeChanged( event.window.data1, event.window.data2 );
+		}
+	}
 }
 
 void WatcherRep::Update()
