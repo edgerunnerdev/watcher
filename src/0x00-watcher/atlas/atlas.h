@@ -54,6 +54,8 @@ private:
 	int m_MaxVisibleTilesY;
 	int m_OffsetX;
 	int m_OffsetY;
+	int m_WindowWidth;
+	int m_WindowHeight;
 
 	std::vector< int > m_TilesToDraw;
 	std::unique_ptr< TileStreamer > m_pTileStreamer;

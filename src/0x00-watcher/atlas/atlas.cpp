@@ -16,7 +16,9 @@ m_CurrentZoomLevel( 0 ),
 m_MaxVisibleTilesX( 0 ),
 m_MaxVisibleTilesY( 0 ),
 m_OffsetX( 0 ),
-m_OffsetY( 0 )
+m_OffsetY( 0 ),
+m_WindowWidth( windowWidth ),
+m_WindowHeight( windowHeight )
 {
 	m_pTileStreamer = std::make_unique< TileStreamer >();
 	OnWindowSizeChanged( windowWidth, windowHeight );
@@ -32,14 +34,19 @@ void Atlas::OnMouseDrag( int deltaX, int deltaY )
 	m_OffsetX += deltaX;
 	m_OffsetY += deltaY;
 
+	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
 	if ( m_OffsetX > 0 ) m_OffsetX = 0;
 	if ( m_OffsetY > 0 ) m_OffsetY = 0;
+	if ( -m_OffsetX > ( stride * sTileSize - m_WindowWidth ) ) m_OffsetX = -( stride * sTileSize - m_WindowWidth );
+	if ( -m_OffsetY > ( stride * sTileSize - m_WindowHeight ) ) m_OffsetY = -( stride * sTileSize - m_WindowHeight );
 }
 
-void Atlas::OnWindowSizeChanged( int width, int height )
+void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
 { 
-	m_MaxVisibleTilesX = static_cast< int >( std::ceilf( static_cast< float >( width ) / sTileSize ) ) + 1;
-	m_MaxVisibleTilesY = static_cast< int >( std::ceilf( static_cast< float >( height ) / sTileSize ) ) + 1;
+	m_WindowWidth = windowWidth;
+	m_WindowHeight = windowHeight;
+	m_MaxVisibleTilesX = static_cast< int >( std::ceilf( static_cast< float >( windowWidth ) / sTileSize ) ) + 1;
+	m_MaxVisibleTilesY = static_cast< int >( std::ceilf( static_cast< float >( windowHeight ) / sTileSize ) ) + 1;
 	const int maxAxisVisibleTiles = std::max( m_MaxVisibleTilesX, m_MaxVisibleTilesY );
 	for ( int zoomLevel = 0; zoomLevel < sMaxZoomLevels; ++zoomLevel )
 	{
@@ -89,8 +96,8 @@ void Atlas::Render()
 	{
 		const int x = pTile->X();
 		const int y = pTile->Y();
-		ImVec2 p1( x * sTileSize + m_OffsetX, y * sTileSize + m_OffsetY );
-		ImVec2 p2(  ( x + 1 ) * sTileSize + m_OffsetX, ( y + 1 ) * sTileSize + m_OffsetY );
+		ImVec2 p1( static_cast< float >( x * sTileSize + m_OffsetX ), static_cast< float >( y * sTileSize + m_OffsetY ) );
+		ImVec2 p2( static_cast< float >( ( x + 1 ) * sTileSize + m_OffsetX ), static_cast< float >( ( y + 1 ) * sTileSize + m_OffsetY ) );
 
 		if ( pTile->Texture() == 0 )
 		{
