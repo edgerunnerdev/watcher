@@ -73,12 +73,6 @@ int TileStreamer::TileStreamerThreadMain( TileStreamer* pTS )
 
 		if ( pTS->m_LoadingTile )
 		{
-			Log::Info( "Loading tile %d / %d, zoom level %d", 
-				pTS->m_LoadingTile->X(), 
-				pTS->m_LoadingTile->Y(), 
-				pTS->m_LoadingTile->ZoomLevel() 
-			);
-
 			Tile& tile = *pTS->m_LoadingTile;
 			if ( LoadFromFile( tile ) == false )
 			{
@@ -86,11 +80,6 @@ int TileStreamer::TileStreamerThreadMain( TileStreamer* pTS )
 				LoadFromFile( tile );
 			}
 
-			Log::Info( "Loaded tile %d / %d, zoom level %d", 
-				pTS->m_LoadingTile->X(), 
-				pTS->m_LoadingTile->Y(), 
-				pTS->m_LoadingTile->ZoomLevel() 
-			);
 			pTS->m_AccessMutex.lock();
 			pTS->m_LoadedTiles.push_back( pTS->m_LoadingTile );
 			pTS->m_AccessMutex.unlock();

@@ -25,6 +25,7 @@ class Atlas;
 class TileStreamer;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 
+static const int sTileSize = 256;
 static const int sMaxZoomLevels = 8;
 
 class Atlas
@@ -38,21 +39,19 @@ public:
 
 	void OnWindowSizeChanged( int width, int height );
 	void OnMouseDrag( int deltaX, int deltaY );
+	void OnZoomIn();
+	void OnZoomOut();
 
 private:
 	void CalculateVisibleTiles( TileVector& visibleTiles );
-
-	static const int m_sTileSize = 256;
-
-	int m_NumTilesX;
-	int m_NumTilesY;
-	int m_TileResolution;
 
 	using TileTextureIdVector = std::vector< GLuint >;
 	using TileMaps = std::vector< TileTextureIdVector >;
 	TileMaps m_TileMaps;
 	int m_MinimumZoomLevel;
 	int m_CurrentZoomLevel;
+	int m_MaxVisibleTilesX;
+	int m_MaxVisibleTilesY;
 	int m_OffsetX;
 	int m_OffsetY;
 

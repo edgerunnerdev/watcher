@@ -33,6 +33,18 @@ void WatcherRep::ProcessEvent( const SDL_Event& event )
 			m_pAtlas->OnMouseDrag( ev->xrel, ev->yrel );
 		}
 	}
+	else if ( event.type == SDL_MOUSEWHEEL )
+	{
+		const SDL_MouseWheelEvent* ev = reinterpret_cast< const SDL_MouseWheelEvent* >( &event );
+		if ( ev->y > 0 )
+		{
+			m_pAtlas->OnZoomIn();
+		}
+		else if ( ev->y <= 0 )
+		{
+			m_pAtlas->OnZoomOut();
+		}
+	}
 }
 
 void WatcherRep::Update()
