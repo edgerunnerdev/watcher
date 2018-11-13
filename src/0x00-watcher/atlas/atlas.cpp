@@ -119,9 +119,15 @@ void Atlas::Render()
 
 void Atlas::GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const
 {
+	// Uniform to Mercator projection, as per https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Resolution_and_Scale
 	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
-	x = ( longitude + 180.0f ) / 360.0f * static_cast< float >( stride * sTileSize ) + m_OffsetX;
-	y = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( stride * sTileSize ) + m_OffsetY;
+	const float pi = static_cast< float >( M_PI );
+	x = ( longitude + 180.0f ) / 360.0f * stride;
+	y = ( 1.0f - logf( tanf( latitude * pi / 180.0f ) + 1.0f / cosf( latitude * pi / 180.0f ) ) / pi ) / 2.0f * stride;
+
+	// To screenspace.
+	x = x * sTileSize + m_OffsetX;
+	y = y * sTileSize + m_OffsetY;
 }
 
 }
