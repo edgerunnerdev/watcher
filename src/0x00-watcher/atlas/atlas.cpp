@@ -67,12 +67,24 @@ void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
 
 void Atlas::OnZoomIn()
 {
-	m_CurrentZoomLevel = std::min( m_CurrentZoomLevel + 1, sMaxZoomLevels );
+	if ( m_CurrentZoomLevel + 1 < sMaxZoomLevels )
+	{
+		m_CurrentZoomLevel++;
+		m_OffsetX = m_OffsetX * 2 - m_WindowWidth / 2;
+		m_OffsetY = m_OffsetY * 2 - m_WindowHeight / 2;
+		ClampOffset();
+	}
 }
 
 void Atlas::OnZoomOut()
 {
-	m_CurrentZoomLevel = std::max( m_MinimumZoomLevel, m_CurrentZoomLevel - 1 );
+	if ( m_CurrentZoomLevel - 1 >= m_MinimumZoomLevel )
+	{
+		m_CurrentZoomLevel--;
+		m_OffsetX = m_OffsetX / 2 + m_WindowWidth / 4;
+		m_OffsetY = m_OffsetY / 2 + m_WindowHeight / 4;
+		ClampOffset();
+	}
 }
 
 void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
