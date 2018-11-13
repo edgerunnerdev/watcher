@@ -26,7 +26,7 @@ class TileStreamer;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 
 static const int sTileSize = 256;
-static const int sMaxZoomLevels = 8;
+static const int sMaxZoomLevels = 11;
 
 class Atlas
 {
