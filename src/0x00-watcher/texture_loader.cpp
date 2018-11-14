@@ -8,6 +8,8 @@ std::queue< std::string > TextureLoader::m_TextureLoadQueue;
 std::queue< TextureLoader::TextureLoadResult > TextureLoader::m_TextureLoadResultQueue;
 std::mutex TextureLoader::m_LoadMutex;
 std::mutex TextureLoader::m_ResultMutex;
+std::queue< GLuint > TextureLoader::m_TextureUnloadQueue;
+std::mutex TextureLoader::m_UnloadMutex;
 
 void TextureLoader::Initialise()
 {
@@ -15,6 +17,12 @@ void TextureLoader::Initialise()
 }
 
 void TextureLoader::Update()
+{
+	ProcessQueuedLoads();
+	ProcessQueuedUnloads();
+}
+
+void TextureLoader::ProcessQueuedLoads()
 {
 	std::lock_guard< std::mutex > loadLock( m_LoadMutex );
 	while ( m_TextureLoadQueue.empty() == false )
@@ -28,6 +36,17 @@ void TextureLoader::Update()
 			m_TextureLoadResultQueue.push( result );
 			m_TextureLoadQueue.pop();
 		}
+	}
+}
+
+void TextureLoader::ProcessQueuedUnloads()
+{
+	std::lock_guard< std::mutex > unloadLock( m_UnloadMutex );
+	while ( m_TextureUnloadQueue.empty() == false )
+	{
+		GLuint texture = m_TextureUnloadQueue.front();
+		glDeleteTextures( 1, &texture );
+		m_TextureUnloadQueue.pop();
 	}
 }
 
@@ -71,5 +90,21 @@ GLuint TextureLoader::LoadTexture( const std::string& filename )
 	glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	
+	SDL_FreeSurface( pSurface );
+
 	return tex;
+}
+
+void TextureLoader::UnloadTexture( GLuint texture )
+{
+	std::lock_guard< std::mutex > lock( m_UnloadMutex );
+	if ( std::this_thread::get_id() != m_MainThreadId )
+	{
+		m_TextureUnloadQueue.push( texture );
+	}
+	else
+	{
+		glDeleteTextures( 1, &texture );
+	}
 }

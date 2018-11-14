@@ -81,7 +81,12 @@ int TileStreamer::TileStreamerThreadMain( TileStreamer* pTS )
 			}
 
 			pTS->m_AccessMutex.lock();
-			pTS->m_LoadedTiles.push_back( pTS->m_LoadingTile );
+			pTS->m_LoadedTiles.push_front( pTS->m_LoadingTile );
+			if ( pTS->m_LoadedTiles.size() > 64 )
+			{
+				pTS->m_LoadedTiles.pop_back();
+			}
+
 			pTS->m_AccessMutex.unlock();
 			pTS->m_LoadingTile = nullptr;
 		}

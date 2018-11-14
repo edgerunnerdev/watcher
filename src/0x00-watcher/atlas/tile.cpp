@@ -1,4 +1,5 @@
 #include "atlas/tile.h"
+#include "texture_loader.h"
 
 namespace Atlas
 {
@@ -19,6 +20,14 @@ m_ZoomLevel( zoomLevel ),
 m_Texture( 0 )
 {
 
+}
+
+Tile::~Tile()
+{
+	if ( m_Texture != 0 )
+	{
+		TextureLoader::UnloadTexture( m_Texture );
+	}
 }
 
 int Tile::X() const

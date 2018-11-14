@@ -22,8 +22,12 @@ public:
 	static void Initialise();
 	static void Update();
 	static GLuint LoadTexture( const std::string& filename );
+	static void UnloadTexture( GLuint texture );
 
 private:
+	static void ProcessQueuedLoads();
+	static void ProcessQueuedUnloads();
+
 	static std::thread::id m_MainThreadId;
 	static std::queue< std::string > m_TextureLoadQueue;
 	struct TextureLoadResult
@@ -34,4 +38,6 @@ private:
 	static std::queue< TextureLoadResult > m_TextureLoadResultQueue;
 	static std::mutex m_LoadMutex;
 	static std::mutex m_ResultMutex;
+	static std::queue< GLuint > m_TextureUnloadQueue;
+	static std::mutex m_UnloadMutex;
 };

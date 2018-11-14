@@ -37,8 +37,8 @@ private:
 	void CreateDirectories();
 
 	std::mutex m_AccessMutex;
-	std::deque< TileSharedPtr > m_Queue;
-	TileVector m_LoadedTiles;
+	TileDeque m_Queue;
+	TileDeque m_LoadedTiles;
 	TileSharedPtr m_LoadingTile;
 	std::thread m_Thread;
 	std::atomic_bool m_RunThread;

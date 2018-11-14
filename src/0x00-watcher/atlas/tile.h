@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <vector>
 
@@ -19,12 +20,14 @@ namespace Atlas
 class Tile;
 using TileSharedPtr = std::shared_ptr< Tile >;
 using TileVector = std::vector< TileSharedPtr >;
+using TileDeque = std::deque< TileSharedPtr >;
 
 class Tile
 {
 public:
 	Tile();
 	Tile( int x, int y, int zoomLevel );
+	~Tile();
 	int X() const;
 	int Y() const;
 	int ZoomLevel() const;
