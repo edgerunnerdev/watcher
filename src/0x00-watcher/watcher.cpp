@@ -89,15 +89,12 @@ void Watcher::GeolocationRequestCallback( const Database::QueryResult& result, v
 	{
 		for ( auto& cell : row )
 		{
-			if ( cell.has_value() )
+			json message = 
 			{
-				json message = 
-				{
-					{ "type", "geolocation_request" },
-					{ "address", cell->GetString() },
-				};
-				pPluginManager->BroadcastMessage( message );
-			}
+				{ "type", "geolocation_request" },
+				{ "address", cell->GetString() },
+			};
+			pPluginManager->BroadcastMessage( message );
 		}
 	}
 }
@@ -390,10 +387,6 @@ void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult&
 		{
 			Log::Error( "Invalid number of rows returned from query in PopulateCameraDetectionQueueCallback(). Expected %d, got %d.", numCells, row.size() );
 		}
-		else if ( row[ 0 ].has_value() == false || row [ 1 ].has_value() == false )
-		{
-			Log::Error( "Unexpected null in cell returned from query in PopulateCameraDetectionQueueCallback()." );
-		}
 		else
 		{
 			Network::IPAddress ipAddress( row[ 0 ]->GetString() );
@@ -488,30 +481,17 @@ void Watcher::LoadGeoInfosCallback( const Database::QueryResult& result, void* p
 			continue;
 		}
 
-		bool validResults = true;
-		for ( int i = 0; i < numCells; i++ )
-		{
-			if ( row[ i ].has_value() == false )
-			{
-				validResults = false;
-				break;
-			}
-		}
-
-		if ( validResults )
-		{
-			std::lock_guard< std::mutex > lock( g_pWatcher->m_GeoInfoMutex );
-			Network::IPAddress address( row[ 0 ]->GetString() );
-			std::string city = row[ 1 ]->GetString();
-			std::string region = row[ 2 ]->GetString();
-			std::string country = row[ 3 ]->GetString();
-			std::string organisation = row[ 4 ]->GetString();
-			float latitude = static_cast< float >( row[ 5 ]->GetDouble() );
-			float longitude = static_cast< float >( row[ 6 ]->GetDouble() );
-			GeoInfo geoInfo( address );
-			geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
-			g_pWatcher->m_GeoInfos.push_back( geoInfo );
-		}
+		std::lock_guard< std::mutex > lock( g_pWatcher->m_GeoInfoMutex );
+		Network::IPAddress address( row[ 0 ]->GetString() );
+		std::string city = row[ 1 ]->GetString();
+		std::string region = row[ 2 ]->GetString();
+		std::string country = row[ 3 ]->GetString();
+		std::string organisation = row[ 4 ]->GetString();
+		float latitude = static_cast< float >( row[ 5 ]->GetDouble() );
+		float longitude = static_cast< float >( row[ 6 ]->GetDouble() );
+		GeoInfo geoInfo( address );
+		geoInfo.LoadFromDatabase( city, region, country, organisation, latitude, longitude );
+		g_pWatcher->m_GeoInfos.push_back( geoInfo );
 	}
 }
 

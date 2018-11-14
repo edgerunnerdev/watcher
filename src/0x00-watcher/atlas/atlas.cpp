@@ -49,8 +49,8 @@ void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
 { 
 	m_WindowWidth = windowWidth;
 	m_WindowHeight = windowHeight;
-	m_MaxVisibleTilesX = static_cast< int >( std::ceilf( static_cast< float >( windowWidth ) / sTileSize ) ) + 1;
-	m_MaxVisibleTilesY = static_cast< int >( std::ceilf( static_cast< float >( windowHeight ) / sTileSize ) ) + 1;
+	m_MaxVisibleTilesX = static_cast< int >( std::ceil( static_cast< float >( windowWidth ) / sTileSize ) ) + 1;
+	m_MaxVisibleTilesY = static_cast< int >( std::ceil( static_cast< float >( windowHeight ) / sTileSize ) ) + 1;
 	const int maxAxisVisibleTiles = std::max( m_MaxVisibleTilesX, m_MaxVisibleTilesY );
 	for ( int zoomLevel = 0; zoomLevel < sMaxZoomLevels; ++zoomLevel )
 	{
