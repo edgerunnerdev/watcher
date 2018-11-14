@@ -4,6 +4,8 @@
 #include <thread>
 #include <vector>
 
+#include <SDL.h>
+
 #include "database/database.h"
 #include "network/network.h"
 #include "camera_scanner.h"
@@ -55,6 +57,7 @@ class Watcher
 public:
 	Watcher( SDL_Window* pWindow, unsigned int scannerCount );
 	~Watcher();
+	void ProcessEvent( const SDL_Event& event );
 	void Update();
 	bool IsActive() const;
 	PortScanner::Coverage* GetPortScannerCoverage() const;
@@ -66,7 +69,7 @@ public:
 
 	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
 
-	const GeoInfoVector& GetGeoInfos() const;
+	GeoInfoVector GetGeoInfos();
 
 private:
 	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
@@ -126,9 +129,11 @@ inline Configuration* Watcher::GetConfiguration() const
 	return m_pConfiguration.get();
 }
 
-inline const GeoInfoVector& Watcher::GetGeoInfos() const
+inline GeoInfoVector Watcher::GetGeoInfos()
 {
-	return m_GeoInfos;
+	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
+	GeoInfoVector v = m_GeoInfos;
+	return v;
 }
 
 inline PortScanner::Coverage* Watcher::GetPortScannerCoverage() const

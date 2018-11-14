@@ -1,22 +1,27 @@
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <SDL.h>
-#include <SDL_image.h>
 #include "atlas/atlas.h"
+#include "atlas/tile_streamer.h"
 #include "imgui/imgui.h"
+#include "log.h"
 
-Atlas::Atlas(int numTilesX, int numTilesY, int tileResolution) :
-m_NumTilesX( numTilesX ),
-m_NumTilesY( numTilesY ),
-m_TileResolution( tileResolution ),
-m_LowResTextures( numTilesX * numTilesY ),
-m_HighResTextures( numTilesX * numTilesY )
+namespace Atlas
 {
-	SDL_assert( m_NumTilesX > 0 );
-	SDL_assert( m_NumTilesY > 0 );
-	SDL_assert( m_TileResolution >= 256 );
 
-	LoadTextures();
+Atlas::Atlas( int windowWidth, int windowHeight ) :
+m_MinimumZoomLevel( 0 ),
+m_CurrentZoomLevel( 0 ),
+m_MaxVisibleTilesX( 0 ),
+m_MaxVisibleTilesY( 0 ),
+m_OffsetX( 0 ),
+m_OffsetY( 0 ),
+m_WindowWidth( windowWidth ),
+m_WindowHeight( windowHeight )
+{
+	m_pTileStreamer = std::make_unique< TileStreamer >();
+	OnWindowSizeChanged( windowWidth, windowHeight );
 }
 
 Atlas::~Atlas()
@@ -24,73 +29,117 @@ Atlas::~Atlas()
 
 }
 
+void Atlas::ClampOffset()
+{
+	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
+	if ( m_OffsetX > 0 ) m_OffsetX = 0;
+	if ( m_OffsetY > 0 ) m_OffsetY = 0;
+	if ( -m_OffsetX > ( stride * sTileSize - m_WindowWidth ) ) m_OffsetX = -( stride * sTileSize - m_WindowWidth );
+	if ( -m_OffsetY > ( stride * sTileSize - m_WindowHeight ) ) m_OffsetY = -( stride * sTileSize - m_WindowHeight );
+}
+
+void Atlas::OnMouseDrag( int deltaX, int deltaY )
+{
+	m_OffsetX += deltaX;
+	m_OffsetY += deltaY;
+	ClampOffset();
+}
+
+void Atlas::OnWindowSizeChanged( int windowWidth, int windowHeight )
+{ 
+	m_WindowWidth = windowWidth;
+	m_WindowHeight = windowHeight;
+	m_MaxVisibleTilesX = static_cast< int >( std::ceilf( static_cast< float >( windowWidth ) / sTileSize ) ) + 1;
+	m_MaxVisibleTilesY = static_cast< int >( std::ceilf( static_cast< float >( windowHeight ) / sTileSize ) ) + 1;
+	const int maxAxisVisibleTiles = std::max( m_MaxVisibleTilesX, m_MaxVisibleTilesY );
+	for ( int zoomLevel = 0; zoomLevel < sMaxZoomLevels; ++zoomLevel )
+	{
+		const int squareSize = static_cast< int >( pow( 2, zoomLevel ) );
+		if ( maxAxisVisibleTiles <= squareSize )
+		{
+			m_MinimumZoomLevel = m_CurrentZoomLevel = zoomLevel;
+			break;
+		}
+	}
+
+	ClampOffset();
+}
+
+void Atlas::OnZoomIn()
+{
+	if ( m_CurrentZoomLevel + 1 < sMaxZoomLevels )
+	{
+		m_CurrentZoomLevel++;
+		m_OffsetX = m_OffsetX * 2 - m_WindowWidth / 2;
+		m_OffsetY = m_OffsetY * 2 - m_WindowHeight / 2;
+		ClampOffset();
+	}
+}
+
+void Atlas::OnZoomOut()
+{
+	if ( m_CurrentZoomLevel - 1 >= m_MinimumZoomLevel )
+	{
+		m_CurrentZoomLevel--;
+		m_OffsetX = m_OffsetX / 2 + m_WindowWidth / 4;
+		m_OffsetY = m_OffsetY / 2 + m_WindowHeight / 4;
+		ClampOffset();
+	}
+}
+
+void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
+{
+	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
+	const int minX = std::max( 0, (int)( (float)-m_OffsetX / (float)sTileSize ) );
+	const int maxX = std::min( minX + m_MaxVisibleTilesX, stride );
+	const int minY = std::max( 0, (int)( (float)-m_OffsetY / (float)sTileSize ) );
+	const int maxY = std::min( minY + m_MaxVisibleTilesY, stride );
+	for ( int y = minY; y < maxY; ++y )
+	{
+		for ( int x = minX; x < maxX; ++x )
+		{
+			visibleTiles.push_back( m_pTileStreamer->Get( x, y, m_CurrentZoomLevel ) );
+		}
+	}
+}
+
 void Atlas::Render()
 {
-	float zoom = 1.0f;
-	float tileSize = m_TileResolution * zoom;
+	TileVector visibleTiles;
+	visibleTiles.reserve( 32 );
+	CalculateVisibleTiles( visibleTiles );
+
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-	for ( int x = 0u; x < m_NumTilesX; ++x )
+	for ( TileSharedPtr pTile : visibleTiles )
 	{
-		for ( int y = 0; y < m_NumTilesY; ++y )
+		const int x = pTile->X();
+		const int y = pTile->Y();
+		ImVec2 p1( static_cast< float >( x * sTileSize + m_OffsetX ), static_cast< float >( y * sTileSize + m_OffsetY ) );
+		ImVec2 p2( static_cast< float >( ( x + 1 ) * sTileSize + m_OffsetX ), static_cast< float >( ( y + 1 ) * sTileSize + m_OffsetY ) );
+
+		if ( pTile->Texture() == 0 )
 		{
-			GLuint texture = GetTileTexture( x, y );
-			if ( texture != 0u )
-			{
-				pDrawList->AddImage( 
-					reinterpret_cast< ImTextureID >( texture ), 
-					ImVec2( tileSize * (float)x, tileSize * (float)y ), 
-					ImVec2( tileSize * (float)( x + 1u ), tileSize * (float)( y + 1u ) )
-				);
-			}
+			pDrawList->AddText( p1, ImColor( 1.0f, 1.0f, 1.0f ), "Loading..." );
 		}
+		else
+		{
+			pDrawList->AddImage( reinterpret_cast< ImTextureID >( pTile->Texture() ), p1, p2 );
+		}
+		//pDrawList->AddRect( p1, p2, ImColor( 0.0f, 1.0f, 0.0f ) );
 	}
 }
 
 void Atlas::GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const
 {
-	x = ( longitude + 180.0f ) / 360.0f * static_cast< float >( m_NumTilesX * m_TileResolution );
-	y = ( 1.0f - ( latitude + 90.0f ) / 180.0f ) * static_cast< float >( m_NumTilesY * m_TileResolution );
+	// Uniform to Mercator projection, as per https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Resolution_and_Scale
+	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
+	const float pi = static_cast< float >( M_PI );
+	x = ( longitude + 180.0f ) / 360.0f * stride;
+	y = ( 1.0f - logf( tanf( latitude * pi / 180.0f ) + 1.0f / cosf( latitude * pi / 180.0f ) ) / pi ) / 2.0f * stride;
+
+	// To screenspace.
+	x = x * sTileSize + m_OffsetX;
+	y = y * sTileSize + m_OffsetY;
 }
 
-// Returns the texture for a given tile coordinate, prefering the high resolution version if loaded.
-GLuint Atlas::GetTileTexture( int x, int y ) const
-{
-	int idx = x * m_NumTilesY + y;
-	return m_HighResTextures.at( idx ) == 0 ? m_LowResTextures[ idx ] : m_HighResTextures[ idx ];
-}
-
-void Atlas::LoadTextures()
-{
-	int textureIndex = 0;
-	for ( int x = 0u; x < m_NumTilesX; ++x )
-	{
-		for ( int y = 0u; y < m_NumTilesY; ++y )
-		{
-			std::stringstream filename;
-			filename << "textures/earth_small_" << textureIndex + 1 << ".png";
-			GLuint texture = LoadTexture( filename.str() );
-			m_LowResTextures[ textureIndex++ ] = texture;
-		}
-	}
-}
-
-GLuint Atlas::LoadTexture( const std::string& filename )
-{
-	SDL_Surface* pSurface = IMG_Load( filename.c_str() );
-	SDL_assert( pSurface != nullptr );
-	if ( pSurface == nullptr )
-	{
- 		printf("Atlas::LoadTexture error: %s\n", IMG_GetError());
-		return 0;
-	}
-
-	GLuint tex;
-	glGenTextures( 1, &tex );
-	glBindTexture( GL_TEXTURE_2D, tex );
-	int mode = ( pSurface->format->BytesPerPixel == 4 ) ? GL_RGBA : GL_RGB;
-
-	glTexImage2D( GL_TEXTURE_2D, 0, mode, pSurface->w, pSurface->h, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pSurface->pixels );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	return tex;
 }

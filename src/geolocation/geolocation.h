@@ -24,7 +24,7 @@ private:
 	void ConsumeQueue();
 
 	PluginMessageCallback m_pMessageCallback;
-	std::mutex m_QueueMutex;
+	std::mutex m_AccessMutex;
 	std::vector< Network::IPAddress > m_Queue;
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;

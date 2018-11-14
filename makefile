@@ -7,6 +7,8 @@ WATCHER_SHARED_LIB_DIR=libs/watcher_shared
 # 0x00-watcher
 #####################################################################
 
+CC=gcc
+CPPC=g++
 SRC_DIR=src/0x00-watcher
 SRC_FILES=$(shell find $(SRC_DIR) -name "*.cpp")
 OBJ_DIR=$(TEMP)/0x00-watcher
@@ -22,19 +24,19 @@ CFLAGS=-g -I$(SRC_DIR) -I$(SRC_DIR)/ext
 LDFLAGS=-g $(SDL_LDFLAGS) $(CURL_LDFLAGS) -ldl -lpthread -lGL -lboost_system -lboost_filesystem -pthread
 
 0x00-watcher: $(OBJ_FILES) $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a $(PLUGINS_FOLDER)/geolocation.so
-	g++ -o bin/$@ $^ $(LDFLAGS)
+	$(CPPC) -o bin/$@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
-	g++ $(CPPFLAGS) -c -o $@ $<
+	$(CPPC) $(CPPFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/ext/sqlite/sqlite3.o: $(SRC_DIR)/ext/sqlite/sqlite3.c
 	mkdir -p $(@D)
-	gcc $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/ext/htmlstreamparser.o: $(SRC_DIR)/ext/htmlstreamparser.c
 	mkdir -p $(@D)
-	gcc $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 
 #####################################################################
@@ -47,7 +49,7 @@ WATCHER_SHARED_OBJ_FILES=$(patsubst src/watcher_shared/%.cpp,$(WATCHER_SHARED_OB
 WATCHER_SHARED_CPP_FLAGS=-g -std=c++17 -fPIC -Isrc/watcher_shared $(SDL_CFLAGS)
 $(WATCHER_SHARED_OBJ_DIR)/%.o: src/watcher_shared/%.cpp
 	mkdir -p $(@D)
-	g++ $(WATCHER_SHARED_CPP_FLAGS) -c -o $@ $<
+	$(CPPC) $(WATCHER_SHARED_CPP_FLAGS) -c -o $@ $<
 
 $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 	mkdir -p $(WATCHER_SHARED_LIB_DIR)
@@ -60,7 +62,7 @@ $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 
 PLUGINS_CPP_FLAGS=-g -std=c++17 -fPIC -shared -Isrc/watcher_shared -I$(SRC_DIR)/ext
 $(PLUGINS_FOLDER)/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
-	g++ $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $< $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
+	$(CPPC) $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $< $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
 
 
 #####################################################################

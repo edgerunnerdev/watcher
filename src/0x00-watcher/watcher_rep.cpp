@@ -9,29 +9,49 @@
 
 WatcherRep::WatcherRep( SDL_Window* pWindow ) :
 m_pWindow( pWindow ),
-m_BackgroundTexture( GL_INVALID_VALUE ),
 m_CellSize( 128.0f )
 {
-	LoadTextures();
-
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
 	m_pAtlasGrid = std::make_unique< AtlasGrid >( windowWidth, windowHeight, 16 );
-	m_pAtlas = std::make_unique< Atlas >( 8, 4, 256 );
-
-	for ( GLuint x = 0u; x < m_BackgroundTextures.size(); ++x )
-	{
-		for ( GLuint y = 0; y < m_BackgroundTextures[ x ].size(); ++y )
-		{
-			m_BackgroundTextures[ x ][ y ] = 0u;
-		}
-	}
+	m_pAtlas = std::make_unique< Atlas::Atlas >( windowWidth, windowHeight );
 }
 
 WatcherRep::~WatcherRep()
 {
 
+}
+
+void WatcherRep::ProcessEvent( const SDL_Event& event )
+{
+	if ( event.type == SDL_MOUSEMOTION )
+	{
+		const SDL_MouseMotionEvent* ev = reinterpret_cast< const SDL_MouseMotionEvent* >( &event );
+		if ( ( ev->state & SDL_BUTTON_LMASK ) > 0 )
+		{
+			m_pAtlas->OnMouseDrag( ev->xrel, ev->yrel );
+		}
+	}
+	else if ( event.type == SDL_MOUSEWHEEL )
+	{
+		const SDL_MouseWheelEvent* ev = reinterpret_cast< const SDL_MouseWheelEvent* >( &event );
+		if ( ev->y > 0 )
+		{
+			m_pAtlas->OnZoomIn();
+		}
+		else if ( ev->y <= 0 )
+		{
+			m_pAtlas->OnZoomOut();
+		}
+	}
+	else if ( event.type == SDL_WINDOWEVENT )
+	{
+		if ( event.window.event == SDL_WINDOWEVENT_RESIZED || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED )
+		{
+			m_pAtlas->OnWindowSizeChanged( event.window.data1, event.window.data2 );
+		}
+	}
 }
 
 void WatcherRep::Update()
@@ -65,7 +85,7 @@ void WatcherRep::Render()
 
 	ImGui::SetNextWindowPos( ImVec2( 0.0f, 0.0f ) );
 	ImGui::SetNextWindowSize( windowSize );
-	ImGui::PushStyleColor( ImGuiCol_FrameBg, ImColor(0, 0, 0, 0).Value );
+	ImGui::PushStyleColor( ImGuiCol_FrameBg, ImColor( 0, 0, 0, 0 ).Value );
 	ImGui::Begin( "Watcher", nullptr, flags );
 
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
@@ -74,38 +94,13 @@ void WatcherRep::Render()
 	ImGui::PopStyleColor();
 	ImGui::End();
 
-	const GeoInfoVector& geoInfos = g_pWatcher->GetGeoInfos();
+	GeoInfoVector geoInfos = g_pWatcher->GetGeoInfos();
 	for ( const GeoInfo& geoInfo : geoInfos )
 	{
 		float locationX, locationY;
 		m_pAtlas->GetScreenCoordinates( geoInfo.GetLongitude(), geoInfo.GetLatitude(), locationX, locationY );
 		pDrawList->AddCircle( ImVec2( locationX, locationY ), 4.0f, ImColor( 255, 0, 0 ), 4 );
 	}
-}
-
-void WatcherRep::LoadTextures()
-{
-	m_BackgroundTexture = LoadTexture( "textures/Earth_Diffuse_small.bmp" );
-}
-
-GLuint WatcherRep::LoadTexture( const std::string& filename )
-{
-	SDL_Surface* pSurface = SDL_LoadBMP( filename.c_str() );
-	SDL_assert( pSurface != nullptr );
-	if ( pSurface == nullptr )
-	{
-		return GL_INVALID_VALUE;
-	}
-
-	GLuint tex;
-	glGenTextures( 1, &tex );
-	glBindTexture( GL_TEXTURE_2D, tex );
-	int mode = ( pSurface->format->BytesPerPixel == 4 ) ? GL_RGBA : GL_RGB;
-
-	glTexImage2D( GL_TEXTURE_2D, 0, mode, pSurface->w, pSurface->h, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pSurface->pixels );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	return tex;
 }
 
 void WatcherRep::AddToAtlas( float latitude, float longitude, int index )
