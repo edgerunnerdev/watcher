@@ -3,10 +3,33 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="httpscanner\httpscanner.h">
+      <Filter>httpscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="httpscanner\ipgenerator.h">
+      <Filter>httpscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="httpscanner\portprobe.h">
+      <Filter>httpscanner</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="portscanner.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="portscanner.h" />
+    <ClCompile Include="httpscanner\httpscanner.cpp">
+      <Filter>httpscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="httpscanner\ipgenerator.cpp">
+      <Filter>httpscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="httpscanner\portprobe.cpp">
+      <Filter>httpscanner</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="httpscanner">
+      <UniqueIdentifier>{f746eb8f-3a29-4dfb-845f-1ad4ca8c237d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@ using CURL = void;
 
 class Portscanner : public Plugin
 {
-	DECLARE_PLUGIN(Portscanner, 0, 2, 0);
+	DECLARE_PLUGIN(Portscanner, 0, 1, 0);
 public:
 	Portscanner();
 	virtual ~Portscanner();
@@ -21,13 +21,5 @@ public:
 	virtual void DrawUI(ImGuiContext* pContext) override;
 
 private:
-	void ConsumeQueue();
-
 	PluginMessageCallback m_pMessageCallback;
-	std::mutex m_AccessMutex;
-	std::vector< Network::IPAddress > m_Queue;
-	std::thread m_QueryThread;
-	std::atomic_bool m_QueryThreadActive;
-	CURL* m_pCurlHandle;
-	std::string m_Data;
 };
