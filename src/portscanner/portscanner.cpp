@@ -10,15 +10,15 @@
 
 using CURL = void;
 
-class Geolocation : public Plugin
+class Portscanner : public Plugin
 {
-	DECLARE_PLUGIN( Geolocation, 0, 2, 0 );
+	DECLARE_PLUGIN(Portscanner, 0, 2, 0);
 public:
-	Geolocation();
-	virtual ~Geolocation();
-	virtual bool Initialise( PluginMessageCallback pMessageCallback ) override;
-	virtual void OnMessageReceived( const nlohmann::json& message ) override;
-	virtual void DrawUI( ImGuiContext* pContext ) override;
+	Portscanner();
+	virtual ~Portscanner();
+	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
+	virtual void OnMessageReceived(const nlohmann::json& message) override;
+	virtual void DrawUI(ImGuiContext* pContext) override;
 
 private:
 	void ConsumeQueue();
@@ -30,5 +30,4 @@ private:
 	std::atomic_bool m_QueryThreadActive;
 	CURL* m_pCurlHandle;
 	std::string m_Data;
-	bool m_RateLimitExceeded;
 };

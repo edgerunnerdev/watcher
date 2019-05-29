@@ -9,9 +9,9 @@ WATCHER_SHARED_LIB_DIR=libs/watcher_shared
 
 CC=gcc
 CPPC=g++
-SRC_DIR=src/0x00-watcher
+SRC_DIR=src/watcher
 SRC_FILES=$(shell find $(SRC_DIR) -name "*.cpp")
-OBJ_DIR=$(TEMP)/0x00-watcher
+OBJ_DIR=$(TEMP)/watcher
 OBJ_FILES=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(OBJ_DIR)/ext/sqlite/sqlite3.o $(OBJ_DIR)/ext/htmlstreamparser.o
 PLUGINS_FOLDER=bin/plugins
 
@@ -61,7 +61,7 @@ $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a: $(WATCHER_SHARED_OBJ_FILES)
 #####################################################################
 
 PLUGINS_CPP_FLAGS=-g -std=c++17 -fPIC -shared -Isrc/watcher_shared -I$(SRC_DIR)/ext
-$(PLUGINS_FOLDER)/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
+$(PLUGINS_FOLDER)/geolocation/geolocation.so: src/geolocation/geolocation.cpp src/geolocation/geolocation.h $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
 	$(CPPC) $(PLUGINS_CPP_FLAGS) -Isrc/geolocation -o $@ $< $(WATCHER_SHARED_LIB_DIR)/watcher_shared.a
 
 
