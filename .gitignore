@@ -1,5 +1,5 @@
 .vs/
-0x00-watcher.vcxproj.user
+watcher.vcxproj.user
 bin/
 bin
 imgui.ini
