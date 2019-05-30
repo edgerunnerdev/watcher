@@ -13,17 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cassert>
 #include <string>
 #include <sstream>
-
-#include "port_probe.h"
+#include <SDL.h>
+#include "portprobe.h"
 
 PortProbe::Result PortProbe::Probe( const Network::IPAddress& address )
 {
 	using namespace Network;
 
-	assert( address.GetPort() != 0 );
+	SDL_assert( address.GetPort() != 0 );
 	TCPSocket socket;
 	Network::Result result = ConnectTCP( address, 2500, socket );
 

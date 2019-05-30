@@ -2,7 +2,6 @@
 #include "imgui/imgui.h"
 
 #include "atlas/atlas.h"
-#include "atlas_grid.h"
 #include "log.h"
 #include "watcher_rep.h"
 #include "watcher.h"
@@ -14,7 +13,6 @@ m_CellSize( 128.0f )
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
-	m_pAtlasGrid = std::make_unique< AtlasGrid >( windowWidth, windowHeight, 16 );
 	m_pAtlas = std::make_unique< Atlas::Atlas >( windowWidth, windowHeight );
 }
 
@@ -105,5 +103,5 @@ void WatcherRep::Render()
 
 void WatcherRep::AddToAtlas( float latitude, float longitude, int index )
 {
-	m_pAtlasGrid->Add( latitude, longitude, index );
+
 }

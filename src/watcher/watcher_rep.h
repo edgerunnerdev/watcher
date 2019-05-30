@@ -24,9 +24,6 @@ class Atlas;
 using AtlasUniquePtr = std::unique_ptr< Atlas >;
 }
 
-class AtlasGrid;
-using AtlasGridUniquePtr = std::unique_ptr< AtlasGrid >;
-
 class WatcherRep
 {
 public:
@@ -42,6 +39,5 @@ public:
 private:
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
-	AtlasGridUniquePtr m_pAtlasGrid;
 	float m_CellSize;
 };

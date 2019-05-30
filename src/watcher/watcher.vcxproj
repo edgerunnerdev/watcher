@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DB2A96BA-0101-4462-A586-2435A7F03FDC}</ProjectGuid>
     <RootNamespace>watcher</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>watcher</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -81,7 +81,6 @@
     <ClCompile Include="atlas\atlas.cpp" />
     <ClCompile Include="atlas\tile.cpp" />
     <ClCompile Include="atlas\tile_streamer.cpp" />
-    <ClCompile Include="atlas_grid.cpp" />
     <ClCompile Include="camera_detection_rule.cpp" />
     <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
@@ -91,25 +90,18 @@
     <ClCompile Include="ext\htmlstreamparser.c" />
     <ClCompile Include="filesystem.cpp" />
     <ClCompile Include="geo_info.cpp" />
-    <ClCompile Include="internet_scanner.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="plugin_manager.cpp" />
-    <ClCompile Include="port_probe.cpp" />
-    <ClCompile Include="internet_scanner_basic.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c" />
-    <ClCompile Include="port_scanner\coverage.cpp" />
     <ClCompile Include="texture_loader.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcher_rep.cpp" />
-    <ClCompile Include="internet_scanner_nmap.cpp" />
-    <ClCompile Include="internet_scanner_zmap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas\atlas.h" />
     <ClInclude Include="atlas\tile.h" />
     <ClInclude Include="atlas\tile_streamer.h" />
-    <ClInclude Include="atlas_grid.h" />
     <ClInclude Include="camera_detection_rule.h" />
     <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
@@ -119,21 +111,15 @@
     <ClInclude Include="ext\htmlstreamparser.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="geo_info.h" />
-    <ClInclude Include="internet_scanner.h" />
     <ClInclude Include="ext\json.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="plugin.h" />
     <ClInclude Include="plugin_manager.h" />
-    <ClInclude Include="port_probe.h" />
-    <ClInclude Include="internet_scanner_basic.h" />
     <ClInclude Include="ext\sqlite\sqlite3.h" />
-    <ClInclude Include="port_scanner\coverage.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="texture_loader.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcher_rep.h" />
-    <ClInclude Include="internet_scanner_nmap.h" />
-    <ClInclude Include="internet_scanner_zmap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,33 +15,31 @@
 
 #include "httpscanner.h"
 #include "portprobe.h"
+#include "ipgenerator.h"
 
-void HTTPScanner::Go( const Options& options )
+void HTTPScanner::Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports  )
 {
-	IPGenerator generator( options.GetIPAddress() );
-	auto threadMain = [ &generator, &options ]( BasicScan* pBasicScan )
+	IPGenerator generator( block );
+	auto threadMain = [ &generator, numThreads, &ports ]()
 	{
 		PortProbe probe;
 		Network::IPAddress address;
 		while ( generator.GetNext( address ) )
 		{
-			for ( const PortRange& portRange : options.GetPortRanges() )
+			for ( uint16_t port : ports )
 			{
-				for ( uint16_t port = portRange.begin; port <= portRange.end; ++port )
+				address.SetPort( port );
+				if ( probe.Probe( address ) == PortProbe::Result::Open )
 				{
-					address.SetPort( port );
-					if ( probe.Probe( address ) == PortProbe::Result::Open )
-					{
-						printf( "%s\n", address.ToString().c_str() );
-					}
+					printf( "%s\n", address.ToString().c_str() );
 				}
 			}
 		}
 	};
 
-	for ( int i = 0; i < options.GetThreadCount(); ++i )
+	for ( int i = 0; i < numThreads; ++i )
 	{
-		m_Threads.emplace_back( threadMain, this );
+		m_Threads.emplace_back( threadMain );
 	}
 
 	for ( auto& thread : m_Threads )

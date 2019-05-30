@@ -24,27 +24,49 @@ PluginManager::PluginManager()
 	InitialisePlugins();
 }
 
+// Return the DLLs / SOs for every plugin we want to load.
+// Each plugin has its own folder inside the "plugins" folder.
 PluginManager::SharedLibraryPaths PluginManager::DiscoverSharedLibraries()
 {
 	SharedLibraryPaths paths;
-	std::string pluginsFolder( "plugins" );
 
 #ifdef _WIN32
-	HANDLE hFind;
+	// Find all the folders inside the "plugins" folder.
 	WIN32_FIND_DATA data;
-	for ( hFind = FindFirstFile( "plugins\\*.dll", &data ); hFind != INVALID_HANDLE_VALUE; FindNextFile( hFind, &data ) )
+	HANDLE hFind = FindFirstFile( "plugins\\*", &data );
+	std::vector< std::string > pluginDirectories;
+	if ( hFind != INVALID_HANDLE_VALUE )
 	{
-		if ( GetLastError() == ERROR_NO_MORE_FILES )
+		do 
 		{
-			break;
-		}
-		else if ( ( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
-		{
-			paths.push_back( pluginsFolder + "\\" + data.cFileName );
-			Log::Info( "Plugin found: %s", paths.back().c_str() );
-		}
+			if ( ( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != 0 && data.cFileName[0] != '.')
+			{
+				pluginDirectories.push_back( "plugins\\" + std::string( data.cFileName ) + "\\" );
+			}
+
+		} while ( FindNextFile( hFind, &data ) );
 	}
 	FindClose( hFind );
+
+	// Try to find a shared library in each potential plugin directory.
+	for ( const std::string& pluginDirectory : pluginDirectories ) 
+	{
+		std::string pluginFolderSearch = pluginDirectory + "*.dll";
+		hFind = FindFirstFile( pluginFolderSearch.c_str(), &data );
+		if ( hFind != INVALID_HANDLE_VALUE )
+		{
+			do
+			{
+				if ( ( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
+				{
+					paths.push_back( pluginDirectory + "\\" + data.cFileName );
+					Log::Info( "Plugin found: %s", paths.back().c_str() );
+				}
+			} while ( FindNextFile( hFind, &data ) );
+		}
+		FindClose( hFind );
+	}
+
 #elif defined __linux__
 	auto hasExtensionFn = []( const std::string& filename, const std::string& extension ) -> bool {
 		if ( filename.size() >= extension.size() && filename.compare( filename.size() - extension.size(), extension.size(), extension) == 0 )

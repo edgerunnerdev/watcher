@@ -18,12 +18,7 @@
 #include <cstdint>
 #include <mutex>
 #include <vector>
-#include "network/network.h"
-
-namespace Network
-{
-	class IPAddress;
-};
+#include <network/network.h>
 
 class IPGenerator
 {

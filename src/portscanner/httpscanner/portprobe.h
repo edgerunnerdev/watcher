@@ -17,8 +17,7 @@
 #pragma once
 
 #include <string>
-
-#include "network/network.h"
+#include <network/network.h>
 
 class PortProbe
 {

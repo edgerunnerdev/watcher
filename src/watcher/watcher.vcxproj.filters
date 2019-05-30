@@ -1,27 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="atlas_grid.cpp" />
     <ClCompile Include="camera_detection_rule.cpp" />
     <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="geo_info.cpp" />
-    <ClCompile Include="internet_scanner.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="port_probe.cpp" />
-    <ClCompile Include="internet_scanner_basic.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcher_rep.cpp" />
-    <ClCompile Include="internet_scanner_nmap.cpp" />
-    <ClCompile Include="internet_scanner_zmap.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c">
       <Filter>ext\sqlite</Filter>
     </ClCompile>
     <ClCompile Include="ext\htmlstreamparser.c">
       <Filter>ext</Filter>
-    </ClCompile>
-    <ClCompile Include="port_scanner\coverage.cpp">
-      <Filter>port_scanner</Filter>
     </ClCompile>
     <ClCompile Include="atlas\atlas.cpp">
       <Filter>atlas</Filter>
@@ -56,27 +47,18 @@
     <Filter Include="atlas">
       <UniqueIdentifier>{d2fa59ad-5c7e-465c-9132-431688af48b7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="port_scanner">
-      <UniqueIdentifier>{c29ecc7c-600c-4e3c-bac2-97f2d1655af0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="database">
       <UniqueIdentifier>{6185a3f2-6956-4fd1-92ad-3e0299894968}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="atlas_grid.h" />
     <ClInclude Include="camera_detection_rule.h" />
     <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="geo_info.h" />
-    <ClInclude Include="internet_scanner.h" />
-    <ClInclude Include="port_probe.h" />
-    <ClInclude Include="internet_scanner_basic.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcher_rep.h" />
-    <ClInclude Include="internet_scanner_nmap.h" />
-    <ClInclude Include="internet_scanner_zmap.h" />
     <ClInclude Include="ext\sqlite\sqlite3.h">
       <Filter>ext\sqlite</Filter>
     </ClInclude>
@@ -85,9 +67,6 @@
     </ClInclude>
     <ClInclude Include="ext\json.h">
       <Filter>ext</Filter>
-    </ClInclude>
-    <ClInclude Include="port_scanner\coverage.h">
-      <Filter>port_scanner</Filter>
     </ClInclude>
     <ClInclude Include="atlas\atlas.h">
       <Filter>atlas</Filter>

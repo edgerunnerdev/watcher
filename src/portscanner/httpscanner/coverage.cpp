@@ -1,13 +1,27 @@
+// This file is part of watcher.
+//
+// watcher is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// watcher is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with watcher. If not, see <https://www.gnu.org/licenses/>.
+
 #include <algorithm>
 #include <array>
 #include <fstream>
 #include <sstream>
 #include <SDL.h>
-#include "imgui/imgui.h"
+#include <imgui/imgui.h>
 #include "coverage.h"
 
-namespace PortScanner
-{
+static const std::string sCoverageFilePath( "plugins/portscanner/coverage" );
 
 Coverage::Coverage() :
 m_UITexture( 0 ),
@@ -46,8 +60,8 @@ void Coverage::CreateUserInterfaceTexture()
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, m_UITextureWidth, m_UITextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pUITextureData );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 }
 
 void Coverage::UpdateUserInterfaceTexture()
@@ -89,7 +103,7 @@ void Coverage::UpdateUserInterfaceTexture()
 	}
 
 	glBindTexture( GL_TEXTURE_2D, m_UITexture );
-	glTexSubImage2D( GL_TEXTURE_2D, 0 ,0, 0, m_UITextureWidth, m_UITextureHeight, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)m_pUITextureData );
+	glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, m_UITextureWidth, m_UITextureHeight, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)m_pUITextureData );
 
 	m_RebuildUITexture = false;
 }
@@ -172,7 +186,7 @@ void Coverage::Read()
 {
 	ClearBlockStates();
 	
-	std::ifstream fs( "coverage", std::ios_base::in | std::ios_base::binary );
+	std::ifstream fs( sCoverageFilePath, std::ios_base::in | std::ios_base::binary );
 	if ( fs.good() )
 	{
 		fs.seekg( 0, fs.end );
@@ -211,7 +225,7 @@ void Coverage::Write()
 {
 	static_assert( cCoverageFileSize == cBitSetSize / 8, "Size mismatch" );
 
-	std::ofstream fs( "coverage", std::ios_base::out | std::ios_base::binary );
+	std::ofstream fs( sCoverageFilePath, std::ios_base::out | std::ios_base::binary );
 	if ( fs.good() )
 	{
 		constexpr size_t cNumBytes = cBitSetSize / 8;
@@ -262,7 +276,6 @@ void Coverage::DrawUI( bool& isWindowOpen )
 	{
 		Network::IPAddress addr;
 		GetNextBlock(addr);
-		printf("addr: %s\n", addr.ToString().c_str());
 		SetBlockState( addr, BlockState::Scanned );
 	}
 
@@ -280,6 +293,4 @@ void Coverage::DrawUI( bool& isWindowOpen )
 
 	ImGui::Image( reinterpret_cast< ImTextureID >( m_UITexture ), ImVec2( 512, 512 ) );
 	ImGui::End();
-}
-
 }

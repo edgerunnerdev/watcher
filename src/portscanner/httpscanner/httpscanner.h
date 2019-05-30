@@ -17,15 +17,14 @@
 
 #include <thread>
 #include <vector>
-#include "ipgenerator.h"
+#include <network/network.h>
 
 class HTTPScanner
 {
 public:
-	void Go( int numThreads );
+	void Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports );
 
 private:
 	using ThreadVector = std::vector< std::thread >;
 	ThreadVector m_Threads;
-	IPGenerator m_IPGenerator;
 };

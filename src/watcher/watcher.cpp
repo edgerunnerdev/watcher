@@ -5,16 +5,12 @@
 #include <SDL.h>
 #include "ext/json.h"
 #include "imgui/imgui.h"
-#include "port_scanner/coverage.h"
 #include "camera_scanner.h"
 #include "configuration.h"
 #include "geo_info.h"
 #include "log.h"
 #include "watcher.h"
 #include "watcher_rep.h"
-#include "internet_scanner_basic.h"
-#include "internet_scanner_nmap.h"
-#include "internet_scanner_zmap.h"
 #include "plugin_manager.h"
 #include "plugin.h"
 #include "texture_loader.h"
@@ -24,9 +20,7 @@ extern IMGUI_API ImGuiContext* GImGui;
 
 Watcher::Watcher( SDL_Window* pWindow, unsigned int scannerCount ) :
 m_Active( true ),
-m_WebServerScannerMode( InternetScannerMode::None ),
-m_pDatabase( nullptr ),
-m_PortScannerCoverageOpen( false )
+m_pDatabase( nullptr )
 {
 	g_pWatcher = this;
 
@@ -42,9 +36,6 @@ m_PortScannerCoverageOpen( false )
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
 
-	m_pPortScannerCoverage = std::make_unique< PortScanner::Coverage >();
-	m_pPortScannerCoverage->Read();
-
 	PopulateCameraDetectionQueue();
 	InitialiseCameraScanners( 32 );
 
@@ -55,13 +46,6 @@ m_PortScannerCoverageOpen( false )
 Watcher::~Watcher()
 {
 	m_Active = false;
-	for ( auto& thread : m_InternetScannerBasicThreads )
-	{
-		if ( thread.joinable() )
-		{
-			thread.join();
-		}
-	}
 
 	for ( auto& thread : m_CameraScannerThreads )
 	{
@@ -69,16 +53,6 @@ Watcher::~Watcher()
 		{
 			thread.join();
 		}
-	}
-
-	if ( m_InternetScannerNmapThread.joinable() )
-	{
-		m_InternetScannerNmapThread.join();
-	}
-
-	if ( m_InternetScannerZmapThread.joinable() )
-	{
-		m_InternetScannerZmapThread.join();
 	}
 }
 
@@ -107,8 +81,8 @@ void Watcher::InitialiseGeolocation()
 	m_pDatabase->Execute( query );
 }
 
-void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
-{
+//void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
+//{
 	//auto threadMain = []( InternetScanner* pScanner )
 	//{
 	//	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
@@ -129,40 +103,28 @@ void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
 	//	m_InternetScannerBasicThreads.emplace_back( threadMain, pScanner.get() );
 	//	m_InternetScannerBasic.push_back( std::move( pScanner ) );
 	//}
-}
+//}
 
-void sWebScannerThreadMain( InternetScanner* pScanner )
-{
-	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
-	while ( g_pWatcher->IsActive() )
-	{
-		Network::IPAddress address;
-		if ( g_pWatcher->GetPortScannerCoverage()->GetNextBlock( address ) )
-		{
-			if ( pScanner->Scan( address, ports ) )
-			{
-				g_pWatcher->GetPortScannerCoverage()->SetBlockState( address, PortScanner::Coverage::BlockState::Scanned );
-				g_pWatcher->GetPortScannerCoverage()->Write();
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-}
-
-void Watcher::InitialiseNmap()
-{
-	m_pInternetScannerNmap = std::make_unique< InternetScannerNmap >();
-	m_InternetScannerNmapThread = std::thread( sWebScannerThreadMain, m_pInternetScannerNmap.get() );
-}
-
-void Watcher::InitialiseZmap()
-{
-	m_pInternetScannerZmap = std::make_unique< InternetScannerZmap >();
-	m_InternetScannerZmapThread = std::thread( sWebScannerThreadMain, m_pInternetScannerZmap.get() );
-}
+//void sWebScannerThreadMain( InternetScanner* pScanner )
+//{
+//	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
+//	while ( g_pWatcher->IsActive() )
+//	{
+//		Network::IPAddress address;
+//		if ( g_pWatcher->GetPortScannerCoverage()->GetNextBlock( address ) )
+//		{
+//			if ( pScanner->Scan( address, ports ) )
+//			{
+//				g_pWatcher->GetPortScannerCoverage()->SetBlockState( address, PortScanner::Coverage::BlockState::Scanned );
+//				g_pWatcher->GetPortScannerCoverage()->Write();
+//			}
+//			else
+//			{
+//				break;
+//			}
+//		}
+//	}
+//}
 
 void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 {
@@ -203,81 +165,9 @@ void Watcher::Update()
 	m_pRep->Update();
 	m_pRep->Render();
 
-	m_pPortScannerCoverage->DrawUI( m_PortScannerCoverageOpen );
-
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
-
-	if ( ImGui::CollapsingHeader( "Webserver scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
-	{
-		if ( ImGui::Button( "See coverage" ) )
-		{
-			m_PortScannerCoverageOpen = !m_PortScannerCoverageOpen;
-		}
-
-		if ( m_WebServerScannerMode == InternetScannerMode::None )
-		{
-			if ( ImGui::Button( "Begin scan (basic)" ) )
-			{
-				m_WebServerScannerMode = InternetScannerMode::Basic;
-				InitialiseInternetScannerBasic( 64 );
-			}
-			else if ( InternetScannerNmap::IsSupported() && ImGui::Button( "Begin scan (nmap)" ) )
-			{
-				m_WebServerScannerMode = InternetScannerMode::Nmap;
-				InitialiseNmap();
-			}
-			else if ( InternetScannerZmap::IsSupported() && ImGui::Button( "Begin scan (zmap)" ) )
-			{
-				m_WebServerScannerMode = InternetScannerMode::Zmap;
-				InitialiseZmap();
-			}
-		}
-		else if ( m_WebServerScannerMode == InternetScannerMode::Basic )
-		{
-			//std::stringstream wss;
-			//unsigned int currentIP = m_pIPGenerator->GetCurrent().GetHost();
-			//unsigned int maxIP = ~0u;
-			//double ratio = static_cast< double >( currentIP ) / static_cast< double >( maxIP );
-			//float percent = static_cast< float >( ratio * 100.0f );
-			//wss <<  "Address space scanned: " << percent << "%%";
-			//ImGui::Text( wss.str().c_str() );
-
-			//{
-			//	std::stringstream ss;
-			//	ss << "Most recent probe: " << m_pIPGenerator->GetCurrent().ToString();
-			//	ImGui::Text( ss.str().c_str() );
-			//}
-
-			//if ( ImGui::TreeNode( "Active threads" ) )
-			//{
-			//	ImGui::Columns( 2 );
-			//	ImGui::SetColumnWidth( 0, 32 );
-			//	unsigned int numScanners = m_InternetScannerBasic.size();
-			//	for ( unsigned int i = 0; i < numScanners; i++ )
-			//	{
-			//		std::stringstream ss;
-			//		ss << "#" << ( i + 1 );
-			//		ImGui::Text( ss.str().c_str() );
-			//		ImGui::NextColumn();
-			//		ImGui::Text( m_InternetScannerBasic[ i ]->GetStatusText().c_str() );
-			//		ImGui::NextColumn();
-			//	}
-			//	ImGui::Columns( 1 );
-
-			//	ImGui::TreePop();
-			//}
-		}
-		else if ( m_WebServerScannerMode == InternetScannerMode::Nmap )
-		{
-			ImGui::Text( m_pInternetScannerNmap->GetStatusText().c_str() );
-		}
-		else if ( m_WebServerScannerMode == InternetScannerMode::Zmap )
-		{
-			ImGui::Text( m_pInternetScannerZmap->GetStatusText().c_str() );
-		}
-	}
 
 	if ( ImGui::CollapsingHeader( "Camera scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
@@ -404,8 +294,8 @@ void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult&
 // OnWebServerFound() callback instead.
 void Watcher::PopulateCameraDetectionQueue()
 {
-	Database::PreparedStatement statement( m_pDatabase.get(), "SELECT IP, Port FROM WebServers WHERE Scanned=0", &Watcher::PopulateCameraDetectionQueueCallback );
-	m_pDatabase->Execute( statement );
+	//Database::PreparedStatement statement( m_pDatabase.get(), "SELECT IP, Port FROM WebServers WHERE Scanned=0", &Watcher::PopulateCameraDetectionQueueCallback );
+	//m_pDatabase->Execute( statement );
 }
 
 void Watcher::OnCameraScanned( const CameraScanResult& result )

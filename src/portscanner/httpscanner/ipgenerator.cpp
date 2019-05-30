@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
-#include "ip_generator.h"
+#include "ipgenerator.h"
 
 IPGenerator::IPGenerator( const Network::IPAddress& ipAddress )
 {

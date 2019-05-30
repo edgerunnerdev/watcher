@@ -1,3 +1,18 @@
+// This file is part of watcher.
+//
+// watcher is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// watcher is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with watcher. If not, see <https://www.gnu.org/licenses/>.
+
 #pragma once
 
 #include <string>
@@ -22,19 +37,24 @@ class IPAddress
 {
 public:
 	IPAddress();
-	IPAddress( const std::vector< int >& host, unsigned short port );
-	IPAddress( unsigned int host, unsigned short port );
+	IPAddress( const std::vector< int >& host, uint16_t port );
+	IPAddress( uint32_t host, uint16_t port );
 	IPAddress( const std::string& address );
 	void SetHost( const std::vector< int >& host );
-	unsigned int GetHost() const;
-	void SetPort( unsigned short port );
-	unsigned short GetPort() const;
+	uint32_t GetHost() const;
+	void SetPort( uint16_t port );
+	uint16_t GetPort() const;
+	void SetBlock( uint8_t block );
+	uint8_t GetBlock() const;
 	std::string ToString() const;
 	std::string GetHostAsString() const;
 
+	static bool IsValid( const std::string& address );
+
 private:
-	unsigned int m_Host;
-	unsigned short m_Port;
+	uint32_t m_Host;
+	uint16_t m_Port;
+	uint8_t m_Block;
 };
 
 

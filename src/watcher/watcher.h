@@ -14,13 +14,6 @@
 #include "json.h"
 using json = nlohmann::json;
 
-namespace PortScanner
-{
-	class Coverage;
-	using CoverageUniquePtr = std::unique_ptr< Coverage >;
-}
-
-class AtlasGrid;
 class Configuration;
 class CameraScanner;
 class InternetScannerNmap;
@@ -31,10 +24,6 @@ class PluginManager;
 class WatcherRep;
 struct SDL_Window;
 
-using InternetScannerBasicUniquePtr = std::unique_ptr< InternetScannerBasic >;
-using InternetScannerNmapUniquePtr = std::unique_ptr< InternetScannerNmap >;
-using InternetScannerZmapUniquePtr = std::unique_ptr< InternetScannerZmap >;
-using InternetScannerBasicVector = std::vector< InternetScannerBasicUniquePtr >;
 using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
 using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
@@ -44,13 +33,6 @@ using GeoInfoVector = std::vector< GeoInfo >;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
 using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
 
-enum class InternetScannerMode
-{
-	None,
-	Basic,
-	Nmap,
-	Zmap
-};
 
 class Watcher
 {
@@ -60,7 +42,6 @@ public:
 	void ProcessEvent( const SDL_Event& event );
 	void Update();
 	bool IsActive() const;
-	PortScanner::Coverage* GetPortScannerCoverage() const;
 	Configuration* GetConfiguration() const;
 
 	void OnWebServerFound( Network::IPAddress address );
@@ -77,9 +58,6 @@ private:
 	static void LoadGeoInfosCallback( const Database::QueryResult& result, void* pData );
 
 	void PopulateCameraDetectionQueue();
-	void InitialiseInternetScannerBasic( unsigned int scannerCount );
-	void InitialiseNmap();
-	void InitialiseZmap();
 	void InitialiseCameraScanners( unsigned int scannerCount );
 	void RestartCameraDetection();
 	void InitialiseGeolocation();
@@ -87,9 +65,6 @@ private:
 	void AddGeoInfo( const json& message );
 
 	bool m_Active;
-	ThreadVector m_InternetScannerBasicThreads;
-	InternetScannerBasicVector m_InternetScannerBasic;
-	InternetScannerMode m_WebServerScannerMode;
 	Database::DatabaseUniquePtr m_pDatabase;
 
 	std::mutex m_CameraScannerQueueMutex;
@@ -104,15 +79,6 @@ private:
 
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
-
-	InternetScannerNmapUniquePtr m_pInternetScannerNmap;
-	std::thread m_InternetScannerNmapThread;
-
-	InternetScannerZmapUniquePtr m_pInternetScannerZmap;
-	std::thread m_InternetScannerZmapThread;
-
-	PortScanner::CoverageUniquePtr m_pPortScannerCoverage;
-	bool m_PortScannerCoverageOpen;
 
 	PluginManagerUniquePtr m_pPluginManager;
 };
@@ -134,9 +100,4 @@ inline GeoInfoVector Watcher::GetGeoInfos()
 	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
 	GeoInfoVector v = m_GeoInfos;
 	return v;
-}
-
-inline PortScanner::Coverage* Watcher::GetPortScannerCoverage() const
-{
-	return m_pPortScannerCoverage.get();
 }
