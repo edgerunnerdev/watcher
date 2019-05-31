@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <mutex>
 #include <vector>
@@ -27,9 +28,11 @@ public:
 	IPGenerator( const Network::IPAddress& address );
 
 	bool GetNext( Network::IPAddress& address );
+	int GetRemaining() const;
 
 private:
 	std::mutex m_Mutex;
 	using PossibleIPs = std::vector< uint32_t >;
 	PossibleIPs m_PossibleIPs;
+	std::atomic_int m_RemainingIPs;
 };

@@ -15,16 +15,29 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
 #include <thread>
 #include <vector>
 #include <network/network.h>
 
+class IPGenerator;
+using IPGeneratorUniquePtr = std::unique_ptr<IPGenerator>;
+
 class HTTPScanner
 {
 public:
-	void Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports );
+	HTTPScanner();
+	~HTTPScanner();
+	int Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports );
+	void Stop();
+	bool IsScanning() const;
+	int GetRemaining() const;
 
 private:
 	using ThreadVector = std::vector< std::thread >;
 	ThreadVector m_Threads;
+	std::atomic_int m_ActiveThreads;
+	std::atomic_bool m_Stop;
+	IPGeneratorUniquePtr m_pIPGenerator;
 };

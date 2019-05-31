@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\plugins\portscanner\</OutDir>
-    <IntDir>temp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -165,7 +165,8 @@
     <ClCompile Include="httpscanner\httpscanner.cpp" />
     <ClCompile Include="httpscanner\ipgenerator.cpp" />
     <ClCompile Include="httpscanner\portprobe.cpp" />
-    <ClCompile Include="portscanner.h" />
+    <ClCompile Include="portscanner.cpp" />
+    <ClInclude Include="portscanner.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -32,7 +32,7 @@ m_pDatabase( nullptr )
 	TextureLoader::Initialise();
 
 	m_pConfiguration = std::make_unique< Configuration >();
-	m_pDatabase = std::make_unique< Database::Database >( "0x00-watcher.db" );
+	m_pDatabase = std::make_unique< Database::Database >( "watcher.db" );
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
 

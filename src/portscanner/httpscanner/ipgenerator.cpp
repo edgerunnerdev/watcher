@@ -45,6 +45,8 @@ IPGenerator::IPGenerator( const Network::IPAddress& ipAddress )
 			m_PossibleIPs.push_back( host + static_cast< uint32_t >( i ) );
 		}
 	}
+
+	m_RemainingIPs = m_PossibleIPs.size();
 }
 
 bool IPGenerator::GetNext( Network::IPAddress& ipAddress )
@@ -62,7 +64,12 @@ bool IPGenerator::GetNext( Network::IPAddress& ipAddress )
 		ipAddress = Network::IPAddress( m_PossibleIPs[ idx ], 0 );
 		std::swap( m_PossibleIPs[ idx ], m_PossibleIPs[ numAddresses - 1 ] );
 		m_PossibleIPs.pop_back();
+		m_RemainingIPs--;
 		return true;
 	}
 }
 
+int IPGenerator::GetRemaining() const
+{
+	return m_RemainingIPs;
+}

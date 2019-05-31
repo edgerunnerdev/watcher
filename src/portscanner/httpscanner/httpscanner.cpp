@@ -17,14 +17,39 @@
 #include "portprobe.h"
 #include "ipgenerator.h"
 
-void HTTPScanner::Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports  )
+HTTPScanner::HTTPScanner() :
+	m_ActiveThreads(0),
+	m_Stop(false)
 {
-	IPGenerator generator( block );
-	auto threadMain = [ &generator, numThreads, &ports ]()
+
+}
+
+HTTPScanner::~HTTPScanner()
+{
+	m_Stop = true;
+
+	for (auto& thread : m_Threads)
+	{
+		if (thread.joinable())
+		{
+			thread.join();
+		}
+	}
+}
+
+int HTTPScanner::Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports  )
+{
+	//SDL_assert( m_ActiveThreads == 0 );
+	m_ActiveThreads = numThreads;
+	m_Stop = false;
+
+	m_pIPGenerator = std::make_unique<IPGenerator>( block );
+	int remaining = m_pIPGenerator->GetRemaining();
+	auto threadMain = [ numThreads, &ports ]( HTTPScanner* pHTTPScanner )
 	{
 		PortProbe probe;
 		Network::IPAddress address;
-		while ( generator.GetNext( address ) )
+		while ( pHTTPScanner->m_pIPGenerator->GetNext( address ) )
 		{
 			for ( uint16_t port : ports )
 			{
@@ -33,20 +58,37 @@ void HTTPScanner::Go( Network::IPAddress block, int numThreads, const std::vecto
 				{
 					printf( "%s\n", address.ToString().c_str() );
 				}
+
+				if ( pHTTPScanner->m_Stop )
+				{
+					pHTTPScanner->m_ActiveThreads--;
+					return;
+				}
 			}
 		}
+
+		pHTTPScanner->m_ActiveThreads--;
 	};
 
 	for ( int i = 0; i < numThreads; ++i )
 	{
-		m_Threads.emplace_back( threadMain );
+		m_Threads.emplace_back( threadMain, this );
 	}
 
-	for ( auto& thread : m_Threads )
-	{
-		if ( thread.joinable() )
-		{
-			thread.join();
-		}
-	}
+	return remaining;
+}
+
+bool HTTPScanner::IsScanning() const
+{
+	return m_ActiveThreads > 0;
+}
+
+void HTTPScanner::Stop()
+{
+	m_Stop = true;
+}
+
+int HTTPScanner::GetRemaining() const
+{
+	return m_pIPGenerator ? m_pIPGenerator->GetRemaining() : 0;
 }
