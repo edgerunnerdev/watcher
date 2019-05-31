@@ -29,15 +29,18 @@ class HTTPScanner
 public:
 	HTTPScanner();
 	~HTTPScanner();
-	int Go( Network::IPAddress block, int numThreads, const std::vector< uint16_t >& ports );
+	int Go( Network::IPAddress block, int numThreads, const Network::PortVector& ports );
 	void Stop();
 	bool IsScanning() const;
 	int GetRemaining() const;
 
 private:
+	static void ThreadMain(HTTPScanner* pHTTPScanner);
+
 	using ThreadVector = std::vector< std::thread >;
 	ThreadVector m_Threads;
 	std::atomic_int m_ActiveThreads;
 	std::atomic_bool m_Stop;
 	IPGeneratorUniquePtr m_pIPGenerator;
+	Network::PortVector m_Ports;
 };

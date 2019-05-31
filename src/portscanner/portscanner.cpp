@@ -99,7 +99,7 @@ void Portscanner::DrawUI(ImGuiContext* pContext)
 	{
 		if (m_pHTTPScanner->IsScanning())
 		{
-			float r = static_cast<float>(m_pHTTPScanner->GetRemaining()) / static_cast<float>(m_BlockIPsToScan);
+			float r = 1.0f - static_cast<float>(m_pHTTPScanner->GetRemaining()) / static_cast<float>(m_BlockIPsToScan);
 			ImGui::Text("Block completion:");
 			ImGui::ProgressBar(r);
 

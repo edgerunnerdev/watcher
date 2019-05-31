@@ -167,6 +167,7 @@ bool Coverage::GetNextBlock( Network::IPAddress& ipAddress )
 
 	IndexType idx = m_FreeIndices[ rand() % m_FreeIndices.size() ];
 	ipAddress = IndexToIPAddress( idx );
+	ipAddress.SetBlock(16);
 	return true;
 }
 
