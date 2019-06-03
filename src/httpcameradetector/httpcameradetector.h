@@ -16,31 +16,27 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
-#include <network/network.h>
 
-class IPGenerator;
-using IPGeneratorUniquePtr = std::unique_ptr<IPGenerator>;
+#include "../watcher/plugin.h"
+#include "network/network.h"
 
-class HTTPScanner
+using CURL = void;
+
+class HTTPCameraDetector : public Plugin
 {
+	DECLARE_PLUGIN(HTTPCameraDetector, 0, 1, 0);
 public:
-	HTTPScanner();
-	~HTTPScanner();
-	int Go( Network::IPAddress block, int numThreads, const Network::PortVector& ports );
-	void Stop();
-	bool IsScanning() const;
-	int GetRemaining() const;
+	HTTPCameraDetector();
+	virtual ~HTTPCameraDetector();
+	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
+	virtual void OnMessageReceived(const nlohmann::json& message) override;
+	virtual void DrawUI(ImGuiContext* pContext) override;
 
 private:
-	static void ThreadMain(HTTPScanner* pHTTPScanner);
+	void ConsumeQueue();
 
-	using ThreadVector = std::vector< std::thread >;
-	ThreadVector m_Threads;
-	std::atomic_int m_ActiveThreads;
-	std::atomic_bool m_Stop;
-	IPGeneratorUniquePtr m_pIPGenerator;
-	Network::PortVector m_Ports;
+	PluginMessageCallback m_pMessageCallback;
 };

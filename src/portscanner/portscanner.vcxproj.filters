@@ -1,41 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="httpscanner\httpscanner.h">
-      <Filter>httpscanner</Filter>
-    </ClInclude>
-    <ClInclude Include="httpscanner\portprobe.h">
-      <Filter>httpscanner</Filter>
-    </ClInclude>
-    <ClInclude Include="httpscanner\coverage.h">
-      <Filter>httpscanner</Filter>
-    </ClInclude>
-    <ClInclude Include="httpscanner\ipgenerator.h">
-      <Filter>httpscanner</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="portscanner.h" />
+    <ClInclude Include="portprobe.h" />
+    <ClInclude Include="coverage.h" />
+    <ClInclude Include="ipgenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="httpscanner\httpscanner.cpp">
-      <Filter>httpscanner</Filter>
-    </ClCompile>
-    <ClCompile Include="httpscanner\portprobe.cpp">
-      <Filter>httpscanner</Filter>
-    </ClCompile>
-    <ClCompile Include="httpscanner\coverage.cpp">
-      <Filter>httpscanner</Filter>
-    </ClCompile>
-    <ClCompile Include="httpscanner\ipgenerator.cpp">
-      <Filter>httpscanner</Filter>
-    </ClCompile>
     <ClCompile Include="portscanner.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="httpscanner">
-      <UniqueIdentifier>{f746eb8f-3a29-4dfb-845f-1ad4ca8c237d}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="coverage.cpp" />
+    <ClCompile Include="ipgenerator.cpp" />
+    <ClCompile Include="portprobe.cpp" />
   </ItemGroup>
 </Project>

@@ -81,51 +81,6 @@ void Watcher::InitialiseGeolocation()
 	m_pDatabase->Execute( query );
 }
 
-//void Watcher::InitialiseInternetScannerBasic( unsigned int scannerCount )
-//{
-	//auto threadMain = []( InternetScanner* pScanner )
-	//{
-	//	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
-	//	while ( g_pWatcher->IsActive() )
-	//	{
-	//		Network::IPAddress address;
-	//		if ( g_pWatcher->m_pPortScannerCoverage->GetNextBlock( address ) )
-	//		{
-	//			g_pWatcher->m_pPortScannerCoverage->SetBlockState( address, PortScanner::Coverage::BlockState::InProgress );
-	//			pScanner->Scan( address, ports );
-	//		}
-	//	}
-	//};
-
-	//for ( unsigned int i = 0u; i < scannerCount; i++ )
-	//{
-	//	InternetScannerBasicUniquePtr pScanner = std::make_unique< InternetScannerBasic >();
-	//	m_InternetScannerBasicThreads.emplace_back( threadMain, pScanner.get() );
-	//	m_InternetScannerBasic.push_back( std::move( pScanner ) );
-	//}
-//}
-
-//void sWebScannerThreadMain( InternetScanner* pScanner )
-//{
-//	const Network::PortVector& ports = g_pWatcher->GetConfiguration()->GetWebScannerPorts();
-//	while ( g_pWatcher->IsActive() )
-//	{
-//		Network::IPAddress address;
-//		if ( g_pWatcher->GetPortScannerCoverage()->GetNextBlock( address ) )
-//		{
-//			if ( pScanner->Scan( address, ports ) )
-//			{
-//				g_pWatcher->GetPortScannerCoverage()->SetBlockState( address, PortScanner::Coverage::BlockState::Scanned );
-//				g_pWatcher->GetPortScannerCoverage()->Write();
-//			}
-//			else
-//			{
-//				break;
-//			}
-//		}
-//	}
-//}
-
 void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
 {
 	auto threadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
@@ -247,6 +202,10 @@ void Watcher::OnMessageReceived( const json& message )
 	else if ( messageType == "geolocation_result" )
 	{
 		AddGeoInfo( message );
+	}
+	else
+	{
+		m_pPluginManager->BroadcastMessage(message);
 	}
 }
 

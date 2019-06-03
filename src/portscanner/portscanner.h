@@ -22,31 +22,46 @@
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
-#include "httpscanner/coverage.h"
+#include "coverage.h"
 
-class HTTPScanner;
-using HTTPScannerUniquePtr = std::unique_ptr< HTTPScanner >;
 using CURL = void;
+class IPGenerator;
+using IPGeneratorUniquePtr = std::unique_ptr<IPGenerator>;
 
-class Portscanner : public Plugin
+class PortScanner : public Plugin
 {
-	DECLARE_PLUGIN(Portscanner, 0, 1, 0);
+	DECLARE_PLUGIN(PortScanner, 0, 1, 0);
 public:
-	Portscanner();
-	virtual ~Portscanner();
+	PortScanner();
+	virtual ~PortScanner();
 	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
 	virtual void OnMessageReceived(const nlohmann::json& message) override;
 	virtual void DrawUI(ImGuiContext* pContext) override;
 
-	void OnHTTPServerFound(const Network::IPAddress& address);
 	void ScanNextBlock();
 
+	int Go(Network::IPAddress block, int numThreads, const Network::PortVector& ports);
+	void Stop();
+	bool IsStopping() const;
+	bool IsScanning() const;
+	int GetRemaining() const;
+
 private:
+	static void ThreadMain(PortScanner* pPortScanner);
+	void OnHTTPServerFound(const Network::IPAddress& address);
+
 	void StartPortscan();
 	void StopPortscan();
 
 	PluginMessageCallback m_pMessageCallback;
 	Coverage m_Coverage;
-	HTTPScannerUniquePtr m_pHTTPScanner;
 	int m_BlockIPsToScan;
+	Network::IPAddress m_Block;
+
+	using ThreadVector = std::vector< std::thread >;
+	ThreadVector m_Threads;
+	std::atomic_int m_ActiveThreads;
+	std::atomic_bool m_Stop;
+	IPGeneratorUniquePtr m_pIPGenerator;
+	Network::PortVector m_Ports;
 };

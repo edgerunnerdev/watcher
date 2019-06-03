@@ -16,30 +16,65 @@
 #include <iostream>
 #include <stdio.h>
 #include <imgui/imgui.h>
-#include "httpscanner/httpscanner.h"
+#include "ipgenerator.h"
+#include "portprobe.h"
 #include "portscanner.h"
 
-IMPLEMENT_PLUGIN(Portscanner)
+IMPLEMENT_PLUGIN(PortScanner)
 
-Portscanner::Portscanner()
+PortScanner::PortScanner()
 {
-	m_pHTTPScanner = std::make_unique<HTTPScanner>();
 	m_BlockIPsToScan = 0;
+	m_ActiveThreads = 0;
+	m_Stop = false;
 }
 
-Portscanner::~Portscanner()
+PortScanner::~PortScanner()
 {
-	m_pHTTPScanner->Stop();
+	Stop();
+
+	for (auto& thread : m_Threads)
+	{
+		if (thread.joinable())
+		{
+			thread.join();
+		}
+	}
 }
 
-bool Portscanner::Initialise(PluginMessageCallback pMessageCallback)
+void PortScanner::ThreadMain(PortScanner* pPortScanner)
+{
+	PortProbe probe;
+	Network::IPAddress address;
+	while (pPortScanner->m_pIPGenerator->GetNext(address))
+	{
+		for (uint16_t port : pPortScanner->m_Ports)
+		{
+			address.SetPort(port);
+			if (probe.Probe(address) == PortProbe::Result::Open && pPortScanner->IsStopping() == false)
+			{
+				pPortScanner->OnHTTPServerFound(address);
+			}
+
+			if (pPortScanner->IsStopping())
+			{
+				pPortScanner->m_ActiveThreads--;
+				return;
+			}
+		}
+	}
+
+	pPortScanner->m_ActiveThreads--;
+}
+
+bool PortScanner::Initialise(PluginMessageCallback pMessageCallback)
 {
 	m_pMessageCallback = pMessageCallback;
 	m_Coverage.Read();
 	return true;
 }
 
-void Portscanner::OnMessageReceived(const nlohmann::json& message)
+void PortScanner::OnMessageReceived(const nlohmann::json& message)
 {
 	//if ( message[ "type" ] == "geolocation_request" )
 	//{
@@ -53,32 +88,32 @@ void Portscanner::OnMessageReceived(const nlohmann::json& message)
 	//}
 }
 
-void Portscanner::StartPortscan()
+void PortScanner::StartPortscan()
 {
-	if (m_pHTTPScanner->IsScanning() == false)
+	if (IsScanning() == false)
 	{
 		ScanNextBlock();
 	}
 }
 
-void Portscanner::StopPortscan()
+void PortScanner::StopPortscan()
 {
-	if (m_pHTTPScanner->IsScanning())
+	if (IsScanning())
 	{
-		m_pHTTPScanner->Stop();
+		Stop();
 	}
 }
 
-void Portscanner::ScanNextBlock()
+void PortScanner::ScanNextBlock()
 {
-	Network::IPAddress address;
-	if (m_Coverage.GetNextBlock(address))
+	if (m_Coverage.GetNextBlock(m_Block))
 	{
-		m_BlockIPsToScan = m_pHTTPScanner->Go(address, 20, Network::PortVector{ 80, 81, 8080 });
+		m_BlockIPsToScan = Go(m_Block, 50, Network::PortVector{ 80, 81, 8080 });
 	}
 }
 
-void Portscanner::OnHTTPServerFound(const Network::IPAddress& address)
+// Must be MT safe, as it gets called from the worker threads.
+void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 {
 	std::string logText = "Found HTTP server: " + address.ToString();
 	json message =
@@ -91,21 +126,23 @@ void Portscanner::OnHTTPServerFound(const Network::IPAddress& address)
 	m_pMessageCallback(message);
 }
 
-void Portscanner::DrawUI(ImGuiContext* pContext)
+void PortScanner::DrawUI(ImGuiContext* pContext)
 {
 	ImGui::SetCurrentContext(pContext);
 
-	if (ImGui::CollapsingHeader("Portscanner", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("PortScanner", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (m_pHTTPScanner->IsScanning())
+		if (IsScanning())
 		{
-			float r = 1.0f - static_cast<float>(m_pHTTPScanner->GetRemaining()) / static_cast<float>(m_BlockIPsToScan);
-			ImGui::Text("Block completion:");
+			float r = 1.0f - static_cast<float>(GetRemaining()) / static_cast<float>(m_BlockIPsToScan);
+
+			std::string text = "Block completion (" + m_Block.ToString() + "/8):";
+			ImGui::Text(text.c_str());
 			ImGui::ProgressBar(r);
 
 			if (ImGui::Button("Stop scan"))
 			{
-				m_pHTTPScanner->Stop();
+				Stop();
 			}
 		}
 		else if (ImGui::Button("Begin scan"))
@@ -113,4 +150,42 @@ void Portscanner::DrawUI(ImGuiContext* pContext)
 			ScanNextBlock();
 		}
 	}
+}
+
+
+int PortScanner::Go(Network::IPAddress block, int numThreads, const Network::PortVector& ports)
+{
+	//SDL_assert( m_ActiveThreads == 0 );
+	m_ActiveThreads = numThreads;
+	m_Stop = false;
+	m_Ports = ports;
+	m_pIPGenerator = std::make_unique<IPGenerator>(block);
+	int remaining = m_pIPGenerator->GetRemaining();
+
+	for (int i = 0; i < numThreads; ++i)
+	{
+		m_Threads.emplace_back(&PortScanner::ThreadMain, this);
+	}
+
+	return remaining;
+}
+
+bool PortScanner::IsScanning() const
+{
+	return m_ActiveThreads > 0;
+}
+
+void PortScanner::Stop()
+{
+	m_Stop = true;
+}
+
+bool PortScanner::IsStopping() const
+{
+	return m_Stop;
+}
+
+int PortScanner::GetRemaining() const
+{
+	return m_pIPGenerator ? m_pIPGenerator->GetRemaining() : 0;
 }
