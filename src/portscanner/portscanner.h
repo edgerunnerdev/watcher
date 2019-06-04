@@ -40,7 +40,7 @@ public:
 
 	void ScanNextBlock();
 
-	int Go(Network::IPAddress block, int numThreads, const Network::PortVector& ports);
+	int Go(Network::IPAddress block, const Network::PortVector& ports);
 	void Stop();
 	bool IsStopping() const;
 	bool IsScanning() const;
@@ -64,4 +64,5 @@ private:
 	std::atomic_bool m_Stop;
 	IPGeneratorUniquePtr m_pIPGenerator;
 	Network::PortVector m_Ports;
+	int m_WantedThreads;
 };

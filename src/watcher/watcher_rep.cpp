@@ -14,6 +14,8 @@ m_CellSize( 128.0f )
 	int windowHeight;
 	SDL_GetWindowSize( m_pWindow, &windowWidth, &windowHeight );
 	m_pAtlas = std::make_unique< Atlas::Atlas >( windowWidth, windowHeight );
+
+	ImGui::StyleColorsDark();
 }
 
 WatcherRep::~WatcherRep()
@@ -83,13 +85,11 @@ void WatcherRep::Render()
 
 	ImGui::SetNextWindowPos( ImVec2( 0.0f, 0.0f ) );
 	ImGui::SetNextWindowSize( windowSize );
-	ImGui::PushStyleColor( ImGuiCol_FrameBg, ImColor( 0, 0, 0, 0 ).Value );
 	ImGui::Begin( "Watcher", nullptr, flags );
 
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	m_pAtlas->Render();
 
-	ImGui::PopStyleColor();
 	ImGui::End();
 
 	GeoInfoVector geoInfos = g_pWatcher->GetGeoInfos();

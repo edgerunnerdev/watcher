@@ -49,7 +49,7 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 {
 	ImGui::SetCurrentContext(pContext);
 
-	if (ImGui::CollapsingHeader("HTTP Camera Detector", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("HTTP camera detector", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 
 	}

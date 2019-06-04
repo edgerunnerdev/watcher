@@ -24,6 +24,7 @@ IMPLEMENT_PLUGIN(PortScanner)
 
 PortScanner::PortScanner()
 {
+	m_WantedThreads = 100;
 	m_BlockIPsToScan = 0;
 	m_ActiveThreads = 0;
 	m_Stop = false;
@@ -108,7 +109,7 @@ void PortScanner::ScanNextBlock()
 {
 	if (m_Coverage.GetNextBlock(m_Block))
 	{
-		m_BlockIPsToScan = Go(m_Block, 50, Network::PortVector{ 80, 81, 8080 });
+		m_BlockIPsToScan = Go(m_Block, Network::PortVector{ 80, 81, 8080 });
 	}
 }
 
@@ -130,7 +131,7 @@ void PortScanner::DrawUI(ImGuiContext* pContext)
 {
 	ImGui::SetCurrentContext(pContext);
 
-	if (ImGui::CollapsingHeader("PortScanner", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Port scanner", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		if (IsScanning())
 		{
@@ -145,24 +146,28 @@ void PortScanner::DrawUI(ImGuiContext* pContext)
 				Stop();
 			}
 		}
-		else if (ImGui::Button("Begin scan"))
+		else
 		{
-			ScanNextBlock();
+			if (ImGui::Button("Begin scan"))
+			{
+				ScanNextBlock();
+			}
+			
+			ImGui::SliderInt("Threads", &m_WantedThreads, 20, 200);    
 		}
 	}
 }
 
-
-int PortScanner::Go(Network::IPAddress block, int numThreads, const Network::PortVector& ports)
+int PortScanner::Go(Network::IPAddress block, const Network::PortVector& ports)
 {
 	//SDL_assert( m_ActiveThreads == 0 );
-	m_ActiveThreads = numThreads;
+	m_ActiveThreads = m_WantedThreads;
 	m_Stop = false;
 	m_Ports = ports;
 	m_pIPGenerator = std::make_unique<IPGenerator>(block);
 	int remaining = m_pIPGenerator->GetRemaining();
 
-	for (int i = 0; i < numThreads; ++i)
+	for (int i = 0; i < m_WantedThreads; ++i)
 	{
 		m_Threads.emplace_back(&PortScanner::ThreadMain, this);
 	}
