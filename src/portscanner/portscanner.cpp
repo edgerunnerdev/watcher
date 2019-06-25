@@ -125,6 +125,13 @@ void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 		{ "message", logText }
 	};
 	m_pMessageCallback(message);
+
+	message =
+	{
+		{ "type", "http_server_found" },
+		{ "address", address.ToString() }
+	};
+	m_pMessageCallback(message);
 }
 
 void PortScanner::DrawUI(ImGuiContext* pContext)

@@ -19,6 +19,7 @@
     <ClCompile Include="network\network.cpp" />
     <ClCompile Include="network\network_linux.cpp" />
     <ClCompile Include="network\network_windows.cpp" />
+    <ClCompile Include="threadpool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GL\gl3w.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="imgui\stb_textedit.h" />
     <ClInclude Include="imgui\stb_truetype.h" />
     <ClInclude Include="network\network.h" />
+    <ClInclude Include="threadpool.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

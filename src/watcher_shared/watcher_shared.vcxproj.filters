@@ -25,6 +25,7 @@
     <ClCompile Include="imgui\imgui_impl_sdl_gl3.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="threadpool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="network">
@@ -68,5 +69,6 @@
     <ClInclude Include="imgui\stb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="threadpool.h" />
   </ItemGroup>
 </Project>

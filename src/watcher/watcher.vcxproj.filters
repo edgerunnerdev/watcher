@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="camera_detection_rule.cpp" />
-    <ClCompile Include="camera_scanner.cpp" />
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="main.cpp" />
@@ -10,9 +8,6 @@
     <ClCompile Include="watcher_rep.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c">
       <Filter>ext\sqlite</Filter>
-    </ClCompile>
-    <ClCompile Include="ext\htmlstreamparser.c">
-      <Filter>ext</Filter>
     </ClCompile>
     <ClCompile Include="atlas\atlas.cpp">
       <Filter>atlas</Filter>
@@ -52,8 +47,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera_detection_rule.h" />
-    <ClInclude Include="camera_scanner.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="geo_info.h" />
     <ClInclude Include="render.h" />
@@ -61,9 +54,6 @@
     <ClInclude Include="watcher_rep.h" />
     <ClInclude Include="ext\sqlite\sqlite3.h">
       <Filter>ext\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="ext\htmlstreamparser.h">
-      <Filter>ext</Filter>
     </ClInclude>
     <ClInclude Include="ext\json.h">
       <Filter>ext</Filter>

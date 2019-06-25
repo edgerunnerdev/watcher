@@ -8,26 +8,18 @@
 
 #include "database/database.h"
 #include "network/network.h"
-#include "camera_scanner.h"
 #include "geo_info.h"
 
 #include "json.h"
 using json = nlohmann::json;
 
 class Configuration;
-class CameraScanner;
-class InternetScannerNmap;
-class WebMasscanParser;
-class InternetScannerZmap;
-class InternetScannerBasic;
 class PluginManager;
 class WatcherRep;
 struct SDL_Window;
 
 using ThreadVector = std::vector< std::thread >;
 using IPVector = std::vector< Network::IPAddress >;
-using CameraScannerUniquePtr = std::unique_ptr< CameraScanner >;
-using CameraScannerVector = std::vector< CameraScannerUniquePtr >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeoInfoVector = std::vector< GeoInfo >;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
@@ -45,20 +37,15 @@ public:
 	Configuration* GetConfiguration() const;
 
 	void OnWebServerFound( Network::IPAddress address );
-	void OnCameraScanned( const CameraScanResult& result );
 	void OnMessageReceived( const json& message );
-
-	bool ConsumeCameraScannerQueue( Network::IPAddress& address );
 
 	GeoInfoVector GetGeoInfos();
 
 private:
 	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
-	static void PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData );
 	static void LoadGeoInfosCallback( const Database::QueryResult& result, void* pData );
 
 	void PopulateCameraDetectionQueue();
-	void InitialiseCameraScanners( unsigned int scannerCount );
 	void RestartCameraDetection();
 	void InitialiseGeolocation();
 	void LoadGeoInfos();
@@ -66,13 +53,6 @@ private:
 
 	bool m_Active;
 	Database::DatabaseUniquePtr m_pDatabase;
-
-	std::mutex m_CameraScannerQueueMutex;
-	IPVector m_CameraScannerQueue;
-	CameraScannerVector m_CameraScanners;
-	ThreadVector m_CameraScannerThreads;
-	std::mutex m_CameraScanResultsMutex;
-	CameraScanResultList m_CameraScanResults;
 
 	std::mutex m_GeoInfoMutex;
 	GeoInfoVector m_GeoInfos;

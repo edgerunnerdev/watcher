@@ -4,9 +4,13 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="httpcameradetector.h" />
+    <ClInclude Include="rule.h" />
+    <ClInclude Include="htmlstreamparser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="httpcameradetector.cpp" />
+    <ClCompile Include="rule.cpp" />
+    <ClCompile Include="htmlstreamparser.c" />
   </ItemGroup>
 </Project>

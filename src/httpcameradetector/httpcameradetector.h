@@ -16,14 +16,17 @@
 #pragma once
 
 #include <atomic>
+#include <deque>
 #include <mutex>
 #include <thread>
 #include <vector>
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
+#include "threadpool.h"
 
-using CURL = void;
+class Rule;
+using CameraDetectionRuleVector = std::vector<Rule>;
 
 class HTTPCameraDetector : public Plugin
 {
@@ -34,9 +37,22 @@ public:
 	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
 	virtual void OnMessageReceived(const nlohmann::json& message) override;
 	virtual void DrawUI(ImGuiContext* pContext) override;
+	
+	struct Result
+	{
+		bool isCamera;
+		Network::IPAddress address;
+		std::string title;
+	};
+	static Result Scan(Network::IPAddress address, CameraDetectionRuleVector const& rules);
 
 private:
-	void ConsumeQueue();
-
+	void LoadRules();
 	PluginMessageCallback m_pMessageCallback;
+	ThreadPool m_ThreadPool;
+	int m_PendingResults;
+	std::mutex m_ResultsMutex;
+	std::deque<Result> m_Results;
+
+	CameraDetectionRuleVector m_Rules;
 };

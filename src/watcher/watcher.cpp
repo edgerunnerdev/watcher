@@ -5,7 +5,6 @@
 #include <SDL.h>
 #include "ext/json.h"
 #include "imgui/imgui.h"
-#include "camera_scanner.h"
 #include "configuration.h"
 #include "geo_info.h"
 #include "log.h"
@@ -36,9 +35,6 @@ m_pDatabase( nullptr )
 
 	m_pRep = std::make_unique< WatcherRep >( pWindow );
 
-	PopulateCameraDetectionQueue();
-	InitialiseCameraScanners( 32 );
-
 	m_pPluginManager = std::make_unique< PluginManager >();
 	InitialiseGeolocation();
 }
@@ -46,14 +42,6 @@ m_pDatabase( nullptr )
 Watcher::~Watcher()
 {
 	m_Active = false;
-
-	for ( auto& thread : m_CameraScannerThreads )
-	{
-		if ( thread.joinable() )
-		{
-			thread.join();
-		}
-	}
 }
 
 void Watcher::GeolocationRequestCallback( const Database::QueryResult& result, void* pData )
@@ -81,33 +69,6 @@ void Watcher::InitialiseGeolocation()
 	m_pDatabase->Execute( query );
 }
 
-void Watcher::InitialiseCameraScanners( unsigned int scannerCount )
-{
-	auto threadMain = []( Watcher* pWatcher, CameraScanner* pScanner )
-	{
-		while ( pWatcher->IsActive() )
-		{
-			Network::IPAddress address;
-			if ( pWatcher->ConsumeCameraScannerQueue( address ) )
-			{ 
-				CameraScanResult scanResult = pScanner->Scan( address );
-				pWatcher->OnCameraScanned( scanResult );
-			}
-			else
-			{
-				std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
-			}
-		}
-	};
-
-	for ( unsigned int i = 0u; i < scannerCount; i++ )
-	{
-		CameraScannerUniquePtr pScanner = std::make_unique< CameraScanner >();
-		m_CameraScannerThreads.emplace_back( threadMain, this, pScanner.get() );
-		m_CameraScanners.push_back( std::move( pScanner ) );
-	}
-}
-
 void Watcher::ProcessEvent( const SDL_Event& event ) 
 {
 	m_pRep->ProcessEvent( event );
@@ -123,36 +84,6 @@ void Watcher::Update()
 	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
 	ImGui::SetNextWindowSize( ImVec2( 400, 0 ) );
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar );
-
-	if ( ImGui::CollapsingHeader( "Camera scanner", ImGuiTreeNodeFlags_DefaultOpen ) )
-	{
-		std::stringstream queueSizeSS;
-		queueSizeSS << "Queue size: " << m_CameraScannerQueue.size();
-		ImGui::Text( queueSizeSS.str().c_str() );
-
-		//std::stringstream rulesSS;
-		//rulesSS << "Rules loaded: " << m_pCameraScanner->GetRuleCount();
-		//ImGui::Text( rulesSS.str().c_str() );
-
-		if ( ImGui::TreeNode( "Results (100 most recent)" ) )
-		{
-			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
-			ImGui::Columns( 3 );
-			ImGui::SetColumnWidth( 0, 32 );
-			for ( auto& scanResult : m_CameraScanResults )
-			{
-				ImGui::Text( scanResult.isCamera ? "x" : " " );
-				ImGui::NextColumn();
-				ImGui::Text( scanResult.address.ToString().c_str() );
-				ImGui::NextColumn();
-				ImGui::Text( scanResult.title.c_str() );
-				ImGui::NextColumn();
-			}
-			ImGui::Columns( 1 );
-
-			ImGui::TreePop();
-		}
-	}
 
 	for ( Plugin* pPlugin : m_pPluginManager->GetPlugins() )
 	{
@@ -212,40 +143,40 @@ void Watcher::OnMessageReceived( const json& message )
 void Watcher::OnWebServerFound( Network::IPAddress address )
 {
 	// Store this web server into the database, mark it as not parsed.
-	Database::PreparedStatement statement( m_pDatabase.get(), "INSERT OR REPLACE INTO WebServers VALUES(?1, ?2, 0);" );
-	statement.Bind( 1, address.GetHostAsString() );
-	statement.Bind( 2, address.GetPort() );
-	m_pDatabase->Execute( statement );
+	//Database::PreparedStatement statement( m_pDatabase.get(), "INSERT OR REPLACE INTO WebServers VALUES(?1, ?2, 0);" );
+	//statement.Bind( 1, address.GetHostAsString() );
+	//statement.Bind( 2, address.GetPort() );
+	//m_pDatabase->Execute( statement );
 
-	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
-	m_CameraScannerQueue.push_back( address );
+	//std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
+	//m_CameraScannerQueue.push_back( address );
 }
 
 void Watcher::RestartCameraDetection()
 {
-	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=0;" );
-	m_pDatabase->Execute( statement );
+	//Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=0;" );
+	//m_pDatabase->Execute( statement );
 }
 
-void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData )
-{
-	for ( auto& row : result.Get() )
-	{
-		const int numCells = 2;
-		if ( row.size() != 2 )
-		{
-			Log::Error( "Invalid number of rows returned from query in PopulateCameraDetectionQueueCallback(). Expected %d, got %d.", numCells, row.size() );
-		}
-		else
-		{
-			Network::IPAddress ipAddress( row[ 0 ]->GetString() );
-			ipAddress.SetPort( row[ 1 ]->GetInt() );
-
-			std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
-			g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
-		}
-	}
-}
+//void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData )
+//{
+//	for ( auto& row : result.Get() )
+//	{
+//		const int numCells = 2;
+//		if ( row.size() != 2 )
+//		{
+//			Log::Error( "Invalid number of rows returned from query in PopulateCameraDetectionQueueCallback(). Expected %d, got %d.", numCells, row.size() );
+//		}
+//		else
+//		{
+//			Network::IPAddress ipAddress( row[ 0 ]->GetString() );
+//			ipAddress.SetPort( row[ 1 ]->GetInt() );
+//
+//			std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
+//			g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
+//		}
+//	}
+//}
 
 // Loads from the database any IP addresses for web servers which have been
 // found but not processed yet and adds them to the camera detection queue.
@@ -257,67 +188,50 @@ void Watcher::PopulateCameraDetectionQueue()
 	//m_pDatabase->Execute( statement );
 }
 
-void Watcher::OnCameraScanned( const CameraScanResult& result )
-{
-	if ( result.title.empty() == false || result.isCamera )
-	{
-		{
-			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
-			m_CameraScanResults.push_front( result );
-			if ( m_CameraScanResults.size() > 100 )
-			{
-				m_CameraScanResults.pop_back();
-			}
-		}	
-	}
-
-	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=1 WHERE IP=?1;" );
-	statement.Bind( 1, result.address.GetHostAsString() );
-	m_pDatabase->Execute( statement );
-
-	if ( result.isCamera )
-	{
-		Database::PreparedStatement updateCameraStatement( m_pDatabase.get(), "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
-		updateCameraStatement.Bind( 1, result.address.ToString() );
-		m_pDatabase->Execute( updateCameraStatement );
-
-		Database::PreparedStatement addCameraStatement( m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);" );
-		addCameraStatement.Bind( 1, result.address.GetHostAsString() );
-		addCameraStatement.Bind( 2, result.address.GetPort() );
-		addCameraStatement.Bind( 3, 0 ); // Type (unused at the moment).
-		addCameraStatement.Bind( 4, result.title );
-		addCameraStatement.Bind( 5, 0 ); // Geolocation pending.
-		m_pDatabase->Execute( addCameraStatement );
-
-		json message = 
-		{
-			{ "type", "geolocation_request" },
-			{ "address", result.address.ToString() },
-		};
-		m_pPluginManager->BroadcastMessage( message );
-	}
-	else
-	{
-		Log::Info( "No camera detected at %s, title: %s", result.address.ToString().c_str(), result.title.c_str() );
-	}
-}
-
-// Takes an address from the camera scanner queue.
-// Returns false if the queue is empty.
-bool Watcher::ConsumeCameraScannerQueue( Network::IPAddress& address )
-{
-	std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
-	if ( m_CameraScannerQueue.empty() )
-	{
-		return false;
-	}
-	else
-	{
-		address = m_CameraScannerQueue.back();
-		m_CameraScannerQueue.pop_back();
-		return true;
-	}
-}
+//void Watcher::OnCameraScanned( const CameraScanResult& result )
+//{
+//	if ( result.title.empty() == false || result.isCamera )
+//	{
+//		{
+//			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
+//			m_CameraScanResults.push_front( result );
+//			if ( m_CameraScanResults.size() > 100 )
+//			{
+//				m_CameraScanResults.pop_back();
+//			}
+//		}	
+//	}
+//
+//	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=1 WHERE IP=?1;" );
+//	statement.Bind( 1, result.address.GetHostAsString() );
+//	m_pDatabase->Execute( statement );
+//
+//	if ( result.isCamera )
+//	{
+//		Database::PreparedStatement updateCameraStatement( m_pDatabase.get(), "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
+//		updateCameraStatement.Bind( 1, result.address.ToString() );
+//		m_pDatabase->Execute( updateCameraStatement );
+//
+//		Database::PreparedStatement addCameraStatement( m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);" );
+//		addCameraStatement.Bind( 1, result.address.GetHostAsString() );
+//		addCameraStatement.Bind( 2, result.address.GetPort() );
+//		addCameraStatement.Bind( 3, 0 ); // Type (unused at the moment).
+//		addCameraStatement.Bind( 4, result.title );
+//		addCameraStatement.Bind( 5, 0 ); // Geolocation pending.
+//		m_pDatabase->Execute( addCameraStatement );
+//
+//		json message = 
+//		{
+//			{ "type", "geolocation_request" },
+//			{ "address", result.address.ToString() },
+//		};
+//		m_pPluginManager->BroadcastMessage( message );
+//	}
+//	else
+//	{
+//		Log::Info( "No camera detected at %s, title: %s", result.address.ToString().c_str(), result.title.c_str() );
+//	}
+//}
 
 void Watcher::LoadGeoInfosCallback( const Database::QueryResult& result, void* pData )
 {

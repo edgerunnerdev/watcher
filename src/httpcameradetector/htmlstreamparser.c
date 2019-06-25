@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <htmlstreamparser.h>
+#include "htmlstreamparser.h"
 
 HTMLSTREAMPARSER *html_parser_reset(HTMLSTREAMPARSER *hsp) {
 	memset(hsp->html_part, 0, HTML_PART_SIZE);
