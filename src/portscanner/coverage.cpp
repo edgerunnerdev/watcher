@@ -35,6 +35,10 @@ m_RebuildUITexture( true )
 	ClearBlockStates();
 
 	CreateUserInterfaceTexture();
+
+	std::random_device rd;
+	m_MersenneTwister = std::mt19937(rd());
+	m_Distribution = std::uniform_int_distribution<unsigned int>(0u, 0xFFFFFFFF);
 }
 
 void Coverage::ClearBlockStates() 
@@ -165,8 +169,13 @@ bool Coverage::GetNextBlock( Network::IPAddress& ipAddress )
 		return false;
 	}
 
-	IndexType idx = m_FreeIndices[ rand() % m_FreeIndices.size() ];
+#ifdef COVERAGE_DEBUG // Force a particular block, for debugging purposes.
+	ipAddress.SetHost({ 81, 231, 0, 0 });
+#else
+	const int r = m_Distribution(m_MersenneTwister);
+	IndexType idx = m_FreeIndices[ r % m_FreeIndices.size() ];
 	ipAddress = IndexToIPAddress( idx );
+#endif
 	ipAddress.SetBlock(16);
 	return true;
 }

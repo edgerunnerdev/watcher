@@ -14,6 +14,7 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
 #include <bitset>
+#include <random>
 #include <vector>
 
 // Needed to include GL.h properly.
@@ -74,4 +75,6 @@ private:
 	GLsizei m_UITextureHeight;
 	GLubyte* m_pUITextureData;
 	bool m_RebuildUITexture;
+	std::mt19937 m_MersenneTwister;
+	std::uniform_int_distribution<unsigned int> m_Distribution;
 };

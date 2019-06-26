@@ -37,7 +37,7 @@ ThreadPool::~ThreadPool()
 	}
 }
 
-void ThreadPool::AddJob(Job job)
+void ThreadPool::Queue(Job job)
 {
 	std::lock_guard<std::mutex> lock(m_JobMutex);
 	m_Jobs.push_back(job);

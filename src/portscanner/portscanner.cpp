@@ -109,14 +109,15 @@ void PortScanner::ScanNextBlock()
 {
 	if (m_Coverage.GetNextBlock(m_Block))
 	{
-		m_BlockIPsToScan = Go(m_Block, Network::PortVector{ 80, 81, 8080 });
+		m_BlockIPsToScan = Go(m_Block, Network::PortVector{ 80/*, 81, 8080*/ });
 	}
 }
 
 // Must be MT safe, as it gets called from the worker threads.
 void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 {
-	std::string logText = "Found HTTP server: " + address.ToString();
+	std::string url = "http://" + address.ToString();
+	std::string logText = "Found HTTP server: " + url;
 	json message =
 	{
 		{ "type", "log" },
@@ -129,7 +130,7 @@ void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 	message =
 	{
 		{ "type", "http_server_found" },
-		{ "address", address.ToString() }
+		{ "url", url }
 	};
 	m_pMessageCallback(message);
 }

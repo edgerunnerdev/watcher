@@ -29,7 +29,7 @@ public:
 	~ThreadPool();
 
 	using Job = std::function<void()>;
-	void AddJob(Job job);
+	void Queue(Job job);
 
 private:
 	static void ThreadMain(ThreadPool* pThreadPool);

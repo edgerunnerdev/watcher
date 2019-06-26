@@ -47,6 +47,7 @@ private:
 
 	void PopulateCameraDetectionQueue();
 	void RestartCameraDetection();
+	void InitialiseDatabase();
 	void InitialiseGeolocation();
 	void LoadGeoInfos();
 	void AddGeoInfo( const json& message );

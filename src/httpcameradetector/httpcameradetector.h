@@ -37,20 +37,20 @@ public:
 	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
 	virtual void OnMessageReceived(const nlohmann::json& message) override;
 	virtual void DrawUI(ImGuiContext* pContext) override;
-	
-	struct Result
-	{
-		bool isCamera;
-		Network::IPAddress address;
-		std::string title;
-	};
-	static Result Scan(Network::IPAddress address, CameraDetectionRuleVector const& rules);
+	static void Scan(HTTPCameraDetector* pDetector, const std::string& url);
 
 private:
 	void LoadRules();
 	PluginMessageCallback m_pMessageCallback;
 	ThreadPool m_ThreadPool;
-	int m_PendingResults;
+	std::atomic_int m_PendingResults;
+
+	struct Result
+	{
+		bool isCamera;
+		std::string url;
+		std::string title;
+	};
 	std::mutex m_ResultsMutex;
 	std::deque<Result> m_Results;
 

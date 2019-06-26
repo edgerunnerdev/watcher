@@ -28,15 +28,15 @@
 
 IMPLEMENT_PLUGIN(HTTPCameraDetector)
 
-struct CameraScannerCallbackData
+struct ScanCallbackData
 {
 	HTMLSTREAMPARSER* pHsp;
-	HTTPCameraDetector* pDetector;
+	std::string title;
 };
 
 static size_t write_callback(void* buffer, size_t size, size_t nmemb, void* pData)
 {
-	CameraScannerCallbackData* pCallbackData = reinterpret_cast<CameraScannerCallbackData*>(pData);
+	ScanCallbackData* pCallbackData = reinterpret_cast<ScanCallbackData*>(pData);
 	HTMLSTREAMPARSER* pHsp = pCallbackData->pHsp;
 	size_t realsize = size * nmemb;
 	std::string titleEndTag = "/title";
@@ -58,7 +58,7 @@ static size_t write_callback(void* buffer, size_t size, size_t nmemb, void* pDat
 			if (titleLen > 0)
 			{
 				pTitle[titleLen] = '\0';
-				//pCallbackData->pDetector->SetTitle(pTitle);
+				pCallbackData->title = pTitle;
 			}
 		}
 	}
@@ -85,9 +85,22 @@ bool HTTPCameraDetector::Initialise(PluginMessageCallback pMessageCallback)
 
 void HTTPCameraDetector::OnMessageReceived(const nlohmann::json& message)
 {
-	if (message["type"] == "http_server_found")
+	const std::string& type = message["type"];
+	if (type == "http_server_found")
 	{
 		m_PendingResults++;
+		ThreadPool::Job job = std::bind(HTTPCameraDetector::Scan, this, message["url"]);
+		m_ThreadPool.Queue(job);
+	}
+	else if (type == "http_server_scan_result")
+	{
+		std::lock_guard<std::mutex> lock(m_ResultsMutex);
+		m_PendingResults--;
+		Result result;
+		result.url = message["url"];
+		result.title = message["title"];
+		result.isCamera = message["is_camera"];
+		m_Results.push_back(result);
 	}
 }
 
@@ -104,13 +117,11 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 		if (ImGui::TreeNode("Results (100 most recent)"))
 		{
 			std::lock_guard<std::mutex> lock(m_ResultsMutex);
-			ImGui::Columns(3);
+			ImGui::Columns(2);
 			ImGui::SetColumnWidth(0, 32);
 			for (Result& result : m_Results)
 			{
 				ImGui::Text(result.isCamera ? "x" : " ");
-				ImGui::NextColumn();
-				ImGui::Text(result.address.ToString().c_str());
 				ImGui::NextColumn();
 				ImGui::Text(result.title.c_str());
 				ImGui::NextColumn();
@@ -129,7 +140,6 @@ void HTTPCameraDetector::LoadRules()
 	{
 		json jsonRules;
 		file >> jsonRules;
-		file.close();
 
 		for (auto& jsonRule : jsonRules)
 		{
@@ -153,7 +163,7 @@ void HTTPCameraDetector::LoadRules()
 	}
 }
 
-HTTPCameraDetector::Result HTTPCameraDetector::Scan(Network::IPAddress address, CameraDetectionRuleVector const& rules)
+void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url)
 {
 	CURL* pCurl = curl_easy_init();
 
@@ -170,11 +180,11 @@ HTTPCameraDetector::Result HTTPCameraDetector::Scan(Network::IPAddress address, 
 	html_parser_set_val_buffer(hsp, valBuffer, sizeof(valBuffer) - 1);
 	html_parser_set_inner_text_buffer(hsp, innerTextBuffer, sizeof(innerTextBuffer) - 1);
 
-	//CameraScannerCallbackData data = { hsp, this };
-	std::string url = "http://" + address.ToString();
+	ScanCallbackData data;
+	data.pHsp = hsp;
 	curl_easy_setopt(pCurl, CURLOPT_URL, url.c_str());
-	//curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, write_callback);
-	//curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &data);
+	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, write_callback);
+	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &data);
 	curl_easy_setopt(pCurl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 10L);
 
@@ -182,9 +192,12 @@ HTTPCameraDetector::Result HTTPCameraDetector::Scan(Network::IPAddress address, 
 
 	curl_easy_cleanup(pCurl);
 
-	Result result;
-	result.isCamera = false; //EvaluateDetectionRules(url);
-	result.address = address;
-	result.title = ""; //m_Title;
-	return std::move(result);
+	json message =
+	{
+		{ "type", "http_server_scan_result" },
+		{ "url", url },
+		{ "is_camera", false }, //EvaluateDetectionRules(url);
+		{ "title", data.title }
+	};
+	pDetector->m_pMessageCallback(message);
 }
