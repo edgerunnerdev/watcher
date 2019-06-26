@@ -26,7 +26,7 @@
 #include "threadpool.h"
 
 class Rule;
-using CameraDetectionRuleVector = std::vector<Rule>;
+using RuleVector = std::vector<Rule>;
 
 class HTTPCameraDetector : public Plugin
 {
@@ -41,6 +41,8 @@ public:
 
 private:
 	void LoadRules();
+	void DrawResultsUI(bool* pShow);
+	static bool EvaluateDetectionRules(HTTPCameraDetector* pDetector, const std::string& url, const std::string& title);
 	PluginMessageCallback m_pMessageCallback;
 	ThreadPool m_ThreadPool;
 	std::atomic_int m_PendingResults;
@@ -53,6 +55,7 @@ private:
 	};
 	std::mutex m_ResultsMutex;
 	std::deque<Result> m_Results;
+	bool m_ShowResultsUI;
 
-	CameraDetectionRuleVector m_Rules;
+	RuleVector m_Rules;
 };

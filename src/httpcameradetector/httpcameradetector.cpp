@@ -67,7 +67,8 @@ static size_t write_callback(void* buffer, size_t size, size_t nmemb, void* pDat
 
 HTTPCameraDetector::HTTPCameraDetector() :
 m_ThreadPool(8),
-m_PendingResults(0)
+m_PendingResults(0),
+m_ShowResultsUI(false)
 {
 	LoadRules();
 }
@@ -114,23 +115,40 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 		queueSizeSS << "Queue size: " << m_PendingResults;
 		ImGui::Text(queueSizeSS.str().c_str());
 
-		if (ImGui::TreeNode("Results (100 most recent)"))
+		if (ImGui::Button("View results"))
 		{
-			std::lock_guard<std::mutex> lock(m_ResultsMutex);
-			ImGui::Columns(2);
-			ImGui::SetColumnWidth(0, 32);
-			for (Result& result : m_Results)
-			{
-				ImGui::Text(result.isCamera ? "x" : " ");
-				ImGui::NextColumn();
-				ImGui::Text(result.title.c_str());
-				ImGui::NextColumn();
-			}
-			ImGui::Columns(1);
+			m_ShowResultsUI = !m_ShowResultsUI;
+		}
 
-			ImGui::TreePop();
+		if (m_ShowResultsUI)
+		{
+			DrawResultsUI(&m_ShowResultsUI);
 		}
 	}
+}
+
+void HTTPCameraDetector::DrawResultsUI(bool* pShow)
+{
+	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("HTTP Camera Detector - results", pShow))
+	{
+		ImGui::End();
+		return;
+	}
+
+	std::lock_guard<std::mutex> lock(m_ResultsMutex);
+	ImGui::Columns(3);
+	ImGui::SetColumnWidth(0, 32);
+	for (Result& result : m_Results)
+	{
+		ImGui::Text(result.isCamera ? "x" : " ");
+		ImGui::NextColumn();
+		ImGui::Text(result.url.c_str());
+		ImGui::NextColumn();
+		ImGui::Text(result.title.c_str());
+		ImGui::NextColumn();
+	}
+	ImGui::Columns(1);
 }
 
 void HTTPCameraDetector::LoadRules()
@@ -196,8 +214,20 @@ void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& 
 	{
 		{ "type", "http_server_scan_result" },
 		{ "url", url },
-		{ "is_camera", false }, //EvaluateDetectionRules(url);
+		{ "is_camera", EvaluateDetectionRules(pDetector, url, data.title) },
 		{ "title", data.title }
 	};
 	pDetector->m_pMessageCallback(message);
+}
+
+bool HTTPCameraDetector::EvaluateDetectionRules(HTTPCameraDetector* pDetector, const std::string& url, const std::string& title)
+{
+	for (auto& rule : pDetector->m_Rules)
+	{
+		if (rule.Match(url, title))
+		{
+			return true;
+		}
+	}
+	return false;
 }
