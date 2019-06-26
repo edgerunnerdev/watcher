@@ -101,7 +101,11 @@ void HTTPCameraDetector::OnMessageReceived(const nlohmann::json& message)
 		result.url = message["url"];
 		result.title = message["title"];
 		result.isCamera = message["is_camera"];
-		m_Results.push_back(result);
+		m_Results.push_front(result);
+		if (m_Results.size() > 100)
+		{
+			m_Results.pop_back();
+		}
 	}
 }
 
@@ -129,7 +133,7 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 
 void HTTPCameraDetector::DrawResultsUI(bool* pShow)
 {
-	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin("HTTP Camera Detector - results", pShow))
 	{
 		ImGui::End();
@@ -138,10 +142,16 @@ void HTTPCameraDetector::DrawResultsUI(bool* pShow)
 
 	std::lock_guard<std::mutex> lock(m_ResultsMutex);
 	ImGui::Columns(3);
-	ImGui::SetColumnWidth(0, 32);
+	ImGui::SetColumnWidth(0, 64);
+	ImGui::Separator();
+	ImGui::Text("Camera?"); ImGui::NextColumn();
+	ImGui::Text("URL"); ImGui::NextColumn();
+	ImGui::Text("Title"); ImGui::NextColumn();
+	ImGui::Separator();
 	for (Result& result : m_Results)
 	{
-		ImGui::Text(result.isCamera ? "x" : " ");
+		//ImGui::Selectable(label, selected == i, ImGuiSelectableFlags_SpanAllColumns)
+		ImGui::Selectable(result.isCamera ? "Yes" : " ", true, ImGuiSelectableFlags_SpanAllColumns);
 		ImGui::NextColumn();
 		ImGui::Text(result.url.c_str());
 		ImGui::NextColumn();
@@ -149,6 +159,7 @@ void HTTPCameraDetector::DrawResultsUI(bool* pShow)
 		ImGui::NextColumn();
 	}
 	ImGui::Columns(1);
+	ImGui::End();
 }
 
 void HTTPCameraDetector::LoadRules()
