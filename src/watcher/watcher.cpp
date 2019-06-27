@@ -1,3 +1,18 @@
+// This file is part of watcher.
+//
+// watcher is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// watcher is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with watcher. If not, see <https://www.gnu.org/licenses/>.
+
 #include <chrono>
 #include <iostream>
 #include <fstream>
@@ -23,17 +38,17 @@ Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
 {
 	g_pWatcher = this;
 
-	Log::AddLogTarget(std::make_shared< FileLogger >("log.txt"));
+	Log::AddLogTarget(std::make_shared<FileLogger>("log.txt"));
 #ifdef _WIN32
-	Log::AddLogTarget(std::make_shared< VisualStudioLogger >());
+	Log::AddLogTarget(std::make_shared<VisualStudioLogger>());
 #endif
 
 	TextureLoader::Initialise();
 
-	m_pConfiguration = std::make_unique< Configuration >();
+	m_pConfiguration = std::make_unique<Configuration>();
 	m_pRep = std::make_unique< WatcherRep >(pWindow);
 
-	m_pPluginManager = std::make_unique< PluginManager >();
+	m_pPluginManager = std::make_unique<PluginManager>();
 	InitialiseDatabase();
 	InitialiseGeolocation();
 }
@@ -114,7 +129,7 @@ void Watcher::Update()
 		pPlugin->DrawUI(GImGui);
 	}
 
-	if (ImGui::CollapsingHeader("Plugins", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Plugins"))
 	{
 		if (m_pPluginManager->GetPlugins().empty())
 		{
@@ -158,10 +173,12 @@ void Watcher::OnMessageReceived(const json& message)
 	{
 		AddGeoInfo(message);
 	}
-	else
+	else if (messageType == "http_server_scan_result")
 	{
-		m_pPluginManager->BroadcastMessage(message);
+		AddCamera(message);
 	}
+
+	m_pPluginManager->BroadcastMessage(message);
 }
 
 void Watcher::OnWebServerFound(Network::IPAddress address)
@@ -181,81 +198,6 @@ void Watcher::RestartCameraDetection()
 	//Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=0;" );
 	//m_pDatabase->Execute( statement );
 }
-
-//void Watcher::PopulateCameraDetectionQueueCallback( const Database::QueryResult& result, void* pData )
-//{
-//	for ( auto& row : result.Get() )
-//	{
-//		const int numCells = 2;
-//		if ( row.size() != 2 )
-//		{
-//			Log::Error( "Invalid number of rows returned from query in PopulateCameraDetectionQueueCallback(). Expected %d, got %d.", numCells, row.size() );
-//		}
-//		else
-//		{
-//			Network::IPAddress ipAddress( row[ 0 ]->GetString() );
-//			ipAddress.SetPort( row[ 1 ]->GetInt() );
-//
-//			std::lock_guard< std::mutex > lock( g_pWatcher->m_CameraScannerQueueMutex );
-//			g_pWatcher->m_CameraScannerQueue.push_back( ipAddress );
-//		}
-//	}
-//}
-
-// Loads from the database any IP addresses for web servers which have been
-// found but not processed yet and adds them to the camera detection queue.
-// Any servers which are identified at run time are added to the queue via the
-// OnWebServerFound() callback instead.
-void Watcher::PopulateCameraDetectionQueue()
-{
-	//Database::PreparedStatement statement( m_pDatabase.get(), "SELECT IP, Port FROM WebServers WHERE Scanned=0", &Watcher::PopulateCameraDetectionQueueCallback );
-	//m_pDatabase->Execute( statement );
-}
-
-//void Watcher::OnCameraScanned( const CameraScanResult& result )
-//{
-//	if ( result.title.empty() == false || result.isCamera )
-//	{
-//		{
-//			std::lock_guard< std::mutex > lock( m_CameraScanResultsMutex );
-//			m_CameraScanResults.push_front( result );
-//			if ( m_CameraScanResults.size() > 100 )
-//			{
-//				m_CameraScanResults.pop_back();
-//			}
-//		}	
-//	}
-//
-//	Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=1 WHERE IP=?1;" );
-//	statement.Bind( 1, result.address.GetHostAsString() );
-//	m_pDatabase->Execute( statement );
-//
-//	if ( result.isCamera )
-//	{
-//		Database::PreparedStatement updateCameraStatement( m_pDatabase.get(), "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
-//		updateCameraStatement.Bind( 1, result.address.ToString() );
-//		m_pDatabase->Execute( updateCameraStatement );
-//
-//		Database::PreparedStatement addCameraStatement( m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);" );
-//		addCameraStatement.Bind( 1, result.address.GetHostAsString() );
-//		addCameraStatement.Bind( 2, result.address.GetPort() );
-//		addCameraStatement.Bind( 3, 0 ); // Type (unused at the moment).
-//		addCameraStatement.Bind( 4, result.title );
-//		addCameraStatement.Bind( 5, 0 ); // Geolocation pending.
-//		m_pDatabase->Execute( addCameraStatement );
-//
-//		json message = 
-//		{
-//			{ "type", "geolocation_request" },
-//			{ "address", result.address.ToString() },
-//		};
-//		m_pPluginManager->BroadcastMessage( message );
-//	}
-//	else
-//	{
-//		Log::Info( "No camera detected at %s, title: %s", result.address.ToString().c_str(), result.title.c_str() );
-//	}
-//}
 
 void Watcher::LoadGeoInfosCallback(const Database::QueryResult& result, void* pData)
 {
@@ -303,4 +245,34 @@ void Watcher::AddGeoInfo(const json& message)
 	}
 
 	geoInfo.SaveToDatabase(m_pDatabase.get());
+}
+
+void Watcher::AddCamera(const json& message)
+{
+	if (message["type"] != "http_server_scan_result")
+	{
+		Log::Warning("Called AddCamera() with a message type of '%s', rather than the expected 'http_server_scan_result'", message["type"]);
+		return;
+	}
+
+	if (message["is_camera"])
+	{
+		const std::string url = message["url"];
+		const std::string ipAddress = message["ip_address"];
+		const std::string title = message["title"];
+
+		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4);");
+		addCameraStatement.Bind(1, url);
+		addCameraStatement.Bind(2, ipAddress);
+		addCameraStatement.Bind(3, title);
+		addCameraStatement.Bind(4, 0); // Geolocation pending.
+		m_pDatabase->Execute(addCameraStatement);
+
+		json message =
+		{
+			{ "type", "geolocation_request" },
+			{ "ip_address", ipAddress },
+		};
+		m_pPluginManager->BroadcastMessage(message);
+	}
 }

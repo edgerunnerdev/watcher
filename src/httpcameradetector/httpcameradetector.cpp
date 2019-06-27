@@ -86,14 +86,14 @@ bool HTTPCameraDetector::Initialise(PluginMessageCallback pMessageCallback)
 
 void HTTPCameraDetector::OnMessageReceived(const nlohmann::json& message)
 {
-	const std::string& type = message["type"];
-	if (type == "http_server_found")
+	const std::string& messageType = message["type"];
+	if (messageType == "http_server_found")
 	{
 		m_PendingResults++;
-		ThreadPool::Job job = std::bind(HTTPCameraDetector::Scan, this, message["url"]);
+		ThreadPool::Job job = std::bind(HTTPCameraDetector::Scan, this, message["url"], message["ip_address"]);
 		m_ThreadPool.Queue(job);
 	}
-	else if (type == "http_server_scan_result")
+	else if (messageType == "http_server_scan_result")
 	{
 		std::lock_guard<std::mutex> lock(m_ResultsMutex);
 		m_PendingResults--;
@@ -115,9 +115,8 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 
 	if (ImGui::CollapsingHeader("HTTP camera detector", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		std::stringstream queueSizeSS;
-		queueSizeSS << "Queue size: " << m_PendingResults;
-		ImGui::Text(queueSizeSS.str().c_str());
+		ImGui::Text("Rules loaded: %d", m_Rules.size());
+		ImGui::Text("Queue size: %d", static_cast<int>(m_PendingResults));
 
 		if (ImGui::Button("View results"))
 		{
@@ -150,7 +149,6 @@ void HTTPCameraDetector::DrawResultsUI(bool* pShow)
 	ImGui::Separator();
 	for (Result& result : m_Results)
 	{
-		//ImGui::Selectable(label, selected == i, ImGuiSelectableFlags_SpanAllColumns)
 		ImGui::Selectable(result.isCamera ? "Yes" : " ", true, ImGuiSelectableFlags_SpanAllColumns);
 		ImGui::NextColumn();
 		ImGui::Text(result.url.c_str());
@@ -192,7 +190,7 @@ void HTTPCameraDetector::LoadRules()
 	}
 }
 
-void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url)
+void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress)
 {
 	CURL* pCurl = curl_easy_init();
 
@@ -225,6 +223,7 @@ void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& 
 	{
 		{ "type", "http_server_scan_result" },
 		{ "url", url },
+		{ "ip_address", ipAddress },
 		{ "is_camera", EvaluateDetectionRules(pDetector, url, data.title) },
 		{ "title", data.title }
 	};

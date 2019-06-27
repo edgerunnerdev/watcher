@@ -130,6 +130,7 @@ void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 	message =
 	{
 		{ "type", "http_server_found" },
+		{ "ip_address", address.ToString() },
 		{ "url", url }
 	};
 	m_pMessageCallback(message);
@@ -156,12 +157,11 @@ void PortScanner::DrawUI(ImGuiContext* pContext)
 		}
 		else
 		{
+			ImGui::SliderInt("Threads", &m_WantedThreads, 20, 200);    
 			if (ImGui::Button("Begin scan"))
 			{
 				ScanNextBlock();
 			}
-			
-			ImGui::SliderInt("Threads", &m_WantedThreads, 20, 200);    
 		}
 	}
 }
