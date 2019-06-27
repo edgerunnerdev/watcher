@@ -84,10 +84,27 @@ GLuint TextureLoader::LoadTexture( const std::string& filename )
 	GLenum err = glGetError();
 	glBindTexture( GL_TEXTURE_2D, tex );
 	int bpp = pSurface->format->BytesPerPixel;
-	int internalFormat = ( bpp == 4 ) ? GL_RGBA : GL_RGB;
-	int format = ( bpp == 4 ) ? GL_BGRA_EXT : GL_BGR_EXT;
+	if (bpp == 3 || bpp == 4)
+	{
+		int internalFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
+		int format = (bpp == 4) ? GL_BGRA_EXT : GL_BGR_EXT;
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels);
+	}
+	else if (bpp == 1)
+	{
+		GLubyte* pTexture = new GLubyte[pSurface->w * pSurface->h * 3];
+		for (int i = 0; i < pSurface->w * pSurface->h; ++i)
+		{
+			int j = i * 3;
+			GLubyte b = ((GLubyte*)pSurface->pixels)[i];
+			pTexture[j] = b;
+			pTexture[j+1] = b;
+			pTexture[j+2] = b;
+		}
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, pSurface->w, pSurface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, pTexture );
+		delete[] pTexture;
+	}
 
-	glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	

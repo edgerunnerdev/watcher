@@ -37,6 +37,7 @@ public:
 	void AddToAtlas( float latitude, float longitude, int index );
 
 private:
+	void SetUserInterfaceStyle();
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
 	float m_CellSize;

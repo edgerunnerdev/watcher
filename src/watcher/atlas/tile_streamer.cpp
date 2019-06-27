@@ -133,6 +133,7 @@ bool TileStreamer::DownloadFromTileServer( Tile& tile )
 	CURL* pCurlHandle;
 	std::stringstream url;
 	url << "http://a.tile.stamen.com/toner/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
+	//url << "http://0.basemaps.cartocdn.com/dark_all/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
 	std::stringstream filename;
 	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
 	FILE* pTileFile = nullptr;
