@@ -109,7 +109,7 @@ void WatcherRep::SetUserInterfaceStyle()
 
 void WatcherRep::ProcessEvent(const SDL_Event& event)
 {
-	if (event.type == SDL_MOUSEMOTION)
+	if (event.type == SDL_MOUSEMOTION && ImGui::GetIO().WantCaptureMouse == false)
 	{
 		const SDL_MouseMotionEvent* ev = reinterpret_cast<const SDL_MouseMotionEvent*>(&event);
 		if ((ev->state & SDL_BUTTON_LMASK) > 0)
@@ -117,7 +117,7 @@ void WatcherRep::ProcessEvent(const SDL_Event& event)
 			m_pAtlas->OnMouseDrag(ev->xrel, ev->yrel);
 		}
 	}
-	else if (event.type == SDL_MOUSEWHEEL)
+	else if (event.type == SDL_MOUSEWHEEL && ImGui::GetIO().WantCaptureMouse == false)
 	{
 		const SDL_MouseWheelEvent* ev = reinterpret_cast<const SDL_MouseWheelEvent*>(&event);
 		if (ev->y > 0)
@@ -152,6 +152,7 @@ void WatcherRep::Render()
 	flags |= ImGuiWindowFlags_NoSavedSettings;
 	flags |= ImGuiWindowFlags_NoTitleBar;
 	flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+	flags |= ImGuiWindowFlags_NoInputs;
 
 	ImGuiIO& io = ImGui::GetIO();
 	ImTextureID my_tex_id = io.Fonts->TexID;
