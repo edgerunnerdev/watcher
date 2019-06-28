@@ -18,6 +18,7 @@
 
 #include "atlas/atlas.h"
 #include "log.h"
+#include "texture_loader.h"
 #include "watcher_rep.h"
 #include "watcher.h"
 
@@ -31,6 +32,8 @@ WatcherRep::WatcherRep(SDL_Window* pWindow) :
 	m_pAtlas = std::make_unique< Atlas::Atlas >(windowWidth, windowHeight);
 
 	SetUserInterfaceStyle();
+
+	m_PinTexture = TextureLoader::LoadTexture("textures/pin.png");
 }
 
 WatcherRep::~WatcherRep()
@@ -57,7 +60,7 @@ void WatcherRep::SetUserInterfaceStyle()
 	ImVec4* colors = ImGui::GetStyle().Colors;
 	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 0.95f);
 	colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-	colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.12f, 0.12f, 0.90f);
 	colors[ImGuiCol_ChildBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
 	colors[ImGuiCol_PopupBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.94f);
 	colors[ImGuiCol_Border] = ImVec4(0.53f, 0.53f, 0.53f, 0.46f);
@@ -160,15 +163,13 @@ void WatcherRep::Render()
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize(m_pWindow, &windowWidth, &windowHeight);
-	ImVec2 windowSize = ImVec2(static_cast<float>(windowWidth), static_cast<float>(windowHeight));
+	ImVec2 windowSize = ImVec2(static_cast<float>(windowWidth + 8), static_cast<float>(windowHeight + 8));
 
-	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetNextWindowPos(ImVec2(-4, -4));
 	ImGui::SetNextWindowSize(windowSize);
 	ImGui::Begin("Watcher", nullptr, flags);
-
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	m_pAtlas->Render();
-
 	ImGui::End();
 
 	GeoInfoVector geoInfos = g_pWatcher->GetGeoInfos();
@@ -176,7 +177,14 @@ void WatcherRep::Render()
 	{
 		float locationX, locationY;
 		m_pAtlas->GetScreenCoordinates(geoInfo.GetLongitude(), geoInfo.GetLatitude(), locationX, locationY);
-		pDrawList->AddCircle(ImVec2(locationX, locationY), 4.0f, ImColor(255, 0, 0), 4);
+		pDrawList->AddImage(
+			reinterpret_cast<ImTextureID>(m_PinTexture), 
+			ImVec2(locationX - 8, locationY - 26), 
+			ImVec2(locationX + 8, locationY),
+			ImVec2(0, 0),
+			ImVec2(1,1),
+			ImColor(255, 123, 0)
+			);
 	}
 }
 

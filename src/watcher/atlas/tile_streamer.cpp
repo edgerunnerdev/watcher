@@ -125,7 +125,7 @@ bool TileStreamer::LoadFromFile( Tile& tile )
 
 static size_t WriteTileFileCallback( void* pBuffer, size_t size, size_t nmemb, void *pStream )
 {
-  return fwrite( pBuffer, size, nmemb, reinterpret_cast< FILE* >( pStream ) );
+	return fwrite( pBuffer, size, nmemb, reinterpret_cast< FILE* >( pStream ) );
 }
 
 bool TileStreamer::DownloadFromTileServer( Tile& tile )
@@ -133,7 +133,6 @@ bool TileStreamer::DownloadFromTileServer( Tile& tile )
 	CURL* pCurlHandle;
 	std::stringstream url;
 	url << "http://a.tile.stamen.com/toner/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
-	//url << "http://0.basemaps.cartocdn.com/dark_all/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
 	std::stringstream filename;
 	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
 	FILE* pTileFile = nullptr;

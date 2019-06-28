@@ -41,4 +41,5 @@ private:
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
 	float m_CellSize;
+	GLuint m_PinTexture;
 };
