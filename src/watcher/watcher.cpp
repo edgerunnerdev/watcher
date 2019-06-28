@@ -93,7 +93,7 @@ void Watcher::GeolocationRequestCallback(const Database::QueryResult& result, vo
 			json message =
 			{
 				{ "type", "geolocation_request" },
-				{ "address", cell->GetString() },
+				{ "ip_address", cell->GetString() },
 			};
 			pPluginManager->BroadcastMessage(message);
 		}

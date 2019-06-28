@@ -126,7 +126,7 @@ void Geolocation::ConsumeQueue()
 			pGeolocation->m_Data.clear();
 
 			std::stringstream url;
-			url << "https://ipinfo.io/" << address.ToString() << "/json"; 
+			url << "https://ipinfo.io/" << address.GetHostAsString() << "/json"; 
 
 			CURL* pCurlHandle = pGeolocation->m_pCurlHandle;
 			char pErrorBuffer[ CURL_ERROR_SIZE ];
