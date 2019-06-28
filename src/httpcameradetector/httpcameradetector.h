@@ -37,7 +37,7 @@ public:
 	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
 	virtual void OnMessageReceived(const nlohmann::json& message) override;
 	virtual void DrawUI(ImGuiContext* pContext) override;
-	static void Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress);
+	static void Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress, int port);
 
 private:
 	void LoadRules();

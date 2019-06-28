@@ -99,6 +99,7 @@
     <ClInclude Include="atlas\atlas.h" />
     <ClInclude Include="atlas\tile.h" />
     <ClInclude Include="atlas\tile_streamer.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
     <ClInclude Include="database\prepared_statement.h" />

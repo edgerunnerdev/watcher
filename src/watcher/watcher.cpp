@@ -181,24 +181,6 @@ void Watcher::OnMessageReceived(const json& message)
 	m_pPluginManager->BroadcastMessage(message);
 }
 
-void Watcher::OnWebServerFound(Network::IPAddress address)
-{
-	// Store this web server into the database, mark it as not parsed.
-	//Database::PreparedStatement statement( m_pDatabase.get(), "INSERT OR REPLACE INTO WebServers VALUES(?1, ?2, 0);" );
-	//statement.Bind( 1, address.GetHostAsString() );
-	//statement.Bind( 2, address.GetPort() );
-	//m_pDatabase->Execute( statement );
-
-	//std::lock_guard< std::mutex > lock( m_CameraScannerQueueMutex );
-	//m_CameraScannerQueue.push_back( address );
-}
-
-void Watcher::RestartCameraDetection()
-{
-	//Database::PreparedStatement statement( m_pDatabase.get(), "UPDATE WebServers SET Scanned=0;" );
-	//m_pDatabase->Execute( statement );
-}
-
 void Watcher::LoadGeoInfosCallback(const Database::QueryResult& result, void* pData)
 {
 	for (auto& row : result.Get())
@@ -259,13 +241,15 @@ void Watcher::AddCamera(const json& message)
 	{
 		const std::string url = message["url"];
 		const std::string ipAddress = message["ip_address"];
+		int port = message["port"];
 		const std::string title = message["title"];
 
-		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4);");
+		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);");
 		addCameraStatement.Bind(1, url);
 		addCameraStatement.Bind(2, ipAddress);
-		addCameraStatement.Bind(3, title);
-		addCameraStatement.Bind(4, 0); // Geolocation pending.
+		addCameraStatement.Bind(3, port);
+		addCameraStatement.Bind(4, title);
+		addCameraStatement.Bind(5, 0); // Geolocation pending.
 		m_pDatabase->Execute(addCameraStatement);
 
 		json message =

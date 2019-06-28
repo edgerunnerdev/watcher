@@ -12,6 +12,9 @@ namespace Database
 class GeoInfo
 {
 public:
+	using Handle = unsigned int;
+	static const Handle InvalidHandle = 0u;
+
 	GeoInfo( Network::IPAddress address );
 	bool LoadFromDatabase( const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float x, float y );
 	bool LoadFromJSON( const json& message );

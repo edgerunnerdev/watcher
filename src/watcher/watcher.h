@@ -51,7 +51,6 @@ public:
 	bool IsActive() const;
 	Configuration* GetConfiguration() const;
 
-	void OnWebServerFound( Network::IPAddress address );
 	void OnMessageReceived( const json& message );
 
 	GeoInfoVector GetGeoInfos();
@@ -60,7 +59,6 @@ private:
 	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
 	static void LoadGeoInfosCallback( const Database::QueryResult& result, void* pData );
 
-	void RestartCameraDetection();
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
 	void LoadGeoInfos();

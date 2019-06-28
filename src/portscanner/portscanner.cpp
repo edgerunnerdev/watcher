@@ -77,16 +77,7 @@ bool PortScanner::Initialise(PluginMessageCallback pMessageCallback)
 
 void PortScanner::OnMessageReceived(const nlohmann::json& message)
 {
-	//if ( message[ "type" ] == "geolocation_request" )
-	//{
-	//	{
-	//		std::lock_guard< std::mutex > lock( m_AccessMutex );
-	//		std::string address = message[ "address" ];
-	//		m_Queue.emplace_back( address );
-	//	}
 
-	//	ConsumeQueue();
-	//}
 }
 
 void PortScanner::StartPortscan()
@@ -130,7 +121,8 @@ void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 	message =
 	{
 		{ "type", "http_server_found" },
-		{ "ip_address", address.ToString() },
+		{ "ip_address", address.GetHostAsString() },
+		{ "port", address.GetPort() },
 		{ "url", url }
 	};
 	m_pMessageCallback(message);

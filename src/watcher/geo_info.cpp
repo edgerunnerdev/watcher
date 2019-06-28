@@ -55,7 +55,7 @@ void GeoInfo::SaveToDatabase( Database::Database* pDatabase )
 	addGeoInfoStatement.Bind( 7, static_cast< double >( m_Longitude ) );
 	pDatabase->Execute( addGeoInfoStatement );
 
-	Database::PreparedStatement updateCameraStatement( pDatabase, "UPDATE Cameras SET Geo=1 WHERE IP=?1;" );
+	Database::PreparedStatement updateCameraStatement( pDatabase, "UPDATE Cameras SET Geolocated=1 WHERE IP=?1;" );
 	updateCameraStatement.Bind( 1, m_Address.ToString() );
 	pDatabase->Execute( updateCameraStatement );
 }

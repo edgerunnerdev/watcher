@@ -75,6 +75,8 @@ void Log::Error( const char* format, ... )
     vsnprintf( m_VABuffer.data(), m_VABuffer.size(), format, args );
     LogInternal( m_VABuffer.data(), LogLevel::Error );
     va_end( args );
+
+	__debugbreak();
 }
 
 

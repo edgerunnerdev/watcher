@@ -90,7 +90,7 @@ void HTTPCameraDetector::OnMessageReceived(const nlohmann::json& message)
 	if (messageType == "http_server_found")
 	{
 		m_PendingResults++;
-		ThreadPool::Job job = std::bind(HTTPCameraDetector::Scan, this, message["url"], message["ip_address"]);
+		ThreadPool::Job job = std::bind(HTTPCameraDetector::Scan, this, message["url"], message["ip_address"], message["port"]);
 		m_ThreadPool.Queue(job);
 	}
 	else if (messageType == "http_server_scan_result")
@@ -190,7 +190,7 @@ void HTTPCameraDetector::LoadRules()
 	}
 }
 
-void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress)
+void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress, int port)
 {
 	CURL* pCurl = curl_easy_init();
 
@@ -224,6 +224,7 @@ void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& 
 		{ "type", "http_server_scan_result" },
 		{ "url", url },
 		{ "ip_address", ipAddress },
+		{ "port", port },
 		{ "is_camera", EvaluateDetectionRules(pDetector, url, data.title) },
 		{ "title", data.title }
 	};
