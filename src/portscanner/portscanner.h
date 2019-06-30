@@ -49,6 +49,7 @@ public:
 private:
 	static void ThreadMain(PortScanner* pPortScanner);
 	void OnHTTPServerFound(const Network::IPAddress& address);
+	void OnThreadCompleted();
 
 	void StartPortscan();
 	void StopPortscan();

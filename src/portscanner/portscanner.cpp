@@ -66,6 +66,7 @@ void PortScanner::ThreadMain(PortScanner* pPortScanner)
 	}
 
 	pPortScanner->m_ActiveThreads--;
+	pPortScanner->OnThreadCompleted();
 }
 
 bool PortScanner::Initialise(PluginMessageCallback pMessageCallback)
@@ -100,7 +101,7 @@ void PortScanner::ScanNextBlock()
 {
 	if (m_Coverage.GetNextBlock(m_Block))
 	{
-		m_BlockIPsToScan = Go(m_Block, Network::PortVector{ 80/*, 81, 8080*/ });
+		m_BlockIPsToScan = Go(m_Block, Network::PortVector{ 80, 81, 8080 });
 	}
 }
 
@@ -126,6 +127,14 @@ void PortScanner::OnHTTPServerFound(const Network::IPAddress& address)
 		{ "url", url }
 	};
 	m_pMessageCallback(message);
+}
+
+void PortScanner::OnThreadCompleted()
+{
+	if (m_ActiveThreads == 0 && !m_Stop)
+	{
+		ScanNextBlock();
+	}
 }
 
 void PortScanner::DrawUI(ImGuiContext* pContext)
