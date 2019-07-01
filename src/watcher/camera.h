@@ -16,8 +16,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-#include "geo_info.h"
+#include <network/network.h>
+#include "geolocationdata.h"
+
+class Camera;
+using CameraVector = std::vector<Camera>;
 
 class Camera
 {
@@ -29,25 +34,29 @@ public:
 		Active
 	};
 
-	Camera(const std::string& title, State cameraState);
+	Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState);
 
 	const std::string& GetTitle() const;
-	GeoInfo::Handle GetGeoInfoHandle() const;
-	void SetGeoInfoHandle(GeoInfo::Handle handle);
+	const std::string& GetURL() const;
+	const Network::IPAddress& GetAddress() const;
+	GeolocationData* GetGeolocationData() const;
+	void SetGeolocationData(GeolocationDataSharedPtr pGeolocationData);
 	State GetState() const;
 	void SetState(State state);
 
-
 private:
 	std::string m_Title;
-	GeoInfo::Handle m_GeoInfoHandle;
+	std::string m_URL;
+	Network::IPAddress m_Address;
+	GeolocationDataSharedPtr m_pGeolocationData;
 	State m_State;
 };
 
-inline Camera::Camera(const std::string& title, State cameraState)
+inline Camera::Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState)
 {
 	m_Title = title;
-	m_GeoInfoHandle = GeoInfo::InvalidHandle;
+	m_URL = url;
+	m_Address = address;
 	m_State = cameraState;
 }
 
@@ -56,14 +65,24 @@ inline const std::string& Camera::GetTitle() const
 	return m_Title;
 }
 
-inline GeoInfo::Handle Camera::GetGeoInfoHandle() const
+inline const std::string& Camera::GetURL() const
 {
-	return m_GeoInfoHandle;
+	return m_URL;
 }
 
-inline void Camera::SetGeoInfoHandle(GeoInfo::Handle handle)
+inline const Network::IPAddress& Camera::GetAddress() const
 {
-	m_GeoInfoHandle = handle;
+	return m_Address;
+}
+
+inline GeolocationData* Camera::GetGeolocationData() const
+{
+	return m_pGeolocationData.get();
+}
+
+inline void Camera::SetGeolocationData(GeolocationDataSharedPtr pGeolocationData)
+{
+	m_pGeolocationData = pGeolocationData;
 }
 
 inline Camera::State Camera::GetState() const

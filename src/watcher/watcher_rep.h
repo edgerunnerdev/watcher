@@ -15,6 +15,8 @@
 
 #include <GL/gl.h>
 
+#include "camera.h"
+
 struct SDL_Surface;
 struct SDL_Window;
 
@@ -34,10 +36,10 @@ public:
 	void Update();
 	void Render();
 
-	void AddToAtlas( float latitude, float longitude, int index );
-
 private:
 	void SetUserInterfaceStyle();
+	CameraVector GetHoveredCameras();
+
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
 	float m_CellSize;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "network/network.h"
 #include "json.h"
 using json = nlohmann::json;
@@ -9,13 +10,13 @@ namespace Database
 	class Database;
 };
 
-class GeoInfo
+class GeolocationData;
+using GeolocationDataSharedPtr = std::shared_ptr<GeolocationData>;
+
+class GeolocationData
 {
 public:
-	using Handle = unsigned int;
-	static const Handle InvalidHandle = 0u;
-
-	GeoInfo( Network::IPAddress address );
+	GeolocationData( Network::IPAddress address );
 	bool LoadFromDatabase( const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float x, float y );
 	bool LoadFromJSON( const json& message );
 	void SaveToDatabase( Database::Database* pDatabase );
@@ -38,37 +39,37 @@ private:
 	float m_Longitude;
 };
 
-inline const Network::IPAddress& GeoInfo::GetIPAddress() const
+inline const Network::IPAddress& GeolocationData::GetIPAddress() const
 {
 	return m_Address;
 }
 
-inline const std::string& GeoInfo::GetCity() const
+inline const std::string& GeolocationData::GetCity() const
 {
 	return m_City;
 }
 
-inline const std::string& GeoInfo::GetRegion() const
+inline const std::string& GeolocationData::GetRegion() const
 {
 	return m_Region;
 }
 
-inline const std::string& GeoInfo::GetCountry() const
+inline const std::string& GeolocationData::GetCountry() const
 {
 	return m_Country;
 }
 
-inline const std::string& GeoInfo::GetOrganisation() const
+inline const std::string& GeolocationData::GetOrganisation() const
 {
 	return m_Organisation;
 }
 
-inline float GeoInfo::GetLatitude() const
+inline float GeolocationData::GetLatitude() const
 {
 	return m_Latitude;
 }
 
-inline float GeoInfo::GetLongitude() const
+inline float GeolocationData::GetLongitude() const
 {
 	return m_Longitude;
 }

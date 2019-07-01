@@ -172,23 +172,57 @@ void WatcherRep::Render()
 	m_pAtlas->Render();
 	ImGui::End();
 
-	GeoInfoVector geoInfos = g_pWatcher->GetGeoInfos();
-	for (const GeoInfo& geoInfo : geoInfos)
+	CameraVector cameras = g_pWatcher->GetCameras();
+	for (Camera camera : cameras)
 	{
-		float locationX, locationY;
-		m_pAtlas->GetScreenCoordinates(geoInfo.GetLongitude(), geoInfo.GetLatitude(), locationX, locationY);
-		pDrawList->AddImage(
-			reinterpret_cast<ImTextureID>(m_PinTexture), 
-			ImVec2(locationX - 8, locationY - 26), 
-			ImVec2(locationX + 8, locationY),
-			ImVec2(0, 0),
-			ImVec2(1,1),
-			ImColor(255, 123, 0)
+		GeolocationData* pGeolocationData = camera.GetGeolocationData();
+		if (pGeolocationData != nullptr)
+		{
+			float locationX, locationY;
+			m_pAtlas->GetScreenCoordinates(pGeolocationData->GetLongitude(), pGeolocationData->GetLatitude(), locationX, locationY);
+			pDrawList->AddImage(
+				reinterpret_cast<ImTextureID>(m_PinTexture),
+				ImVec2(locationX - 8, locationY - 26),
+				ImVec2(locationX + 8, locationY),
+				ImVec2(0, 0),
+				ImVec2(1, 1),
+				ImColor(255, 123, 0)
 			);
+		}
+	}
+
+	CameraVector hoveredCameras = GetHoveredCameras();
+	for (Camera& camera : hoveredCameras)
+	{
+		ImGui::SetTooltip("%s | %s", camera.GetAddress().ToString().c_str(), camera.GetTitle().c_str());
 	}
 }
 
-void WatcherRep::AddToAtlas(float latitude, float longitude, int index)
+CameraVector WatcherRep::GetHoveredCameras()
 {
+	CameraVector hoveredCameras;
+	CameraVector cameras = g_pWatcher->GetCameras();
 
+	int mx, my;
+	SDL_GetMouseState(&mx, &my);
+	float radius = 8.0f;
+
+	for (Camera camera : cameras)
+	{
+		GeolocationData* pGeolocationData = camera.GetGeolocationData();
+		if (pGeolocationData != nullptr)
+		{
+			float locationX, locationY;
+			m_pAtlas->GetScreenCoordinates(pGeolocationData->GetLongitude(), pGeolocationData->GetLatitude(), locationX, locationY);
+			
+			float dx = locationX - static_cast<float>(mx);
+			float dy = locationY - static_cast<float>(my);
+			if (dx * dx + dy * dy <= radius * radius)
+			{
+				hoveredCameras.push_back(camera);
+			}
+		}
+	}
+
+	return hoveredCameras;
 }

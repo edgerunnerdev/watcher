@@ -21,7 +21,7 @@
 #include "ext/json.h"
 #include "imgui/imgui.h"
 #include "configuration.h"
-#include "geo_info.h"
+#include "geolocationdata.h"
 #include "log.h"
 #include "watcher.h"
 #include "watcher_rep.h"
@@ -50,7 +50,11 @@ Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
 
 	m_pPluginManager = std::make_unique<PluginManager>();
 	InitialiseDatabase();
+
+	// All the geolocation data needs to be loaded before the cameras are, as every 
+	// camera will try to associate its IP address with a geolocation entry.
 	InitialiseGeolocation();
+	InitialiseCameras();
 }
 
 Watcher::~Watcher()
@@ -102,9 +106,16 @@ void Watcher::GeolocationRequestCallback(const Database::QueryResult& result, vo
 
 void Watcher::InitialiseGeolocation()
 {
-	LoadGeoInfos();
+	Database::PreparedStatement statement(m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeolocationDataCallback);
+	m_pDatabase->Execute(statement);
 
 	Database::PreparedStatement query(m_pDatabase.get(), "SELECT IP FROM Cameras WHERE Geolocated=0", &Watcher::GeolocationRequestCallback, m_pPluginManager.get());
+	m_pDatabase->Execute(query);
+}
+
+void Watcher::InitialiseCameras()
+{
+	Database::PreparedStatement query(m_pDatabase.get(), "SELECT * FROM Cameras", &Watcher::LoadCamerasCallback);
 	m_pDatabase->Execute(query);
 }
 
@@ -171,7 +182,7 @@ void Watcher::OnMessageReceived(const json& message)
 	}
 	else if (messageType == "geolocation_result")
 	{
-		AddGeoInfo(message);
+		AddGeolocationData(message);
 	}
 	else if (messageType == "http_server_scan_result")
 	{
@@ -181,18 +192,18 @@ void Watcher::OnMessageReceived(const json& message)
 	m_pPluginManager->BroadcastMessage(message);
 }
 
-void Watcher::LoadGeoInfosCallback(const Database::QueryResult& result, void* pData)
+void Watcher::LoadGeolocationDataCallback(const Database::QueryResult& result, void* pData)
 {
 	for (auto& row : result.Get())
 	{
 		const int numCells = 7;
 		if (numCells != row.size())
 		{
-			Log::Error("Invalid number of rows returned from query in LoadGeoInfosCallback(). Expected %d, got %d.", numCells, row.size());
+			Log::Error("Invalid number of rows returned from query in LoadGeolocationDataCallback(). Expected %d, got %d.", numCells, row.size());
 			continue;
 		}
 
-		std::lock_guard< std::mutex > lock(g_pWatcher->m_GeoInfoMutex);
+		std::scoped_lock lock(g_pWatcher->m_GeolocationDataMutex);
 		Network::IPAddress address(row[0]->GetString());
 		std::string city = row[1]->GetString();
 		std::string region = row[2]->GetString();
@@ -200,33 +211,60 @@ void Watcher::LoadGeoInfosCallback(const Database::QueryResult& result, void* pD
 		std::string organisation = row[4]->GetString();
 		float latitude = static_cast<float>(row[5]->GetDouble());
 		float longitude = static_cast<float>(row[6]->GetDouble());
-		GeoInfo geoInfo(address);
-		geoInfo.LoadFromDatabase(city, region, country, organisation, latitude, longitude);
-		g_pWatcher->m_GeoInfos.push_back(geoInfo);
+		GeolocationDataSharedPtr pGeolocationData = std::make_shared<GeolocationData>(address);
+		pGeolocationData->LoadFromDatabase(city, region, country, organisation, latitude, longitude);
+		g_pWatcher->m_GeolocationData[address.GetHostAsString()] = pGeolocationData; // No need to lock map here as only the main thread is working on it at this point.
 	}
 }
 
-// Loads all geolocation information which had previously been stored in the database.
-void Watcher::LoadGeoInfos()
+void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pData)
 {
-	Database::PreparedStatement statement(m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeoInfosCallback);
-	m_pDatabase->Execute(statement);
+	for (auto& row : result.Get())
+	{
+		const int numCells = 5;
+		if (numCells != row.size())
+		{
+			Log::Error("Invalid number of rows returned from query in LoadCamerasCallback(). Expected %d, got %d.", numCells, row.size());
+			continue;
+		}
+
+		std::scoped_lock lock(g_pWatcher->m_CamerasMutex, g_pWatcher->m_GeolocationDataMutex);
+		std::string ip(row[1]->GetString());
+		Network::IPAddress address(ip);
+		address.SetPort(row[2]->GetInt());
+
+		Camera camera(row[3]->GetString(), row[0]->GetString(), address, Camera::State::Unknown);
+		if (g_pWatcher->m_GeolocationData.find(ip) != g_pWatcher->m_GeolocationData.cend())
+		{
+			camera.SetGeolocationData(g_pWatcher->m_GeolocationData[ip]);
+		}
+
+		g_pWatcher->m_Cameras.push_back(camera);
+	}
 }
 
-void Watcher::AddGeoInfo(const json& message)
+void Watcher::AddGeolocationData(const json& message)
 {
 	std::string addressStr = message["address"];
 	const Network::IPAddress address(addressStr);
-	GeoInfo geoInfo(address);
-	geoInfo.LoadFromJSON(message);
-	Log::Info("Added geo info for %s: %s, %s", addressStr.c_str(), geoInfo.GetCity().c_str(), geoInfo.GetCountry().c_str());
+	GeolocationDataSharedPtr pGeolocationData = std::make_shared<GeolocationData>(address);
+	pGeolocationData->LoadFromJSON(message);
+	Log::Info("Added geo info for %s: %s, %s", addressStr.c_str(), pGeolocationData->GetCity().c_str(), pGeolocationData->GetCountry().c_str());
 
 	{
-		std::lock_guard< std::mutex > lock(m_GeoInfoMutex);
-		m_GeoInfos.push_back(geoInfo);
+		std::scoped_lock lock(m_GeolocationDataMutex, m_CamerasMutex);
+		m_GeolocationData[addressStr] = pGeolocationData;
+
+		for (Camera& camera : m_Cameras)
+		{
+			if (camera.GetAddress().GetHost() == pGeolocationData->GetIPAddress().GetHost())
+			{
+				camera.SetGeolocationData(pGeolocationData);
+			}
+		}
 	}
 
-	geoInfo.SaveToDatabase(m_pDatabase.get());
+	pGeolocationData->SaveToDatabase(m_pDatabase.get());
 }
 
 void Watcher::AddCamera(const json& message)
@@ -258,5 +296,12 @@ void Watcher::AddCamera(const json& message)
 			{ "ip_address", ipAddress },
 		};
 		m_pPluginManager->BroadcastMessage(message);
+
+		{
+			std::scoped_lock lock(m_CamerasMutex);
+			Network::IPAddress fullAddress(ipAddress);
+			fullAddress.SetPort(port);
+			m_Cameras.emplace_back(title, url, fullAddress, Camera::State::Unknown);
+		}
 	}
 }

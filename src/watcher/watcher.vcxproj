@@ -86,7 +86,7 @@
     <ClCompile Include="database\prepared_statement.cpp" />
     <ClCompile Include="database\query_result.cpp" />
     <ClCompile Include="filesystem.cpp" />
-    <ClCompile Include="geo_info.cpp" />
+    <ClCompile Include="geolocationdata.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="plugin_manager.cpp" />
@@ -105,7 +105,7 @@
     <ClInclude Include="database\prepared_statement.h" />
     <ClInclude Include="database\query_result.h" />
     <ClInclude Include="filesystem.h" />
-    <ClInclude Include="geo_info.h" />
+    <ClInclude Include="geolocationdata.h" />
     <ClInclude Include="ext\json.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="plugin.h" />

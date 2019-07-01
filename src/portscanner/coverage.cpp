@@ -21,6 +21,8 @@
 #include <imgui/imgui.h>
 #include "coverage.h"
 
+#define COVERAGE_DEBUG (0) // Force a particular block, for debugging purposes.
+
 static const std::string sCoverageFilePath( "plugins/portscanner/coverage" );
 
 Coverage::Coverage() :
@@ -169,7 +171,7 @@ bool Coverage::GetNextBlock( Network::IPAddress& ipAddress )
 		return false;
 	}
 
-#ifdef COVERAGE_DEBUG // Force a particular block, for debugging purposes.
+#if COVERAGE_DEBUG
 	ipAddress.SetHost({ 81, 231, 0, 0 });
 #else
 	const int r = m_Distribution(m_MersenneTwister);

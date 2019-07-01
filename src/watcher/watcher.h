@@ -17,13 +17,15 @@
 
 #include <mutex>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include <SDL.h>
 
 #include "database/database.h"
 #include "network/network.h"
-#include "geo_info.h"
+#include "camera.h"
+#include "geolocationdata.h"
 
 #include "json.h"
 using json = nlohmann::json;
@@ -33,10 +35,8 @@ class PluginManager;
 class WatcherRep;
 struct SDL_Window;
 
-using ThreadVector = std::vector< std::thread >;
-using IPVector = std::vector< Network::IPAddress >;
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
-using GeoInfoVector = std::vector< GeoInfo >;
+using GeolocationDataMap = std::unordered_map<std::string, GeolocationDataSharedPtr>;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
 using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
 
@@ -44,24 +44,25 @@ using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
 class Watcher
 {
 public:
-	Watcher( SDL_Window* pWindow, unsigned int scannerCount );
+	Watcher(SDL_Window* pWindow, unsigned int scannerCount);
 	~Watcher();
-	void ProcessEvent( const SDL_Event& event );
+	void ProcessEvent(const SDL_Event& event);
 	void Update();
 	bool IsActive() const;
 	Configuration* GetConfiguration() const;
 
-	void OnMessageReceived( const json& message );
+	void OnMessageReceived(const json& message);
 
-	GeoInfoVector GetGeoInfos();
+	CameraVector GetCameras() const;
 
 private:
-	static void GeolocationRequestCallback( const Database::QueryResult& result, void* pData );
-	static void LoadGeoInfosCallback( const Database::QueryResult& result, void* pData );
+	static void GeolocationRequestCallback(const Database::QueryResult& result, void* pData);
+	static void LoadGeolocationDataCallback(const Database::QueryResult& result, void* pData);
+	static void LoadCamerasCallback(const Database::QueryResult& result, void* pData);
 
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
-	void LoadGeoInfos();
+	void InitialiseCameras();
 	void AddGeoInfo(const json& message);
 	void AddCamera(const json& message);
 
@@ -69,7 +70,10 @@ private:
 	Database::DatabaseUniquePtr m_pDatabase;
 
 	std::mutex m_GeoInfoMutex;
-	GeoInfoVector m_GeoInfos;
+	GeolocationDataMap m_GeolocationData;
+
+	mutable std::mutex m_CamerasMutex;
+	CameraVector m_Cameras;
 
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
@@ -89,9 +93,8 @@ inline Configuration* Watcher::GetConfiguration() const
 	return m_pConfiguration.get();
 }
 
-inline GeoInfoVector Watcher::GetGeoInfos()
+inline CameraVector Watcher::GetCameras() const
 {
-	std::lock_guard< std::mutex > lock( m_GeoInfoMutex );
-	GeoInfoVector v = m_GeoInfos;
-	return v;
+	std::scoped_lock lock(m_CamerasMutex);
+	return m_Cameras;
 }

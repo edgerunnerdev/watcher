@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="configuration.cpp" />
-    <ClCompile Include="geo_info.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcher_rep.cpp" />
@@ -31,6 +30,7 @@
     <ClCompile Include="database\query_result.cpp">
       <Filter>database</Filter>
     </ClCompile>
+    <ClCompile Include="geolocationdata.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -48,7 +48,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="configuration.h" />
-    <ClInclude Include="geo_info.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcher_rep.h" />
@@ -82,5 +81,6 @@
     <ClInclude Include="texture_loader.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="geolocationdata.h" />
   </ItemGroup>
 </Project>
