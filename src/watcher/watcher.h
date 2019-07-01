@@ -63,13 +63,13 @@ private:
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
 	void InitialiseCameras();
-	void AddGeoInfo(const json& message);
+	void AddGeolocationData(const json& message);
 	void AddCamera(const json& message);
 
 	bool m_Active;
 	Database::DatabaseUniquePtr m_pDatabase;
 
-	std::mutex m_GeoInfoMutex;
+	std::mutex m_GeolocationDataMutex;
 	GeolocationDataMap m_GeolocationData;
 
 	mutable std::mutex m_CamerasMutex;

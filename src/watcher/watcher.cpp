@@ -249,7 +249,7 @@ void Watcher::AddGeolocationData(const json& message)
 	const Network::IPAddress address(addressStr);
 	GeolocationDataSharedPtr pGeolocationData = std::make_shared<GeolocationData>(address);
 	pGeolocationData->LoadFromJSON(message);
-	Log::Info("Added geo info for %s: %s, %s", addressStr.c_str(), pGeolocationData->GetCity().c_str(), pGeolocationData->GetCountry().c_str());
+	Log::Info("Added geolocation data for %s: %s, %s", addressStr.c_str(), pGeolocationData->GetCity().c_str(), pGeolocationData->GetCountry().c_str());
 
 	{
 		std::scoped_lock lock(m_GeolocationDataMutex, m_CamerasMutex);
