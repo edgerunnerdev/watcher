@@ -22,6 +22,10 @@
 #include "watcher_rep.h"
 #include "watcher.h"
 
+static unsigned int sPinWidth = 16;
+static unsigned int sPinHeight = 26;
+static unsigned int sPinHalfWidth = sPinWidth / 2;
+
 WatcherRep::WatcherRep(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
 	m_CellSize(128.0f)
@@ -182,8 +186,8 @@ void WatcherRep::Render()
 			m_pAtlas->GetScreenCoordinates(pGeolocationData->GetLongitude(), pGeolocationData->GetLatitude(), locationX, locationY);
 			pDrawList->AddImage(
 				reinterpret_cast<ImTextureID>(m_PinTexture),
-				ImVec2(locationX - 8, locationY - 26),
-				ImVec2(locationX + 8, locationY),
+				ImVec2(locationX - sPinHalfWidth, locationY - sPinHeight),
+				ImVec2(locationX + sPinHalfWidth, locationY),
 				ImVec2(0, 0),
 				ImVec2(1, 1),
 				ImColor(255, 123, 0)
@@ -205,7 +209,6 @@ CameraVector WatcherRep::GetHoveredCameras()
 
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);
-	float radius = 8.0f;
 
 	for (Camera camera : cameras)
 	{
@@ -214,10 +217,9 @@ CameraVector WatcherRep::GetHoveredCameras()
 		{
 			float locationX, locationY;
 			m_pAtlas->GetScreenCoordinates(pGeolocationData->GetLongitude(), pGeolocationData->GetLatitude(), locationX, locationY);
-			
-			float dx = locationX - static_cast<float>(mx);
-			float dy = locationY - static_cast<float>(my);
-			if (dx * dx + dy * dy <= radius * radius)
+
+			if (mx > locationX - sPinHalfWidth && mx < locationX + sPinHalfWidth && 
+				my > locationY - sPinHeight && my < locationY)
 			{
 				hoveredCameras.push_back(camera);
 			}
