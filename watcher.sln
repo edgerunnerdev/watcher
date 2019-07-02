@@ -9,6 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "watcher", "src\watcher\watc
 		{C94FBC6B-D606-4B89-B628-3A0C9BA7FC5C} = {C94FBC6B-D606-4B89-B628-3A0C9BA7FC5C}
 		{EAACEE98-823E-4458-BCC8-4C1BCC3EC053} = {EAACEE98-823E-4458-BCC8-4C1BCC3EC053}
 		{204188AF-4BA6-4F28-863B-F371B812E67F} = {204188AF-4BA6-4F28-863B-F371B812E67F}
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293} = {A57659C9-B734-4CEE-85F1-16D4D7D84293}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "geolocation", "src\geolocation\geolocation.vcxproj", "{EAACEE98-823E-4458-BCC8-4C1BCC3EC053}"
@@ -24,6 +25,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portscanner", "src\portscan
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "httpcameradetector", "src\httpcameradetector\httpcameradetector.vcxproj", "{204188AF-4BA6-4F28-863B-F371B812E67F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B146900D-470F-4035-B8B9-7A7D1D709F9E} = {B146900D-470F-4035-B8B9-7A7D1D709F9E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "googlesearch", "src\googlesearch\googlesearch.vcxproj", "{A57659C9-B734-4CEE-85F1-16D4D7D84293}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B146900D-470F-4035-B8B9-7A7D1D709F9E} = {B146900D-470F-4035-B8B9-7A7D1D709F9E}
 	EndProjectSection
@@ -70,6 +76,14 @@ Global
 		{204188AF-4BA6-4F28-863B-F371B812E67F}.Release|x64.Build.0 = Release|x64
 		{204188AF-4BA6-4F28-863B-F371B812E67F}.Release|x86.ActiveCfg = Release|Win32
 		{204188AF-4BA6-4F28-863B-F371B812E67F}.Release|x86.Build.0 = Release|Win32
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Debug|x64.ActiveCfg = Debug|x64
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Debug|x64.Build.0 = Debug|x64
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Debug|x86.ActiveCfg = Debug|Win32
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Debug|x86.Build.0 = Debug|Win32
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Release|x64.ActiveCfg = Release|x64
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Release|x64.Build.0 = Release|x64
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Release|x86.ActiveCfg = Release|Win32
+		{A57659C9-B734-4CEE-85F1-16D4D7D84293}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
