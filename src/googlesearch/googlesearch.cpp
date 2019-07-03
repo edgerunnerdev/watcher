@@ -42,11 +42,13 @@ static size_t WriteMemoryCallback(void* pContents, size_t size, size_t nmemb, vo
 	return realSize;
 }
 
-GoogleSearch::GoogleSearch()
+GoogleSearch::GoogleSearch():
+m_QueryThreadActive(false),
+m_QueryThreadStopFlag(false),
+m_pCurrentQueryData(nullptr)
 {
-	//LoadRules();
-
 	m_pCurlHandle = curl_easy_init();
+	LoadQueries();
 }
 
 GoogleSearch::~GoogleSearch()
@@ -62,9 +64,14 @@ GoogleSearch::~GoogleSearch()
 bool GoogleSearch::Initialise(PluginMessageCallback pMessageCallback)
 {
 	m_pMessageCallback = pMessageCallback;
-
-	m_QueryThread = std::thread(GoogleSearch::ThreadMain, this);
 	return true;
+}
+
+void GoogleSearch::LoadQueries()
+{
+	QueryData data;
+	data.query = Query("inurl:/video.mjpg/");
+	m_QueryDatum.push_back(data);
 }
 
 void GoogleSearch::OnMessageReceived(const nlohmann::json& message)
@@ -78,8 +85,7 @@ void GoogleSearch::DrawUI(ImGuiContext* pContext)
 
 	if (ImGui::CollapsingHeader("Google search", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		//ImGui::Text("Rules loaded: %d", m_Rules.size());
-		//ImGui::Text("Queue size: %d", static_cast<int>(m_PendingResults));
+		ImGui::Text("Queries loaded: %d", m_QueryDatum.size());
 
 		//if (ImGui::Button("View results"))
 		//{
@@ -90,42 +96,104 @@ void GoogleSearch::DrawUI(ImGuiContext* pContext)
 		//{
 		//	DrawResultsUI(&m_ShowResultsUI);
 		//}
+
+		if (IsRunning() == false)
+		{
+			if (ImGui::Button("Begin queries"))
+			{
+				Start();
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Stop queries"))
+			{
+				Stop();
+			}
+		}
 	}
 }
 
 void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 {
-	std::string rule("inurl%3A%22video.mjpg%22");
-
-	std::stringstream url;
-	url << "https://www.googleapis.com/customsearch/v1?q=" << rule << "&cx=" << sSearchEngineId << "&key=" << sApiKey;
-
-	CURL* pCurlHandle = pGoogleSearch->m_pCurlHandle;
-	char pErrorBuffer[CURL_ERROR_SIZE];
-	curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
-	curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
-	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, &pGoogleSearch->m_Data);
-	curl_easy_setopt(pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(pCurlHandle, CURLOPT_TIMEOUT, 10L);
-
-	if (curl_easy_perform(pCurlHandle) != CURLE_OK)
+	for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
 	{
-		json message =
+		do
 		{
-			{ "type", "log" },
-			{ "level", "error" },
-			{ "plugin", "googlesearch" },
-			{ "message", pErrorBuffer }
-		};
-		pGoogleSearch->m_pMessageCallback(message);
+			std::stringstream url;
+			url << "https://www.googleapis.com/customsearch/v1?q=" << queryData.query.GetEncoded() << "&cx=" << sSearchEngineId << "&key=" << sApiKey;
+
+			if (queryData.state.IsValid())
+			{
+				url << "&start=" << queryData.state.GetCurrentStart();
+			}
+
+			CURL* pCurlHandle = pGoogleSearch->m_pCurlHandle;
+			char pErrorBuffer[CURL_ERROR_SIZE];
+			curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
+			curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
+			curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+			curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, &pGoogleSearch->m_CurlData);
+			curl_easy_setopt(pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+			curl_easy_setopt(pCurlHandle, CURLOPT_TIMEOUT, 10L);
+
+			if (curl_easy_perform(pCurlHandle) != CURLE_OK)
+			{
+				json message =
+				{
+					{ "type", "log" },
+					{ "level", "error" },
+					{ "plugin", "googlesearch" },
+					{ "message", pErrorBuffer }
+				};
+				pGoogleSearch->m_pMessageCallback(message);
+			}
+			else
+			{
+				json data = json::parse(pGoogleSearch->m_CurlData);
+
+				if (queryData.state.IsValid() == false)
+				{
+
+					int start = data["queries"]["nextpage"]["startIndex"];
+					std::string totalResults = data["queries"]["request"]["totalresults"];
+					queryData.state = QueryState(start, atoi(totalResults.c_str()));
+				}
+				else
+				{
+					queryData.state.SetCurrentStart(queryData.state.GetCurrentStart() + 10);
+				}
+
+				int a = 0;
+				//pGeolocation->m_pMessageCallback(message);
+			}
+		} while (!queryData.state.IsCompleted());
 	}
-	else
+
+	pGoogleSearch->m_QueryThreadActive = false;
+}
+
+void GoogleSearch::Start()
+{
+	if (IsRunning() == false)
 	{
-		json data = json::parse(pGoogleSearch->m_Data);
-		int a = 0;
-		//pGeolocation->m_pMessageCallback(message);
+		m_QueryThreadActive = true;
+		m_QueryThreadStopFlag = false;
+		m_QueryThread = std::thread(GoogleSearch::ThreadMain, this);
 	}
+}
+
+void GoogleSearch::Stop()
+{
+	if (IsRunning())
+	{
+		m_QueryThreadStopFlag = true;
+	}
+}
+
+bool GoogleSearch::IsRunning() const
+{
+	return m_QueryThreadActive;
 }
 
 //void HTTPCameraDetector::LoadRules()

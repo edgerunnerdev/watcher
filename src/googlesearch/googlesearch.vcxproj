@@ -154,9 +154,11 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="googlesearch.cpp" />
+    <ClCompile Include="query.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="googlesearch.h" />
+    <ClInclude Include="query.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

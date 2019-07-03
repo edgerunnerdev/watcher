@@ -22,6 +22,7 @@
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
+#include "query.h"
 
 using CURL = void;
 
@@ -35,12 +36,20 @@ public:
 	virtual void OnMessageReceived(const nlohmann::json& message) override;
 	virtual void DrawUI(ImGuiContext* pContext) override;
 
+	void Start();
+	void Stop();
+
 private:
 	static void ThreadMain(GoogleSearch* pGoogleSearch);
+	bool IsRunning() const;
+	void LoadQueries();
 	PluginMessageCallback m_pMessageCallback;
 
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
+	std::atomic_bool m_QueryThreadStopFlag;
 	CURL* m_pCurlHandle;
-	std::string m_Data;
+	std::string m_CurlData;
+	QueryDatum m_QueryDatum;
+	QueryData* m_pCurrentQueryData;
 };
