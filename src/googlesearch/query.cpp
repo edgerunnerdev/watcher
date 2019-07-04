@@ -72,17 +72,8 @@ const std::string& Query::GetEncoded() const
 QueryState::QueryState()
 {
 	m_LastExecution = std::time(0);
-	m_ResultCount = 0;
-	m_CurrentStart = 0;
-	m_Valid = false;
-}
-
-QueryState::QueryState(int start, int results)
-{
-	m_LastExecution = std::time(0);
-	m_ResultCount = results;
-	m_CurrentStart = start;
-	m_Valid = true;
+	m_ResultCount = -1;
+	m_CurrentStart = -1;
 }
 
 std::time_t QueryState::GetLastExecution() const
@@ -100,6 +91,20 @@ int QueryState::GetResultCount() const
 	return m_ResultCount;
 }
 
+void QueryState::SetResultCount(int value)
+{
+	// A limitation of Google's Custom Search Engine is that it will only allow the first
+	// 100 results to be queried. Going above this will generate an error.
+	if (value > 100)
+	{
+		m_ResultCount = 100;
+	}
+	else
+	{
+		m_ResultCount = value;
+	}
+}
+
 int QueryState::GetCurrentStart() const
 {
 	return m_CurrentStart;
@@ -112,12 +117,12 @@ void QueryState::SetCurrentStart(int value)
 
 bool QueryState::IsCompleted() const
 {
-	return IsValid() && GetCurrentStart() > GetResultCount();
+	return IsValid() && GetCurrentStart() >= GetResultCount();
 }
 
 bool QueryState::IsValid() const
 {
-	return m_Valid;
+	return GetResultCount() >= 0 && GetCurrentStart() >= 0;
 }
 
 
@@ -129,4 +134,14 @@ QueryResult::QueryResult(const std::string& url, const std::string& title)
 {
 	m_Url = url;
 	m_Title = title;
+}
+
+const std::string& QueryResult::GetUrl() const
+{
+	return m_Url;
+}
+
+const std::string& QueryResult::GetTitle() const
+{
+	return m_Title;
 }

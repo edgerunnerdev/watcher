@@ -41,15 +41,21 @@ public:
 
 private:
 	static void ThreadMain(GoogleSearch* pGoogleSearch);
+	static std::string FilterCurlData(const std::string& data);
+	static bool ExtractStartIndex(const json& data, int& result);
+	static bool ExtractTotalResults(const json& data, int& result);
+	static bool ExtractResults(const json& data, QueryResults& results);
 	bool IsRunning() const;
 	void LoadQueries();
-	PluginMessageCallback m_pMessageCallback;
+	void DrawResultsUI(bool* pShow);
 
+	PluginMessageCallback m_pMessageCallback;
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
 	std::atomic_bool m_QueryThreadStopFlag;
+	bool m_ShowResultsUI;
 	CURL* m_pCurlHandle;
 	std::string m_CurlData;
 	QueryDatum m_QueryDatum;
-	QueryData* m_pCurrentQueryData;
+	std::mutex m_QueryDatumMutex;
 };

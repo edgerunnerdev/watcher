@@ -53,11 +53,11 @@ class QueryState
 {
 public:
 	QueryState();
-	QueryState(int start, int results);
 
 	std::time_t GetLastExecution() const;
 	void SetLastExecution(std::time_t value);
 	int GetResultCount() const;
+	void SetResultCount(int value);
 	int GetCurrentStart() const;
 	void SetCurrentStart(int value);
 	bool IsCompleted() const;
@@ -67,7 +67,6 @@ private:
 	std::time_t m_LastExecution;
 	int m_ResultCount;
 	int m_CurrentStart;
-	bool m_Valid;
 };
 
 

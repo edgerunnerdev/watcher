@@ -45,7 +45,7 @@ static size_t WriteMemoryCallback(void* pContents, size_t size, size_t nmemb, vo
 GoogleSearch::GoogleSearch():
 m_QueryThreadActive(false),
 m_QueryThreadStopFlag(false),
-m_pCurrentQueryData(nullptr)
+m_ShowResultsUI(false)
 {
 	m_pCurlHandle = curl_easy_init();
 	LoadQueries();
@@ -87,15 +87,15 @@ void GoogleSearch::DrawUI(ImGuiContext* pContext)
 	{
 		ImGui::Text("Queries loaded: %d", m_QueryDatum.size());
 
-		//if (ImGui::Button("View results"))
-		//{
-		//	m_ShowResultsUI = !m_ShowResultsUI;
-		//}
+		if (ImGui::Button("View results"))
+		{
+			m_ShowResultsUI = !m_ShowResultsUI;
+		}
 
-		//if (m_ShowResultsUI)
-		//{
-		//	DrawResultsUI(&m_ShowResultsUI);
-		//}
+		if (m_ShowResultsUI)
+		{
+			DrawResultsUI(&m_ShowResultsUI);
+		}
 
 		if (IsRunning() == false)
 		{
@@ -150,27 +150,115 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 			}
 			else
 			{
-				json data = json::parse(pGoogleSearch->m_CurlData);
+				std::string curlData = pGoogleSearch->m_CurlData;
+				std::string filteredCurlData = FilterCurlData(curlData);
+				json data = json::parse(filteredCurlData, nullptr, false);
 
-				if (queryData.state.IsValid() == false)
+				int startIndex;
+				if (ExtractStartIndex(data, startIndex))
 				{
-
-					int start = data["queries"]["nextpage"]["startIndex"];
-					std::string totalResults = data["queries"]["request"]["totalresults"];
-					queryData.state = QueryState(start, atoi(totalResults.c_str()));
-				}
-				else
-				{
-					queryData.state.SetCurrentStart(queryData.state.GetCurrentStart() + 10);
+					queryData.state.SetCurrentStart(startIndex);
 				}
 
-				int a = 0;
-				//pGeolocation->m_pMessageCallback(message);
+				int totalResults;
+				if (ExtractTotalResults(data, totalResults))
+				{
+					queryData.state.SetResultCount(totalResults);
+				}
+
+				{
+					std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
+					ExtractResults(data, queryData.results);
+				}
 			}
-		} while (!queryData.state.IsCompleted());
+
+			// The buffer containing the data from the request needs to be cleared after being used,
+			// so further requests have a clean slate.
+			pGoogleSearch->m_CurlData.clear();
+
+		} while (queryData.state.IsValid() && !queryData.state.IsCompleted());
 	}
 
 	pGoogleSearch->m_QueryThreadActive = false;
+}
+
+std::string GoogleSearch::FilterCurlData(const std::string& data)
+{
+	size_t dataSize = data.size();
+	size_t filteredDataSize = 0u;
+	std::string filteredData;
+	filteredData.resize(dataSize);
+	for (size_t i = 0u; i < dataSize; i++)
+	{
+		if (data[i] >= 32 && data[i] <= 126)
+		{
+			filteredData[filteredDataSize++] = data[i];
+		}
+	}
+	filteredData[filteredDataSize] = '\0';
+	return filteredData;
+}
+
+bool GoogleSearch::ExtractStartIndex(const json& data, int& result)
+{
+	const json& queries = data["queries"];
+	if (queries.is_null()) return false;
+	const json& nextPage = queries["nextPage"];
+	if (!nextPage.is_array()) return false;
+	for (auto& entry : nextPage)
+	{
+		const json& startIndex = entry["startIndex"];
+		if (startIndex.is_number_integer())
+		{
+			result = startIndex.get<int>();
+			return true;
+		}
+	}
+	return false;
+}
+
+bool GoogleSearch::ExtractTotalResults(const json& data, int& result)
+{
+	const json& queries = data["queries"];
+	if (queries.is_null()) return false;
+	const json& request = queries["request"];
+	if (!request.is_array()) return false;
+	for (auto& entry : request)
+	{
+		// Oddly enough, the "totalResults" entry returned by the API isn't an integer, but a string.
+		const json& totalResults = entry["totalResults"];
+		if (totalResults.is_string())
+		{
+			result = atoi(totalResults.get<std::string>().c_str());
+			return true;
+		}
+	}
+	return false;
+}
+
+bool GoogleSearch::ExtractResults(const json& data, QueryResults& results)
+{
+	const json& items = data["items"];
+	if (!items.is_array()) return false;
+
+	for (auto& item : items)
+	{
+		std::string url;
+		json::const_iterator it;
+		if ((it = item.find("link")) != item.end())
+		{
+			url = it->get<std::string>();
+		}
+
+		std::string title;
+		if ((it = item.find("title")) != item.end())
+		{
+			title = it->get<std::string>();
+		}
+
+		results.emplace_back(url, title);
+	}
+	return true;
 }
 
 void GoogleSearch::Start()
@@ -194,6 +282,41 @@ void GoogleSearch::Stop()
 bool GoogleSearch::IsRunning() const
 {
 	return m_QueryThreadActive;
+}
+
+void GoogleSearch::DrawResultsUI(bool* pShow)
+{
+	ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Google Search - results", pShow))
+	{
+		ImGui::End();
+		return;
+	}
+
+	std::lock_guard<std::mutex> lock(m_QueryDatumMutex);
+
+	for (auto& data : m_QueryDatum)
+	{
+		if (ImGui::TreeNode(data.query.Get().c_str()))
+		{
+			ImGui::Columns(2);
+			ImGui::Separator();
+			ImGui::Text("URL"); ImGui::NextColumn();
+			ImGui::Text("Title"); ImGui::NextColumn();
+			ImGui::Separator();
+
+			for (QueryResult result : data.results)
+			{
+				ImGui::Text("%s", result.GetUrl().c_str()); ImGui::NextColumn();
+				ImGui::Text("%s", result.GetTitle().c_str()); ImGui::NextColumn();
+			}
+
+			ImGui::Columns(1);
+			ImGui::TreePop();
+		}
+	}
+
+	ImGui::End();
 }
 
 //void HTTPCameraDetector::LoadRules()
@@ -224,47 +347,6 @@ bool GoogleSearch::IsRunning() const
 //			m_Rules.push_back(cameraDetectionRule);
 //		}
 //	}
-//}
-
-//void HTTPCameraDetector::Scan(HTTPCameraDetector* pDetector, const std::string& url, const std::string& ipAddress, int port)
-//{
-//	CURL* pCurl = curl_easy_init();
-//
-//	char tagBuffer[32];
-//	char attrBuffer[32];
-//	char valBuffer[128];
-//	char innerTextBuffer[1024];
-//	HTMLSTREAMPARSER* hsp = html_parser_init();
-//
-//	html_parser_set_tag_to_lower(hsp, 1);
-//	html_parser_set_attr_to_lower(hsp, 1);
-//	html_parser_set_tag_buffer(hsp, tagBuffer, sizeof(tagBuffer));
-//	html_parser_set_attr_buffer(hsp, attrBuffer, sizeof(attrBuffer));
-//	html_parser_set_val_buffer(hsp, valBuffer, sizeof(valBuffer) - 1);
-//	html_parser_set_inner_text_buffer(hsp, innerTextBuffer, sizeof(innerTextBuffer) - 1);
-//
-//	ScanCallbackData data;
-//	data.pHsp = hsp;
-//	curl_easy_setopt(pCurl, CURLOPT_URL, url.c_str());
-//	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, write_callback);
-//	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &data);
-//	curl_easy_setopt(pCurl, CURLOPT_FOLLOWLOCATION, 1L);
-//	curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 10L);
-//
-//	curl_easy_perform(pCurl);
-//
-//	curl_easy_cleanup(pCurl);
-//
-//	json message =
-//	{
-//		{ "type", "http_server_scan_result" },
-//		{ "url", url },
-//		{ "ip_address", ipAddress },
-//		{ "port", port },
-//		{ "is_camera", EvaluateDetectionRules(pDetector, url, data.title) },
-//		{ "title", data.title }
-//	};
-//	pDetector->m_pMessageCallback(message);
 //}
 
 //bool HTTPCameraDetector::EvaluateDetectionRules(HTTPCameraDetector* pDetector, const std::string& url, const std::string& title)
