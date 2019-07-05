@@ -118,7 +118,7 @@ void HTTPCameraDetector::DrawUI(ImGuiContext* pContext)
 		ImGui::Text("Rules loaded: %d", m_Rules.size());
 		ImGui::Text("Queue size: %d", static_cast<int>(m_PendingResults));
 
-		if (ImGui::Button("View results"))
+		if (ImGui::Button("View results##HTTPCameraDetector"))
 		{
 			m_ShowResultsUI = !m_ShowResultsUI;
 		}

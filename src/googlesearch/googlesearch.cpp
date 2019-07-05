@@ -87,7 +87,7 @@ void GoogleSearch::DrawUI(ImGuiContext* pContext)
 	{
 		ImGui::Text("Queries loaded: %d", m_QueryDatum.size());
 
-		if (ImGui::Button("View results"))
+		if (ImGui::Button("View results##GoogleSearch"))
 		{
 			m_ShowResultsUI = !m_ShowResultsUI;
 		}
@@ -170,6 +170,10 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 					std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
 					ExtractResults(data, queryData.results);
 				}
+
+				// This can be called without locking as it only reads the results and this thread
+				// is the only one which would write to them.
+				ProcessResults(pGoogleSearch, queryData.results);
 			}
 
 			// The buffer containing the data from the request needs to be cleared after being used,
@@ -180,6 +184,26 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 	}
 
 	pGoogleSearch->m_QueryThreadActive = false;
+}
+
+void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryResults& results)
+{
+	for (const QueryResult& result : results)
+	{
+		std::string url = result.GetUrl();
+		std::size_t start = 0;
+		if (url.rfind("https://", 0) == 0)
+		{
+			start = 8;
+		}
+		else if (url.rfind("http://", 0) == 0)
+		{
+			start = 7;
+		}
+		std::size_t slashPos = url.find_first_of('/', start);
+		std::string host = (slashPos == std::string::npos) ? url.substr(start) : url.substr(start, slashPos - start);
+		// TODO: extract port number, if it exists.
+	}
 }
 
 std::string GoogleSearch::FilterCurlData(const std::string& data)

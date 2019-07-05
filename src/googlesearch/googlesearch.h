@@ -45,6 +45,7 @@ private:
 	static bool ExtractStartIndex(const json& data, int& result);
 	static bool ExtractTotalResults(const json& data, int& result);
 	static bool ExtractResults(const json& data, QueryResults& results);
+	static void ProcessResults(GoogleSearch* pGoogleSearch, const QueryResults& results);
 	bool IsRunning() const;
 	void LoadQueries();
 	void DrawResultsUI(bool* pShow);
