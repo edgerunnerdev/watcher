@@ -202,7 +202,29 @@ void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryResult
 		}
 		std::size_t slashPos = url.find_first_of('/', start);
 		std::string host = (slashPos == std::string::npos) ? url.substr(start) : url.substr(start, slashPos - start);
+
+		int port = 80;
+		int portPos = host.find_first_of(':');
+		if (portPos != std::string::npos)
+		{
+			port = atoi(host.substr(portPos).c_str() + 1);
+			host = host.substr(0, portPos);
+		}
+
 		// TODO: extract port number, if it exists.
+
+		int a = 0;
+
+		//json message =
+		//{
+		//	{ "type", "http_server_scan_result" },
+		//	{ "url", url },
+		//	{ "ip_address", ipAddress },
+		//	{ "port", port },
+		//	{ "is_camera", true },
+		//	{ "title", result.GetTitle() }
+		//};
+		//pGoogleSearch->m_pMessageCallback(message);
 	}
 }
 
@@ -321,7 +343,7 @@ void GoogleSearch::DrawResultsUI(bool* pShow)
 
 	for (auto& data : m_QueryDatum)
 	{
-		if (ImGui::TreeNode(data.query.Get().c_str()))
+		if (ImGui::TreeNode(&data, "(%d) %s", data.results.size(), data.query.Get().c_str()))
 		{
 			ImGui::Columns(2);
 			ImGui::Separator();
