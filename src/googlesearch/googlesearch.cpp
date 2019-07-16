@@ -213,18 +213,20 @@ void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryResult
 
 		// TODO: extract port number, if it exists.
 
-		int a = 0;
-
-		//json message =
-		//{
-		//	{ "type", "http_server_scan_result" },
-		//	{ "url", url },
-		//	{ "ip_address", ipAddress },
-		//	{ "port", port },
-		//	{ "is_camera", true },
-		//	{ "title", result.GetTitle() }
-		//};
-		//pGoogleSearch->m_pMessageCallback(message);
+		Network::IPAddress address;
+		if (Network::Resolve(host, address) == Network::Result::Success)
+		{
+			json message =
+			{
+				{ "type", "http_server_scan_result" },
+				{ "url", url },
+				{ "ip_address", address.GetHostAsString() },
+				{ "port", port },
+				{ "is_camera", true },
+				{ "title", result.GetTitle() }
+			};
+			pGoogleSearch->m_pMessageCallback(message);
+		}
 	}
 }
 

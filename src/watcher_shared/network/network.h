@@ -98,6 +98,7 @@ Result Initialise();
 Result Shutdown();
 Result ConnectTCP( IPAddress address, unsigned int timeout, TCPSocket& tcpSocket );
 Result Close( TCPSocket socket );
+Result Resolve( const std::string& host, IPAddress& address );
 
 std::string ToString( Result result );
 

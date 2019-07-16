@@ -4,6 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <cassert>
 
 #include "network.h"
@@ -112,6 +113,38 @@ Result Close( TCPSocket socket )
 	{
 		return ToResult( WSAGetLastError() );
 	}
+}
+
+Result Resolve( const std::string& host, IPAddress& address )
+{
+	struct addrinfo hints;
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	struct addrinfo* pResult = nullptr;
+	struct addrinfo* pPtr = nullptr;
+
+	DWORD retVal = getaddrinfo(host.c_str(), nullptr, &hints, &pResult);
+	if (retVal == 0)
+	{
+		for (struct addrinfo* pData = pResult; pData != nullptr; pData = pData->ai_next)
+		{
+			if (pData->ai_family == AF_INET)
+			{
+				struct sockaddr_in* pSockAddr = reinterpret_cast<struct sockaddr_in*>(pData->ai_addr);
+				char buffer[INET_ADDRSTRLEN];
+				if (inet_ntop(AF_INET, &pSockAddr->sin_addr, buffer, INET_ADDRSTRLEN) != nullptr)
+				{
+					address = IPAddress(buffer);
+				}
+				return Result::Success;
+			}
+		}
+	}
+
+	return Result::Unknown;
 }
 
 Result ToResult( int result )
