@@ -70,7 +70,7 @@ bool GoogleSearch::Initialise(PluginMessageCallback pMessageCallback)
 void GoogleSearch::LoadQueries()
 {
 	QueryData data;
-	data.query = Query("inurl:/video.mjpg/");
+	data.query = Query("inurl:/video.mjpg");
 	m_QueryDatum.push_back(data);
 }
 
@@ -170,10 +170,6 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 					std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
 					ExtractResults(data, queryData.results);
 				}
-
-				// This can be called without locking as it only reads the results and this thread
-				// is the only one which would write to them.
-				ProcessResults(pGoogleSearch, queryData.results);
 			}
 
 			// The buffer containing the data from the request needs to be cleared after being used,
@@ -181,14 +177,18 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 			pGoogleSearch->m_CurlData.clear();
 
 		} while (queryData.state.IsValid() && !queryData.state.IsCompleted());
+
+		// This can be called without locking as it only reads the results and this thread
+		// is the only one which would write to them.
+		ProcessResults(pGoogleSearch, queryData);
 	}
 
 	pGoogleSearch->m_QueryThreadActive = false;
 }
 
-void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryResults& results)
+void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryData& queryData)
 {
-	for (const QueryResult& result : results)
+	for (const QueryResult& result : queryData.results)
 	{
 		std::string url = result.GetUrl();
 		std::size_t start = 0;
@@ -211,23 +211,36 @@ void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryResult
 			host = host.substr(0, portPos);
 		}
 
-		// TODO: extract port number, if it exists.
-
 		Network::IPAddress address;
 		if (Network::Resolve(host, address) == Network::Result::Success)
 		{
 			json message =
 			{
-				{ "type", "http_server_scan_result" },
+				{ "type", "http_server_found" },
 				{ "url", url },
 				{ "ip_address", address.GetHostAsString() },
-				{ "port", port },
-				{ "is_camera", true },
-				{ "title", result.GetTitle() }
+				{ "port", port }
 			};
 			pGoogleSearch->m_pMessageCallback(message);
 		}
 	}
+}
+
+bool GoogleSearch::FilterResult(const QueryData& queryData, const QueryResult& result)
+{
+	// If our query makes use of inurl:, make sure our result actually has it in the URL.
+	// This is necessary as Google will return some results which have something similar
+	// in the URL, but are not necessarily exact matches.
+	const std::string& encodedQuery = queryData.query.Get();
+	std::size_t inUrlStart = encodedQuery.rfind("inurl:", 0);
+	if (inUrlStart != std::string::npos)
+	{
+		std::size_t inUrlEnd = encodedQuery.find_first_of(' ', inUrlStart + 6);
+		std::string inUrl = encodedQuery.substr(inUrlStart + 6, inUrlEnd);
+		return result.GetUrl().find(inUrl) != std::string::npos;
+	}
+
+	return true;
 }
 
 std::string GoogleSearch::FilterCurlData(const std::string& data)
