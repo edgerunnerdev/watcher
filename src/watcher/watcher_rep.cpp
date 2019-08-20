@@ -28,7 +28,8 @@ static unsigned int sPinHalfWidth = sPinWidth / 2;
 
 WatcherRep::WatcherRep(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
-	m_CellSize(128.0f)
+	m_CellSize(128.0f),
+	m_SelectCamera(false)
 {
 	int windowWidth;
 	int windowHeight;
@@ -136,6 +137,10 @@ void WatcherRep::ProcessEvent(const SDL_Event& event)
 			m_pAtlas->OnZoomOut();
 		}
 	}
+	else if (event.type == SDL_MOUSEBUTTONDOWN && ImGui::GetIO().WantCaptureMouse == false)
+	{
+		m_SelectCamera = true;
+	}
 	else if (event.type == SDL_WINDOWEVENT)
 	{
 		if (event.window.event == SDL_WINDOWEVENT_RESIZED || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
@@ -195,10 +200,64 @@ void WatcherRep::Render()
 		}
 	}
 
-	CameraVector hoveredCameras = GetHoveredCameras();
-	for (Camera& camera : hoveredCameras)
+	if (ImGui::GetIO().WantCaptureMouse == false)
 	{
-		ImGui::SetTooltip("%s | %s", camera.GetAddress().ToString().c_str(), camera.GetTitle().c_str());
+		// TODO: This needs to support multiple overlapping cameras, with a dropdown menu to choose from.
+		CameraVector hoveredCameras = GetHoveredCameras();
+		for (Camera& camera : hoveredCameras)
+		{
+			GeolocationData* pGeo = camera.GetGeolocationData();
+			if (pGeo == nullptr)
+			{
+				ImGui::SetTooltip("%s", camera.GetAddress().ToString().c_str());
+			}
+			else
+			{
+				ImGui::SetTooltip("%s (%s, %s)", camera.GetAddress().ToString().c_str(), pGeo->GetCity().c_str(), pGeo->GetCountry().c_str());
+			}
+		}
+
+		// TODO: Move this to its own function.
+		if (hoveredCameras.size() > 0 && m_SelectCamera)
+		{
+			bool found = false;
+			for (auto& cameraDisplay : m_CameraDisplays)
+			{
+				if (cameraDisplay.m_Camera.GetURL() == hoveredCameras.front().GetURL())
+				{
+					found = true;
+					cameraDisplay.m_Open = true;
+					break;
+				}
+			}
+
+			if (found == false)
+			{
+				m_CameraDisplays.emplace_back(hoveredCameras.front());
+			}
+		}
+
+		m_SelectCamera = false;
+	}
+
+	// TODO: Create unique windows for each camera display.
+	for (auto& cameraDisplay : m_CameraDisplays)
+	{
+		if (cameraDisplay.m_Open)
+		{
+			ImGui::SetNextWindowSize(ImVec2(400, 260), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin(cameraDisplay.m_Camera.GetURL().c_str(), &cameraDisplay.m_Open))
+			{
+				ImGui::Columns(2);
+
+				ImGui::Text("City"); ImGui::NextColumn();
+				ImGui::Text(cameraDisplay.m_Camera.GetGeolocationData()->GetCity().c_str());
+
+				ImGui::Columns(1);
+			}
+
+			ImGui::End();
+		}
 	}
 }
 

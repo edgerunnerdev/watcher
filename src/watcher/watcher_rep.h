@@ -44,4 +44,19 @@ private:
 	Atlas::AtlasUniquePtr m_pAtlas;
 	float m_CellSize;
 	GLuint m_PinTexture;
+	
+	struct CameraDisplay
+	{
+		CameraDisplay(Camera camera)
+		{
+			m_Camera = camera;
+			m_Open = true;
+		}
+
+		Camera m_Camera;
+		bool m_Open;
+	};
+	using CameraDisplayList = std::list<CameraDisplay>;
+	CameraDisplayList m_CameraDisplays;
+	bool m_SelectCamera;
 };

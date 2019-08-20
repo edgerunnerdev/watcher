@@ -34,6 +34,7 @@ public:
 		Active
 	};
 
+	Camera() {}
 	Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState);
 
 	const std::string& GetTitle() const;
