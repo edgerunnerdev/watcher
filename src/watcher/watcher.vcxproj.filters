@@ -31,6 +31,7 @@
       <Filter>database</Filter>
     </ClCompile>
     <ClCompile Include="geolocationdata.cpp" />
+    <ClCompile Include="camerarep.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -82,5 +83,6 @@
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="geolocationdata.h" />
+    <ClInclude Include="camerarep.h" />
   </ItemGroup>
 </Project>

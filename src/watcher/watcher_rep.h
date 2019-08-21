@@ -16,6 +16,7 @@
 #include <GL/gl.h>
 
 #include "camera.h"
+#include "camerarep.h"
 
 struct SDL_Surface;
 struct SDL_Window;
@@ -40,23 +41,17 @@ private:
 	void SetUserInterfaceStyle();
 	CameraVector GetHoveredCameras();
 
+	void RenderCameras();
+	void OpenPickedCamera();
+	void OpenCamera(const Camera& camera);
+	void FlushClosedCameras();
+
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
 	float m_CellSize;
 	GLuint m_PinTexture;
 	
-	struct CameraDisplay
-	{
-		CameraDisplay(Camera camera)
-		{
-			m_Camera = camera;
-			m_Open = true;
-		}
-
-		Camera m_Camera;
-		bool m_Open;
-	};
-	using CameraDisplayList = std::list<CameraDisplay>;
-	CameraDisplayList m_CameraDisplays;
+	using CameraRepList = std::list<CameraRep>;
+	CameraRepList m_CameraReps;
 	bool m_SelectCamera;
 };

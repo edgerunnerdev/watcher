@@ -200,6 +200,13 @@ void WatcherRep::Render()
 		}
 	}
 
+	OpenPickedCamera();
+	RenderCameras();
+	FlushClosedCameras();
+}
+
+void WatcherRep::OpenPickedCamera()
+{
 	if (ImGui::GetIO().WantCaptureMouse == false)
 	{
 		// TODO: This needs to support multiple overlapping cameras, with a dropdown menu to choose from.
@@ -217,48 +224,71 @@ void WatcherRep::Render()
 			}
 		}
 
-		// TODO: Move this to its own function.
 		if (hoveredCameras.size() > 0 && m_SelectCamera)
 		{
 			bool found = false;
-			for (auto& cameraDisplay : m_CameraDisplays)
+			for (auto& cameraDisplay : m_CameraReps)
 			{
-				if (cameraDisplay.m_Camera.GetURL() == hoveredCameras.front().GetURL())
+				if (cameraDisplay.GetCamera().GetURL() == hoveredCameras.front().GetURL())
 				{
 					found = true;
-					cameraDisplay.m_Open = true;
 					break;
 				}
 			}
 
 			if (found == false)
 			{
-				m_CameraDisplays.emplace_back(hoveredCameras.front());
+				m_CameraReps.emplace_back(hoveredCameras.front());
 			}
 		}
 
 		m_SelectCamera = false;
 	}
+}
 
-	// TODO: Create unique windows for each camera display.
-	for (auto& cameraDisplay : m_CameraDisplays)
+void WatcherRep::RenderCameras()
+{
+	for (auto& cameraDisplay : m_CameraReps)
 	{
 		if (cameraDisplay.m_Open)
 		{
 			ImGui::SetNextWindowSize(ImVec2(400, 260), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin(cameraDisplay.m_Camera.GetURL().c_str(), &cameraDisplay.m_Open))
+			if (ImGui::Begin(cameraDisplay.GetCamera().GetURL().c_str(), &cameraDisplay.m_Open))
 			{
+				ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.3f, 300), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 				ImGui::Columns(2);
 
 				ImGui::Text("City"); ImGui::NextColumn();
-				ImGui::Text(cameraDisplay.m_Camera.GetGeolocationData()->GetCity().c_str());
+				ImGui::Text(cameraDisplay.GetCamera().GetGeolocationData()->GetCity().c_str());
 
 				ImGui::Columns(1);
+				ImGui::EndChild();
+
+				ImGui::SameLine();
+
+				ImGui::BeginChild("Child2", ImVec2(0, 300), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+				ImGui::Text("Test"); ImGui::NextColumn();
+				ImGui::EndChild();
 			}
 
 			ImGui::End();
 		}
 	}
+}
+
+void WatcherRep::OpenCamera(const Camera& camera)
+{
+	m_CameraReps.emplace_back(camera);
+}
+
+void WatcherRep::FlushClosedCameras()
+{
+	auto ifClosed = [&](const CameraRep& cameraRep) -> bool
+	{
+		return !cameraRep.IsOpen();
+	};
+
+	m_CameraReps.remove_if(ifClosed);
 }
 
 CameraVector WatcherRep::GetHoveredCameras()
