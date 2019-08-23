@@ -239,6 +239,14 @@ void WatcherRep::OpenPickedCamera()
 			if (found == false)
 			{
 				m_CameraReps.emplace_back(hoveredCameras.front());
+
+
+				json message =
+				{
+					{ "type", "stream_request" },
+					{ "url", hoveredCameras.front().GetURL() }
+				};
+				g_pWatcher->OnMessageReceived(message);
 			}
 		}
 
@@ -285,11 +293,6 @@ void WatcherRep::RenderCameras()
 			ImGui::End();
 		}
 	}
-}
-
-void WatcherRep::OpenCamera(const Camera& camera)
-{
-	m_CameraReps.emplace_back(camera);
 }
 
 void WatcherRep::FlushClosedCameras()

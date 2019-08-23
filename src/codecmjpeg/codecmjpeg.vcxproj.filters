@@ -4,4 +4,7 @@
     <ClCompile Include="codecmjpeg.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="codecmjpeg.h" />
+  </ItemGroup>
 </Project>
