@@ -16,27 +16,48 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
+#include <string>
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
 
-class StreamMJPEG;
-using StreamMJPEGVector = std::vector<StreamMJPEG*>;
+using CURL = void;
 
-class CodecMJPEG : public Plugin
+class StreamMJPEG 
 {
-	DECLARE_PLUGIN(CodecMJPEG, 0, 1, 0);
 public:
-	CodecMJPEG();
-	virtual ~CodecMJPEG();
-	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
-	virtual void OnMessageReceived(const nlohmann::json& message) override;
-	virtual void DrawUI(ImGuiContext* pContext) override;
+	StreamMJPEG(const std::string& url);
+	~StreamMJPEG();
+
+	enum class State
+	{
+		Initialising,
+		Streaming,
+		Error,
+		Terminated
+	};
+
+	enum class Error
+	{
+		NoError,
+		Timeout
+	};
+
+	State GetState() const;
+
+	using Id = unsigned int;
+	Id GetId() const;
 
 private:
-	void ProcessStreamRequest(const std::string& url);
+	static size_t WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
+	static size_t WriteResponseCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
 
-	PluginMessageCallback m_pMessageCallback;
-	StreamMJPEGVector m_Streams;
+	Error m_Error;
+	State m_State;
+	Id m_Id;
+	CURL* m_pCurlHandle;
+	std::vector<uint8_t> m_HeaderBuffer;
+	std::vector<uint8_t> m_ResponseBuffer;
+	std::string m_Url;
+	std::string m_MultiPartDivider;
 };

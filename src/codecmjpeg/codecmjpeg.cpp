@@ -17,6 +17,7 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
 #include "codecmjpeg.h"
+#include "streammjpeg.h"
 
 #include <iostream>
 
@@ -27,26 +28,17 @@
 
 IMPLEMENT_PLUGIN(CodecMJPEG)
 
-// This needs to be a static function as libcurl is a C library and will segfault if passed
-// a local lambda.
-static size_t WriteMemoryCallback(void* pContents, size_t size, size_t nmemb, void* pUserData)
-{
-	size_t realSize = size * nmemb;
-	std::string& data = *reinterpret_cast<std::string*>(pUserData);
-	size_t curDataSize = data.size();
-	data.resize(curDataSize + realSize);
-	memcpy(&data[curDataSize], pContents, realSize);
-	return realSize;
-}
-
 CodecMJPEG::CodecMJPEG()
 {
-	m_pCurlHandle = curl_easy_init();
+	
 }
 
 CodecMJPEG::~CodecMJPEG()
 {
-	curl_easy_cleanup(m_pCurlHandle);
+	for (StreamMJPEG* pStream : m_Streams)
+	{
+		delete pStream;
+	}
 }
 
 bool CodecMJPEG::Initialise(PluginMessageCallback pMessageCallback)
@@ -101,12 +93,9 @@ void CodecMJPEG::DrawUI(ImGuiContext* pContext)
 
 void CodecMJPEG::ProcessStreamRequest(const std::string& url)
 {
-
-	//json message =
-	//{
-	//	{ "type", "stream_request_accepted" },
-	//	{ "url", url },
-	//	{ "codec", "CodecMJPEG" }
-	//};
-	//pDetector->m_pMessageCallback(message);
+	if (url.rfind(".mjpg") != std::string::npos)
+	{
+		StreamMJPEG* pStream = new StreamMJPEG(url);
+		m_Streams.push_back(pStream);
+	}
 }
