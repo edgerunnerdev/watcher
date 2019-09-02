@@ -67,9 +67,29 @@ size_t StreamMJPEG::WriteHeaderCallback(void* pContents, size_t size, size_t nme
 	size_t realSize = size * nmemb;
 	StreamMJPEG* pStream = reinterpret_cast<StreamMJPEG*>(pUserData);
 	std::vector<uint8_t>& data = pStream->m_HeaderBuffer;
-	size_t curDataSize = data.size();
-	data.resize(curDataSize + realSize);
-	memcpy(&data[curDataSize], pContents, realSize);
+	if (data.size() < realSize + 1)
+	{
+		data.resize(realSize + 1);
+	}
+	memcpy(&data[0], pContents, realSize);
+	data[realSize] = '\0';
+
+	std::string header(reinterpret_cast<const char*>(&data[0]));
+	if (IsContentTypeHeader(header))
+	{
+		if (IsContentTypeMultipart(header))
+		{
+			if (ExtractMultipartBoundary(header, pStream->m_MultipartBoundary) == false)
+			{
+				pStream->m_Error = Error::UnknownBoundary;
+			}
+		}
+		else
+		{
+			pStream->m_Error = Error::UnsupportedContentType;
+		}
+	}
+
 	return realSize;
 }
 
@@ -78,8 +98,50 @@ size_t StreamMJPEG::WriteResponseCallback(void* pContents, size_t size, size_t n
 	size_t realSize = size * nmemb;
 	StreamMJPEG* pStream = reinterpret_cast<StreamMJPEG*>(pUserData);
 	std::vector<uint8_t>& data = pStream->m_ResponseBuffer;
-	size_t curDataSize = data.size();
-	data.resize(curDataSize + realSize);
-	memcpy(&data[curDataSize], pContents, realSize);
+	if (data.size() < realSize)
+	{
+		data.resize(realSize);
+	}
+
+	memcpy(&data[0], pContents, realSize);
 	return realSize;
+}
+
+bool StreamMJPEG::IsContentTypeHeader(const std::string& header)
+{
+	const std::string contentType("Content-Type:");
+	return (header.compare(0, contentType.size(), contentType.c_str()) == 0);
+}
+
+bool StreamMJPEG::IsContentTypeMultipart(const std::string& header)
+{
+	const std::string contentType("Content-Type: multipart/x-mixed-replace");
+	return (header.compare(0, contentType.size(), contentType.c_str()) == 0);
+}
+
+bool StreamMJPEG::ExtractMultipartBoundary(const std::string& header, std::string& result)
+{
+	const std::string boundary("boundary=");
+	size_t idx = header.find(boundary);
+	if (idx == -1)
+	{
+		return false;
+	}
+	else
+	{
+		idx += boundary.size();
+		size_t headerSize = header.size();
+		size_t boundaryEnd = idx;
+		while (boundaryEnd < headerSize)
+		{
+			char c = header[boundaryEnd];
+			if (c == ' ' || c == '\r' || c == '\n')
+			{
+				break;
+			}
+			boundaryEnd++;
+		}
+		result = header.substr(idx, boundaryEnd - idx);
+		return true;
+	}
 }

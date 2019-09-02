@@ -40,6 +40,8 @@ public:
 	enum class Error
 	{
 		NoError,
+		UnsupportedContentType,
+		UnknownBoundary,
 		Timeout
 	};
 
@@ -49,15 +51,21 @@ public:
 	Id GetId() const;
 
 private:
+	using DataBuffer = std::vector<uint8_t>;
+
 	static size_t WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
 	static size_t WriteResponseCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
+
+	static bool IsContentTypeHeader(const std::string& header);
+	static bool IsContentTypeMultipart(const std::string& header);
+	static bool ExtractMultipartBoundary(const std::string& header, std::string& result);
 
 	Error m_Error;
 	State m_State;
 	Id m_Id;
 	CURL* m_pCurlHandle;
-	std::vector<uint8_t> m_HeaderBuffer;
-	std::vector<uint8_t> m_ResponseBuffer;
+	DataBuffer m_HeaderBuffer;
+	DataBuffer m_ResponseBuffer;
 	std::string m_Url;
-	std::string m_MultiPartDivider;
+	std::string m_MultipartBoundary;
 };
