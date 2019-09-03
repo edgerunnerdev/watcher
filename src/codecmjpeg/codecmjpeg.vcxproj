@@ -154,10 +154,12 @@
   <ItemGroup>
     <ClCompile Include="codecmjpeg.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="multipartblock.cpp" />
     <ClCompile Include="streammjpeg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="codecmjpeg.h" />
+    <ClInclude Include="multipartblock.h" />
     <ClInclude Include="streammjpeg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

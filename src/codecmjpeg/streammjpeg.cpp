@@ -24,7 +24,8 @@ static StreamMJPEG::Id s_Id = 0;
 StreamMJPEG::StreamMJPEG(const std::string& url) :
 	m_Error(Error::NoError),
 	m_State(State::Initialising),
-	m_Id(++s_Id)
+	m_Id(++s_Id),
+	m_StreamPosition(0u)
 {
 	m_pCurlHandle = curl_easy_init();
 	char pErrorBuffer[CURL_ERROR_SIZE];
@@ -97,13 +98,11 @@ size_t StreamMJPEG::WriteResponseCallback(void* pContents, size_t size, size_t n
 {
 	size_t realSize = size * nmemb;
 	StreamMJPEG* pStream = reinterpret_cast<StreamMJPEG*>(pUserData);
-	std::vector<uint8_t>& data = pStream->m_ResponseBuffer;
-	if (data.size() < realSize)
-	{
-		data.resize(realSize);
-	}
-
-	memcpy(&data[0], pContents, realSize);
+	ByteArray& data = pStream->m_ResponseBuffer;
+	size_t curDataSize = data.size();
+	data.resize(curDataSize + realSize);
+	memcpy(&data[curDataSize], pContents, realSize);
+	ProcessMultipartContent(pStream);
 	return realSize;
 }
 
@@ -141,7 +140,48 @@ bool StreamMJPEG::ExtractMultipartBoundary(const std::string& header, std::strin
 			}
 			boundaryEnd++;
 		}
-		result = header.substr(idx, boundaryEnd - idx);
+		// The complete boundary is always in the format of "--boundary".
+		result = std::string("--") + header.substr(idx, boundaryEnd - idx);
 		return true;
 	}
+}
+
+void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
+{
+	// If there's a boundary marker 
+	size_t boundaryIdx = FindInStream(pStream, 0u, pStream->m_MultipartBoundary);
+	if (boundaryIdx != -1)
+	{
+		// TODO: Create multipart block from 0 to boundary index
+		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size() + 1;
+		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
+		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
+		pStream->m_ResponseBuffer.resize(bytesToCopy);
+		int a = 0;
+	}
+}
+
+size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std::string& toFind)
+{
+	size_t toFindSize = toFind.size();
+	size_t toFindIdx = 0;
+	size_t responseSize = pStream->m_ResponseBuffer.size();
+	bool found = false;
+	for (size_t i = offset; i < responseSize; ++i)
+	{
+		if (pStream->m_ResponseBuffer[i] == pStream->m_MultipartBoundary[toFindIdx])
+		{
+			toFindIdx++;
+			if (toFindIdx == toFindSize)
+			{
+				return i - toFindSize;
+			}
+		}
+		else
+		{
+			toFindIdx = 0;
+		}
+	}
+
+	return -1;
 }

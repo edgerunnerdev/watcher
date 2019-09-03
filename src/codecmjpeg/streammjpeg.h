@@ -22,6 +22,7 @@
 #include "network/network.h"
 
 using CURL = void;
+using ByteArray = std::vector<uint8_t>;
 
 class StreamMJPEG 
 {
@@ -51,21 +52,23 @@ public:
 	Id GetId() const;
 
 private:
-	using DataBuffer = std::vector<uint8_t>;
-
 	static size_t WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
 	static size_t WriteResponseCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
 
 	static bool IsContentTypeHeader(const std::string& header);
 	static bool IsContentTypeMultipart(const std::string& header);
 	static bool ExtractMultipartBoundary(const std::string& header, std::string& result);
+	static void ProcessMultipartContent(StreamMJPEG* pStream);
+	static size_t FindInStream(StreamMJPEG* pStream, size_t offset, const std::string& toFind);
 
 	Error m_Error;
 	State m_State;
 	Id m_Id;
 	CURL* m_pCurlHandle;
-	DataBuffer m_HeaderBuffer;
-	DataBuffer m_ResponseBuffer;
+	ByteArray m_HeaderBuffer;
+	ByteArray m_ResponseBuffer;
 	std::string m_Url;
 	std::string m_MultipartBoundary;
+
+	size_t m_StreamPosition;
 };
