@@ -20,6 +20,7 @@
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
+#include "multipartblock.h"
 
 using CURL = void;
 using ByteArray = std::vector<uint8_t>;
@@ -61,6 +62,8 @@ private:
 	static void ProcessMultipartContent(StreamMJPEG* pStream);
 	static size_t FindInStream(StreamMJPEG* pStream, size_t offset, const std::string& toFind);
 
+	void CopyFrame(const MultipartBlock& block);
+
 	Error m_Error;
 	State m_State;
 	Id m_Id;
@@ -69,6 +72,4 @@ private:
 	ByteArray m_ResponseBuffer;
 	std::string m_Url;
 	std::string m_MultipartBoundary;
-
-	size_t m_StreamPosition;
 };

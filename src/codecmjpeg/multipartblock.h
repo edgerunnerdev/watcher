@@ -6,20 +6,13 @@ using ByteArray = std::vector<uint8_t>;
 class MultipartBlock
 {
 public:
-	MultipartBlock();
+	MultipartBlock(const ByteArray& bytes, size_t offset, size_t count);
 
-	void AddBytes(const ByteArray& bytes);
-	const ByteArray& GetBytes() const;
-	void ClearBytes();
-
-	const std::string& GetType();
-	size_t GetTotalBytes() const;
-	size_t GetRemainingBytes() const;
-	bool IsComplete() const;
+	const std::string& GetType() const;
+	bool IsValid() const;
 
 private:
 	std::string m_Type;
-	size_t m_TotalBytes;
-	size_t m_RemainingBytes;
+	size_t m_ExpectedBytes;
 	ByteArray m_Bytes;
 };

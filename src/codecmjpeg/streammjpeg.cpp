@@ -24,8 +24,7 @@ static StreamMJPEG::Id s_Id = 0;
 StreamMJPEG::StreamMJPEG(const std::string& url) :
 	m_Error(Error::NoError),
 	m_State(State::Initialising),
-	m_Id(++s_Id),
-	m_StreamPosition(0u)
+	m_Id(++s_Id)
 {
 	m_pCurlHandle = curl_easy_init();
 	char pErrorBuffer[CURL_ERROR_SIZE];
@@ -141,7 +140,7 @@ bool StreamMJPEG::ExtractMultipartBoundary(const std::string& header, std::strin
 			boundaryEnd++;
 		}
 		// The complete boundary is always in the format of "--boundary".
-		result = std::string("--") + header.substr(idx, boundaryEnd - idx);
+		result = std::string("--") + header.substr(idx, boundaryEnd - idx) + std::string("\r\n");
 		return true;
 	}
 }
@@ -152,12 +151,13 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 	size_t boundaryIdx = FindInStream(pStream, 0u, pStream->m_MultipartBoundary);
 	if (boundaryIdx != -1)
 	{
-		// TODO: Create multipart block from 0 to boundary index
-		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size() + 1;
+		MultipartBlock block(pStream->m_ResponseBuffer, 0, boundaryIdx);
+		pStream->CopyFrame(block);
+
+		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size();
 		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
 		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
 		pStream->m_ResponseBuffer.resize(bytesToCopy);
-		int a = 0;
 	}
 }
 
@@ -174,7 +174,7 @@ size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std:
 			toFindIdx++;
 			if (toFindIdx == toFindSize)
 			{
-				return i - toFindSize;
+				return (i + 1) - toFindSize;
 			}
 		}
 		else
@@ -184,4 +184,12 @@ size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std:
 	}
 
 	return -1;
+}
+
+void StreamMJPEG::CopyFrame(const MultipartBlock& block)
+{
+	if (block.IsValid())
+	{
+
+	}
 }
