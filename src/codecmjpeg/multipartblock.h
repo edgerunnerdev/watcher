@@ -15,7 +15,7 @@ private:
 	bool GetHeader(const ByteArray& bytes, size_t& offset, std::string& header, std::string& headerValue);
 	std::string GetString(const ByteArray& bytes, size_t offset, size_t count);
 
-	std::string m_Type;
-	size_t m_ExpectedBytes;
+	std::string m_ContentType;
+	size_t m_ContentLength;
 	ByteArray m_Bytes;
 };

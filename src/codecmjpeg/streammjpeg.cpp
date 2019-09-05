@@ -147,17 +147,17 @@ bool StreamMJPEG::ExtractMultipartBoundary(const std::string& header, std::strin
 
 void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 {
-	// If there's a boundary marker 
+	// If there's a boundary marker.
 	size_t boundaryIdx = FindInStream(pStream, 0u, pStream->m_MultipartBoundary);
 	if (boundaryIdx != -1)
 	{
-		MultipartBlock block(pStream->m_ResponseBuffer, 0, boundaryIdx);
-		pStream->CopyFrame(block);
-
 		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size();
 		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
 		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
 		pStream->m_ResponseBuffer.resize(bytesToCopy);
+
+		MultipartBlock block(pStream->m_ResponseBuffer, 0, bytesToCopy);
+		pStream->CopyFrame(block);
 	}
 }
 
