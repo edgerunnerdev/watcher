@@ -39,7 +39,6 @@ static size_t WriteMemoryCallback( void* pContents, size_t size, size_t nmemb, v
 Geolocation::Geolocation()
 {
 	m_RateLimitExceeded = false;
-	m_pCurlHandle = curl_easy_init();
 }
 
 Geolocation::~Geolocation()
@@ -48,8 +47,6 @@ Geolocation::~Geolocation()
 	{
 		m_QueryThread.join();
 	}
-
-	curl_easy_cleanup( m_pCurlHandle );
 }
 
 bool Geolocation::Initialise( PluginMessageCallback pMessageCallback )
@@ -128,7 +125,7 @@ void Geolocation::ConsumeQueue()
 			std::stringstream url;
 			url << "https://ipinfo.io/" << address.GetHostAsString() << "/json"; 
 
-			CURL* pCurlHandle = pGeolocation->m_pCurlHandle;
+			CURL* pCurlHandle = curl_easy_init();
 			char pErrorBuffer[ CURL_ERROR_SIZE ];
 			curl_easy_setopt( pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer );
 			curl_easy_setopt( pCurlHandle, CURLOPT_URL, url.str().c_str() );
@@ -195,6 +192,8 @@ void Geolocation::ConsumeQueue()
 				}
 				pGeolocation->m_pMessageCallback( message );
 			}
+
+			curl_easy_cleanup( pCurlHandle );
 		}
 		pGeolocation->m_QueryThreadActive = false;
 	};

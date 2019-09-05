@@ -43,7 +43,6 @@ private:
 	std::vector< Network::IPAddress > m_Queue;
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
-	CURL* m_pCurlHandle;
 	std::string m_Data;
 	bool m_RateLimitExceeded;
 };
