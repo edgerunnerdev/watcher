@@ -38,7 +38,8 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	m_State(State::Initialising),
 	m_Id(++s_Id),
 	m_TextureId(textureId),
-	m_TextureCreated(false)
+	m_TextureCreated(false),
+	m_pMultipartBlock(nullptr)
 {
 	m_pCurlHandle = curl_easy_init();
 
@@ -59,6 +60,11 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	else
 	{
 		int a = 0;
+	}
+
+	if (m_pMultipartBlock)
+	{
+		CopyFrame(*m_pMultipartBlock);
 	}
 }
 
@@ -169,8 +175,7 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 		bool emptyBlock = (boundaryIdx == 0);
 		if (!emptyBlock)
 		{
-			MultipartBlock block(pStream->m_ResponseBuffer, boundaryIdx);
-			pStream->CopyFrame(block);
+			pStream->m_pMultipartBlock = new MultipartBlock(pStream->m_ResponseBuffer, boundaryIdx);
 		}
 
 		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size();
@@ -207,8 +212,6 @@ size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std:
 
 void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 {
-	return;
-
 	if (!block.IsValid()) // The block has not received the expected data or is missing headers.
 	{
 		return;
@@ -217,7 +220,6 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 	{
 		return;
 	}
-	
 
 	const ByteArray& bytes = block.GetBytes();
 	SDL_RWops* pOps = SDL_RWFromConstMem(&bytes[0], bytes.size());
@@ -231,9 +233,7 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 		}
 		else
 		{
-			GLenum error = glGetError();
 			glBindTexture(GL_TEXTURE_2D, m_TextureId);
-			error = glGetError();
 			if (!m_TextureCreated)
 			{
 				int bpp = pSurface->format->BytesPerPixel;
@@ -245,7 +245,6 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 					glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels);
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					error = glGetError();
 					m_TextureCreated = true;
 				}
 			}

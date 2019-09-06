@@ -74,4 +74,6 @@ private:
 	std::string m_MultipartBoundary;
 	uint32_t m_TextureId;
 	bool m_TextureCreated;
+
+	MultipartBlock* m_pMultipartBlock;
 };
