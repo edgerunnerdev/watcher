@@ -244,7 +244,8 @@ void WatcherRep::OpenPickedCamera()
 				json message =
 				{
 					{ "type", "stream_request" },
-					{ "url", hoveredCameras.front().GetURL() }
+					{ "url", hoveredCameras.front().GetURL() },
+					{ "texture_id", m_CameraReps.back().GetTexture() }
 				};
 				g_pWatcher->OnMessageReceived(message);
 			}
@@ -286,7 +287,7 @@ void WatcherRep::RenderCameras()
 				ImGui::SameLine();
 
 				ImGui::BeginChild("Child2", ImVec2(0, 300), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-				ImGui::Text("No codec"); ImGui::NextColumn();
+				ImGui::Image(reinterpret_cast<ImTextureID>(cameraDisplay.GetTexture()), ImVec2(300, 300)); ImGui::NextColumn();
 				ImGui::EndChild();
 			}
 

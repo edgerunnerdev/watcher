@@ -35,7 +35,7 @@ public:
 	virtual void DrawUI(ImGuiContext* pContext) override;
 
 private:
-	void ProcessStreamRequest(const std::string& url);
+	void ProcessStreamRequest(const std::string& url, uint32_t textureId);
 
 	PluginMessageCallback m_pMessageCallback;
 	StreamMJPEGVector m_Streams;

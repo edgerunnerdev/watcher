@@ -25,7 +25,7 @@ int main(int, char**)
     }
 
 	// Setup SDL_image
-	int imgFlags = IMG_INIT_PNG;
+	int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
 	if ( IMG_Init( imgFlags ) != imgFlags )
 	{
 		SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Error in SDL2_image initialisation", IMG_GetError(), nullptr );

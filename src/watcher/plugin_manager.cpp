@@ -127,7 +127,7 @@ void PluginManager::LoadPlugins( const SharedLibraryPaths& sharedLibraryPaths )
 			Log::Warning( "%s", dlerror() );
 		}
 #else
-		static_assert( false, "" ); // Not implemented
+		static_assert( false, "Not implemented." );
 #endif
 
 		if ( getPluginFnPtr != nullptr )

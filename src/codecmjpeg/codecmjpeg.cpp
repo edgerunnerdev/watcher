@@ -58,9 +58,10 @@ void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
 	if (messageType == "stream_request")
 	{
 		const json& url = message["url"];
-		if (url.is_string())
+		const json& textureId = message["texture_id"];
+		if (url.is_string() && textureId.is_number_unsigned())
 		{
-			ProcessStreamRequest(url.get<std::string>());
+			ProcessStreamRequest(url.get<std::string>(), textureId.get<uint32_t>());
 		}
 	}
 	else if (messageType == "stream_frame_info")
@@ -91,11 +92,11 @@ void CodecMJPEG::DrawUI(ImGuiContext* pContext)
 	//}
 }
 
-void CodecMJPEG::ProcessStreamRequest(const std::string& url)
+void CodecMJPEG::ProcessStreamRequest(const std::string& url, uint32_t textureId)
 {
 	if (url.rfind(".mjpg") != std::string::npos)
 	{
-		StreamMJPEG* pStream = new StreamMJPEG(url);
+		StreamMJPEG* pStream = new StreamMJPEG(url, textureId);
 		m_Streams.push_back(pStream);
 	}
 }

@@ -21,6 +21,19 @@ CameraRep::CameraRep(const Camera& camera)
 {
 	m_Camera = camera;
 	m_Open = true;
+	glGenTextures(1, &m_Texture);
+
+	//std::vector<uint8_t> bytes2;
+	//int numBytes = 512 * 512 * 3;
+	//for (int i = 0; i < numBytes; ++i)
+	//{
+	//	bytes2.push_back(0xFF);
+	//}
+
+	//glBindTexture(GL_TEXTURE_2D, m_Texture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, &bytes2[0]);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 const Camera& CameraRep::GetCamera() const
@@ -36,4 +49,10 @@ bool CameraRep::IsOpen() const
 void CameraRep::Close()
 {
 	m_Open = false;
+	glDeleteTextures(1, &m_Texture);
+}
+
+GLuint CameraRep::GetTexture() const
+{
+	return m_Texture;
 }

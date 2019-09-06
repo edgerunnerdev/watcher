@@ -15,18 +15,33 @@
 
 #pragma once
 
+// Needed to include GL.h properly.
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#undef WIN32_LEAN_AND_MEAN
+#endif
+
 #include <curl/curl.h>
+#include <GL/gl.h>
+#include <SDL.h>
+#include <SDL_image.h>
 
 #include "streammjpeg.h"
 
 static StreamMJPEG::Id s_Id = 0;
 
-StreamMJPEG::StreamMJPEG(const std::string& url) :
+StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	m_Error(Error::NoError),
 	m_State(State::Initialising),
-	m_Id(++s_Id)
+	m_Id(++s_Id),
+	m_TextureId(textureId),
+	m_TextureCreated(false)
 {
 	m_pCurlHandle = curl_easy_init();
+
 	char pErrorBuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_URL, url.c_str());
@@ -151,13 +166,17 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 	size_t boundaryIdx = FindInStream(pStream, 0u, pStream->m_MultipartBoundary);
 	if (boundaryIdx != -1)
 	{
+		bool emptyBlock = (boundaryIdx == 0);
+		if (!emptyBlock)
+		{
+			MultipartBlock block(pStream->m_ResponseBuffer, boundaryIdx);
+			pStream->CopyFrame(block);
+		}
+
 		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size();
 		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
 		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
 		pStream->m_ResponseBuffer.resize(bytesToCopy);
-
-		MultipartBlock block(pStream->m_ResponseBuffer, 0, bytesToCopy);
-		pStream->CopyFrame(block);
 	}
 }
 
@@ -188,8 +207,50 @@ size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std:
 
 void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 {
-	if (block.IsValid())
-	{
+	return;
 
+	if (!block.IsValid()) // The block has not received the expected data or is missing headers.
+	{
+		return;
+	}
+	else if (block.GetType() != "image/jpeg") // It's a valid block, but not one we can process.
+	{
+		return;
+	}
+	
+
+	const ByteArray& bytes = block.GetBytes();
+	SDL_RWops* pOps = SDL_RWFromConstMem(&bytes[0], bytes.size());
+	if (pOps != nullptr)
+	{
+		SDL_Surface* pSurface = IMG_LoadJPG_RW(pOps);
+		if (pSurface == nullptr)
+		{
+			const char* pError = IMG_GetError();
+			int a = 0;
+		}
+		else
+		{
+			GLenum error = glGetError();
+			glBindTexture(GL_TEXTURE_2D, m_TextureId);
+			error = glGetError();
+			if (!m_TextureCreated)
+			{
+				int bpp = pSurface->format->BytesPerPixel;
+				if (bpp == 3 || bpp == 4)
+				{
+					int internalFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
+					int format = (bpp == 4) ? GL_RGBA : GL_RGB;
+
+					glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					error = glGetError();
+					m_TextureCreated = true;
+				}
+			}
+			
+			SDL_FreeSurface(pSurface);
+		}
 	}
 }

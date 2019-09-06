@@ -28,7 +28,7 @@ using ByteArray = std::vector<uint8_t>;
 class StreamMJPEG 
 {
 public:
-	StreamMJPEG(const std::string& url);
+	StreamMJPEG(const std::string& url, uint32_t textureId);
 	~StreamMJPEG();
 
 	enum class State
@@ -72,4 +72,6 @@ private:
 	ByteArray m_ResponseBuffer;
 	std::string m_Url;
 	std::string m_MultipartBoundary;
+	uint32_t m_TextureId;
+	bool m_TextureCreated;
 };

@@ -1,9 +1,25 @@
+// This file is part of watcher.
+//
+// watcher is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// watcher is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with watcher. If not, see <https://www.gnu.org/licenses/>.
+
 #include <SDL.h>
 #include "multipartblock.h"
 
-MultipartBlock::MultipartBlock(const ByteArray& bytes, size_t offset, size_t count) :
+MultipartBlock::MultipartBlock(const ByteArray& bytes, size_t count) :
 m_ContentLength(0u)
 {
+	size_t offset = 0u;
 	std::string header;
 	std::string headerValue;
 	while (GetHeader(bytes, offset, header, headerValue))
@@ -12,8 +28,18 @@ m_ContentLength(0u)
 		{
 			m_ContentType = headerValue;
 		}
+		else if (header == "Content-Length")
+		{
+			m_ContentLength = std::stoul(headerValue);
+		}
 	}
-	int a = 0;
+	
+	size_t dataSize = count - offset - 2; // -2: strip the "/r/n"
+	if (dataSize > 0u)
+	{
+		m_Bytes.resize(dataSize);
+		memcpy(&m_Bytes[0], &bytes[offset], dataSize);
+	}
 }
 
 const std::string& MultipartBlock::GetType() const
@@ -23,7 +49,7 @@ const std::string& MultipartBlock::GetType() const
 
 bool MultipartBlock::IsValid() const
 {
-	return m_Bytes.size() == m_ContentLength;
+	return !m_ContentType.empty() && !m_Bytes.empty() && m_ContentLength > 0u && m_Bytes.size() == m_ContentLength;
 }
 
 bool MultipartBlock::GetHeader(const ByteArray& bytes, size_t& offset, std::string& header, std::string& headerValue)
@@ -65,4 +91,9 @@ std::string MultipartBlock::GetString(const ByteArray& bytes, size_t offset, siz
 	str.resize(count);
 	memcpy(&str[0], &bytes[0] + offset, count * sizeof(uint8_t));
 	return str;
+}
+
+const ByteArray& MultipartBlock::GetBytes() const
+{
+	return m_Bytes;
 }
