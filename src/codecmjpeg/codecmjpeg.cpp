@@ -68,6 +68,13 @@ void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
 	{
 
 	}
+	else if (messageType == "update")
+	{
+		for (StreamMJPEG* pStream : m_Streams)
+		{
+			pStream->Update();
+		}
+	}
 }
 
 void CodecMJPEG::DrawUI(ImGuiContext* pContext)

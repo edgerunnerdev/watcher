@@ -38,9 +38,10 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	m_State(State::Initialising),
 	m_Id(++s_Id),
 	m_TextureId(textureId),
-	m_TextureCreated(false),
 	m_pMultipartBlock(nullptr)
 {
+	m_pCurlMultiHandle = curl_multi_init();
+
 	m_pCurlHandle = curl_easy_init();
 
 	char pErrorBuffer[CURL_ERROR_SIZE];
@@ -53,11 +54,20 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_HEADERDATA, this);
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_TIMEOUT, 10L);
 
-	if (curl_easy_perform(m_pCurlHandle) != CURLE_OK)
-	{
-		int a = 0;
-	}
-	else
+	curl_multi_add_handle(m_pCurlMultiHandle, m_pCurlHandle);
+}
+
+StreamMJPEG::~StreamMJPEG()
+{
+	curl_easy_cleanup(m_pCurlHandle);
+}
+
+void StreamMJPEG::Update()
+{
+	int running = INT_MAX;
+	curl_multi_perform(m_pCurlMultiHandle, &running);
+
+	if (running <= 1)
 	{
 		int a = 0;
 	}
@@ -66,11 +76,6 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	{
 		CopyFrame(*m_pMultipartBlock);
 	}
-}
-
-StreamMJPEG::~StreamMJPEG()
-{
-	curl_easy_cleanup(m_pCurlHandle);
 }
 
 StreamMJPEG::State StreamMJPEG::GetState() const
@@ -175,6 +180,11 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 		bool emptyBlock = (boundaryIdx == 0);
 		if (!emptyBlock)
 		{
+			if (pStream->m_pMultipartBlock != nullptr)
+			{
+				delete pStream->m_pMultipartBlock;
+			}
+
 			pStream->m_pMultipartBlock = new MultipartBlock(pStream->m_ResponseBuffer, boundaryIdx);
 		}
 
@@ -234,21 +244,18 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 		else
 		{
 			glBindTexture(GL_TEXTURE_2D, m_TextureId);
-			if (!m_TextureCreated)
-			{
-				int bpp = pSurface->format->BytesPerPixel;
-				if (bpp == 3 || bpp == 4)
-				{
-					int internalFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
-					int format = (bpp == 4) ? GL_RGBA : GL_RGB;
 
-					glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					m_TextureCreated = true;
-				}
+			int bpp = pSurface->format->BytesPerPixel;
+			if (bpp == 3 || bpp == 4)
+			{
+				int internalFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
+				int format = (bpp == 4) ? GL_RGBA : GL_RGB;
+
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, pSurface->w, pSurface->h, 0, format, GL_UNSIGNED_BYTE, pSurface->pixels);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			}
-			
+
 			SDL_FreeSurface(pSurface);
 		}
 	}

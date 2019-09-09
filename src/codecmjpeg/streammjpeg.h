@@ -30,6 +30,7 @@ class StreamMJPEG
 public:
 	StreamMJPEG(const std::string& url, uint32_t textureId);
 	~StreamMJPEG();
+	void Update();
 
 	enum class State
 	{
@@ -67,13 +68,13 @@ private:
 	Error m_Error;
 	State m_State;
 	Id m_Id;
+	CURL* m_pCurlMultiHandle;
 	CURL* m_pCurlHandle;
 	ByteArray m_HeaderBuffer;
 	ByteArray m_ResponseBuffer;
 	std::string m_Url;
 	std::string m_MultipartBoundary;
 	uint32_t m_TextureId;
-	bool m_TextureCreated;
 
 	MultipartBlock* m_pMultipartBlock;
 };

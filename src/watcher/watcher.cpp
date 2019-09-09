@@ -128,6 +128,12 @@ void Watcher::Update()
 {
 	TextureLoader::Update();
 
+	json updateMessage =
+	{
+		{ "type", "update" }
+	};
+	m_pPluginManager->BroadcastMessage(updateMessage);
+
 	m_pRep->Update();
 	m_pRep->Render();
 
