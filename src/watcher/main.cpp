@@ -106,7 +106,7 @@ int main(int, char**)
         }
         ImGui_ImplSdlGL3_NewFrame(window);
 
-        //ImGui::ShowDemoWindow(&show_demo_window);
+        ImGui::ShowDemoWindow(&show_demo_window);
 
 		watcher.Update();
 

@@ -37,6 +37,8 @@ public:
 	bool IsOpen() const;
 	void Close();
 
+	void Render();
+
 	GLuint GetTexture() const;
 
 	bool m_Open;
@@ -44,4 +46,6 @@ public:
 private:
 	Camera m_Camera;
 	GLuint m_Texture;
+	uint32_t m_Width;
+	uint32_t m_Height;
 };

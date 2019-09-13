@@ -259,40 +259,7 @@ void WatcherRep::RenderCameras()
 {
 	for (auto& cameraDisplay : m_CameraReps)
 	{
-		if (cameraDisplay.m_Open)
-		{
-			ImGui::SetNextWindowSize(ImVec2(400, 260), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin(cameraDisplay.GetCamera().GetURL().c_str(), &cameraDisplay.m_Open))
-			{
-				ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.3f, 300), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-				ImGui::Columns(2);
-
-				GeolocationData* pGeo = cameraDisplay.GetCamera().GetGeolocationData();
-
-				ImGui::Text("Address"); ImGui::NextColumn();
-				ImGui::Text(pGeo->GetIPAddress().GetHostAsString().c_str()); ImGui::NextColumn();
-
-				ImGui::Text("Country"); ImGui::NextColumn();
-				ImGui::Text(pGeo->GetCountry().c_str()); ImGui::NextColumn();
-
-				ImGui::Text("Region"); ImGui::NextColumn();
-				ImGui::Text(pGeo->GetRegion().c_str()); ImGui::NextColumn();
-
-				ImGui::Text("City"); ImGui::NextColumn();
-				ImGui::Text(pGeo->GetCity().c_str()); ImGui::NextColumn();
-
-				ImGui::Columns(1);
-				ImGui::EndChild();
-
-				ImGui::SameLine();
-
-				ImGui::BeginChild("Child2", ImVec2(0, 300), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-				ImGui::Image(reinterpret_cast<ImTextureID>(cameraDisplay.GetTexture()), ImVec2(300, 300)); ImGui::NextColumn();
-				ImGui::EndChild();
-			}
-
-			ImGui::End();
-		}
+		cameraDisplay.Render();
 	}
 }
 

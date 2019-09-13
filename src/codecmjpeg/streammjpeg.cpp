@@ -52,7 +52,7 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_HEADERFUNCTION, WriteHeaderCallback);
 	curl_easy_setopt(m_pCurlHandle, CURLOPT_HEADERDATA, this);
-	curl_easy_setopt(m_pCurlHandle, CURLOPT_TIMEOUT, 10L);
+	curl_easy_setopt(m_pCurlHandle, CURLOPT_CONNECTTIMEOUT, 10L);
 
 	curl_multi_add_handle(m_pCurlMultiHandle, m_pCurlHandle);
 }

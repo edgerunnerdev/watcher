@@ -15,25 +15,16 @@
 
 #pragma once
 
+#include "imgui/imgui.h"
 #include "camerarep.h"
 
 CameraRep::CameraRep(const Camera& camera)
 {
 	m_Camera = camera;
 	m_Open = true;
+	m_Width = 480;
+	m_Height = 320;
 	glGenTextures(1, &m_Texture);
-
-	//std::vector<uint8_t> bytes2;
-	//int numBytes = 512 * 512 * 3;
-	//for (int i = 0; i < numBytes; ++i)
-	//{
-	//	bytes2.push_back(0xFF);
-	//}
-
-	//glBindTexture(GL_TEXTURE_2D, m_Texture);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, &bytes2[0]);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 const Camera& CameraRep::GetCamera() const
@@ -55,4 +46,32 @@ void CameraRep::Close()
 GLuint CameraRep::GetTexture() const
 {
 	return m_Texture;
+}
+
+void CameraRep::Render()
+{
+	if (!m_Open)
+	{
+		return;
+	}
+
+	ImGui::SetNextWindowSize(ImVec2(m_Width, m_Height), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin(m_Camera.GetURL().c_str(), &m_Open, ImGuiWindowFlags_NoSavedSettings))
+	{
+		ImVec2 windowPos = ImGui::GetWindowPos();
+
+		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+		ImTextureID cameraTexture = reinterpret_cast<ImTextureID>(GetTexture());
+		pDrawList->AddImage(cameraTexture, windowPos, ImVec2(windowPos.x + m_Width, windowPos.y + m_Height));
+
+		GeolocationData* pGeo = m_Camera.GetGeolocationData();
+		ImGui::Text("%s, %s, %s (%s)", 
+			pGeo->GetCity().c_str(),
+			pGeo->GetRegion().c_str(),
+			pGeo->GetCountry().c_str(),
+			pGeo->GetIPAddress().GetHostAsString().c_str()
+			);
+	}
+
+	ImGui::End();
 }
