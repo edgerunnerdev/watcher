@@ -58,7 +58,7 @@ void CameraRep::Render()
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(m_WindowWidth, m_WindowHeight), ImGuiCond_Always);
-	if (ImGui::Begin(m_Camera.GetURL().c_str(), &m_Open, ImGuiWindowFlags_NoSavedSettings))
+	if (ImGui::Begin(m_Camera.GetURL().c_str(), &m_Open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize))
 	{
 		ImVec2 windowPos = ImGui::GetWindowPos();
 
