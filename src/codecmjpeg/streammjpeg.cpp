@@ -166,7 +166,11 @@ bool StreamMJPEG::ExtractMultipartBoundary(const std::string& header, std::strin
 			boundaryEnd++;
 		}
 		// The complete boundary is always in the format of "--boundary".
-		result = std::string("--") + header.substr(idx, boundaryEnd - idx) + std::string("\r\n");
+		result = header.substr(idx, boundaryEnd - idx) + std::string("\r\n");
+		if (result.size() > 2 && result[0] != '-' && result[1] != '-')
+		{
+			result = std::string("--") + result;
+		}
 		return true;
 	}
 }

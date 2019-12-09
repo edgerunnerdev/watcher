@@ -46,6 +46,8 @@ public:
 private:
 	Camera m_Camera;
 	GLuint m_Texture;
-	uint32_t m_Width;
-	uint32_t m_Height;
+	GLint m_TextureWidth;
+	GLint m_TextureHeight;
+	float m_WindowWidth;
+	float m_WindowHeight;
 };
