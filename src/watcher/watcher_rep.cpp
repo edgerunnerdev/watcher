@@ -204,7 +204,7 @@ void WatcherRep::Render()
 				ImVec2(locationX + sPinHalfWidth, locationY),
 				ImVec2(0, 0),
 				ImVec2(1, 1),
-				ImColor(255, 123, 0)
+				GetPinColor(camera.GetState())
 			);
 		}
 	}
