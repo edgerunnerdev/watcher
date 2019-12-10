@@ -43,8 +43,8 @@ private:
 
 	void RenderCameras();
 	void OpenPickedCamera();
-	void OpenCamera(const Camera& camera);
 	void FlushClosedCameras();
+	const ImColor& GetPinColor(Camera::State state) const;
 
 	SDL_Window* m_pWindow;
 	Atlas::AtlasUniquePtr m_pAtlas;
@@ -54,4 +54,6 @@ private:
 	using CameraRepList = std::list<CameraRep>;
 	CameraRepList m_CameraReps;
 	bool m_SelectCamera;
+
+	std::array<ImColor, static_cast<size_t>(Camera::State::Count)> m_PinColor;
 };

@@ -227,7 +227,7 @@ void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pDa
 {
 	for (auto& row : result.Get())
 	{
-		const int numCells = 5;
+		const int numCells = 9;
 		if (numCells != row.size())
 		{
 			Log::Error("Invalid number of rows returned from query in LoadCamerasCallback(). Expected %d, got %d.", numCells, row.size());
@@ -244,6 +244,8 @@ void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pDa
 		{
 			camera.SetGeolocationData(g_pWatcher->m_GeolocationData[ip]);
 		}
+
+		camera.SetState(static_cast<Camera::State>(row[6]->GetInt()));
 
 		g_pWatcher->m_Cameras.push_back(camera);
 	}
@@ -273,6 +275,26 @@ void Watcher::AddGeolocationData(const json& message)
 	pGeolocationData->SaveToDatabase(m_pDatabase.get());
 }
 
+// Returns the current timestamp in a format which can be understood by sqlite as a date (YYYY-MM-DD HH:MM:SS.SSS).
+// See https://www.sqlitetutorial.net/sqlite-date/
+std::string Watcher::GetDate() const
+{
+	time_t rawTime;
+	struct tm timeInfo;
+	static char buffer[128];
+	time(&rawTime);
+
+	if (localtime_s(&timeInfo, &rawTime))
+	{
+		strftime(buffer, sizeof(buffer), "%F %T.000", &timeInfo);
+		return std::string(buffer);
+	}
+	else
+	{
+		return std::string();
+	}
+}
+
 void Watcher::AddCamera(const json& message)
 {
 	if (message["type"] != "http_server_scan_result")
@@ -288,12 +310,14 @@ void Watcher::AddCamera(const json& message)
 		int port = message["port"];
 		const std::string title = message["title"];
 
-		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5);");
+		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);");
 		addCameraStatement.Bind(1, url);
 		addCameraStatement.Bind(2, ipAddress);
 		addCameraStatement.Bind(3, port);
 		addCameraStatement.Bind(4, title);
 		addCameraStatement.Bind(5, 0); // Geolocation pending.
+		addCameraStatement.Bind(6, GetDate());
+		addCameraStatement.Bind(7, static_cast<int>(Camera::State::Unknown));
 		m_pDatabase->Execute(addCameraStatement);
 
 		json message =

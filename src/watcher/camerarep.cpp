@@ -71,6 +71,7 @@ void CameraRep::Render()
 			{
 				m_WindowWidth = static_cast<float>(m_TextureWidth);
 				m_WindowHeight = static_cast<float>(m_TextureHeight);
+				m_Camera.SetState(Camera::State::StreamAvailable);
 			}
 		}
 

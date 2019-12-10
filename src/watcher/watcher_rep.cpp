@@ -39,6 +39,10 @@ WatcherRep::WatcherRep(SDL_Window* pWindow) :
 	SetUserInterfaceStyle();
 
 	m_PinTexture = TextureLoader::LoadTexture("textures/pin.png");
+
+	m_PinColor[static_cast<size_t>(Camera::State::Unknown)]			= ImColor(255, 123, 0);
+	m_PinColor[static_cast<size_t>(Camera::State::StreamAvailable)] = ImColor(255,   0, 0);
+	m_PinColor[static_cast<size_t>(Camera::State::Unauthorised)]	= ImColor(  0, 255, 0);
 }
 
 WatcherRep::~WatcherRep()
@@ -154,6 +158,11 @@ void WatcherRep::Update()
 {
 	static const float sBaseCellSize = 128.0f;
 	m_CellSize = sBaseCellSize;
+}
+
+const ImColor& WatcherRep::GetPinColor(Camera::State state) const
+{
+	return m_PinColor[static_cast<size_t>(state)];
 }
 
 void WatcherRep::Render()

@@ -27,11 +27,13 @@ using CameraVector = std::vector<Camera>;
 class Camera
 {
 public:
-	enum State
+	enum class State
 	{
-		Unknown,
+		Unknown = 0,
 		Unauthorised,
-		Active
+		StreamAvailable,
+
+		Count
 	};
 
 	Camera() {}

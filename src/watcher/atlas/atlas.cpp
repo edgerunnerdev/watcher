@@ -125,7 +125,6 @@ void Atlas::Render()
 		{
 			pDrawList->AddImage( reinterpret_cast< ImTextureID >( pTile->Texture() ), p1, p2 );
 		}
-		//pDrawList->AddRect( p1, p2, ImColor( 0.0f, 1.0f, 0.0f ) );
 	}
 }
 

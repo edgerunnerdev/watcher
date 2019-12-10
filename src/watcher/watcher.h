@@ -65,6 +65,7 @@ private:
 	void InitialiseCameras();
 	void AddGeolocationData(const json& message);
 	void AddCamera(const json& message);
+	std::string GetDate() const;
 
 	bool m_Active;
 	Database::DatabaseUniquePtr m_pDatabase;
