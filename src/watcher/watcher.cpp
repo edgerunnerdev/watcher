@@ -309,8 +309,10 @@ void Watcher::AddCamera(const json& message)
 		const std::string ipAddress = message["ip_address"];
 		int port = message["port"];
 		const std::string title = message["title"];
+		const std::string username;
+		const std::string password;
 
-		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);");
+		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9);");
 		addCameraStatement.Bind(1, url);
 		addCameraStatement.Bind(2, ipAddress);
 		addCameraStatement.Bind(3, port);
@@ -318,6 +320,9 @@ void Watcher::AddCamera(const json& message)
 		addCameraStatement.Bind(5, 0); // Geolocation pending.
 		addCameraStatement.Bind(6, GetDate());
 		addCameraStatement.Bind(7, static_cast<int>(Camera::State::Unknown));
+		addCameraStatement.Bind(8, username);
+		addCameraStatement.Bind(9, password);
+
 		m_pDatabase->Execute(addCameraStatement);
 
 		json message =

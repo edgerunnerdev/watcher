@@ -263,7 +263,11 @@ std::string GoogleSearch::FilterCurlData(const std::string& data)
 bool GoogleSearch::ExtractStartIndex(const json& data, int& result)
 {
 	const json& queries = data["queries"];
-	if (queries.is_null()) return false;
+	if (queries.is_null() || queries.find("nextPage") == queries.cend())
+	{
+		return false;
+	}
+
 	const json& nextPage = queries["nextPage"];
 	if (!nextPage.is_array()) return false;
 	for (auto& entry : nextPage)

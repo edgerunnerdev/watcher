@@ -15,7 +15,14 @@ namespace Database
 		m_pCallback(pCallback),
 		m_pCallbackData(pCallbackData)
 	{
-		sqlite3_prepare_v2(pDatabase->m_pDatabase, query.c_str(), -1, &m_pStatement, nullptr);
+		if (sqlite3_prepare_v2(pDatabase->m_pDatabase, query.c_str(), -1, &m_pStatement, nullptr) != SQLITE_OK)
+		{
+			Log::Error("sqlite3_prepare_v2 failed for query '%s' with error '%d': %s.",
+				query.c_str(),
+				sqlite3_errcode(pDatabase->m_pDatabase),
+				sqlite3_errmsg(pDatabase->m_pDatabase)
+			);
+		}
 	}
 
 	void PreparedStatement::Bind(unsigned int index, const std::string& text)
