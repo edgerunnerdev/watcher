@@ -75,6 +75,7 @@ private:
 	std::string m_Url;
 	std::string m_MultipartBoundary;
 	uint32_t m_TextureId;
+	bool m_FrameAvailable;
 
 	MultipartBlock* m_pMultipartBlock;
 };

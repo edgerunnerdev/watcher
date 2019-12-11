@@ -38,7 +38,8 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	m_State(State::Initialising),
 	m_Id(++s_Id),
 	m_TextureId(textureId),
-	m_pMultipartBlock(nullptr)
+	m_pMultipartBlock(nullptr),
+	m_FrameAvailable(false)
 {
 	m_pCurlMultiHandle = curl_multi_init();
 
@@ -72,7 +73,7 @@ void StreamMJPEG::Update()
 		int a = 0;
 	}
 
-	if (m_pMultipartBlock)
+	if (m_pMultipartBlock && m_FrameAvailable)
 	{
 		CopyFrame(*m_pMultipartBlock);
 	}
@@ -196,6 +197,7 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
 		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
 		pStream->m_ResponseBuffer.resize(bytesToCopy);
+		pStream->m_FrameAvailable = true;
 	}
 }
 
@@ -263,4 +265,6 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 			SDL_FreeSurface(pSurface);
 		}
 	}
+
+	m_FrameAvailable = false;
 }
