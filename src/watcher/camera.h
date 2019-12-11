@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -22,7 +23,9 @@
 #include "geolocationdata.h"
 
 class Camera;
-using CameraVector = std::vector<Camera>;
+using CameraSharedPtr = std::shared_ptr<Camera>;
+using CameraWeakPtr = std::weak_ptr<Camera>;
+using CameraVector = std::vector<CameraSharedPtr>;
 
 class Camera
 {
@@ -36,8 +39,7 @@ public:
 		Count
 	};
 
-	Camera() {}
-	Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState);
+	Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState = State::Unknown);
 
 	const std::string& GetTitle() const;
 	const std::string& GetURL() const;
@@ -55,7 +57,7 @@ private:
 	State m_State;
 };
 
-inline Camera::Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState)
+inline Camera::Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState /* = State::Unknown */)
 {
 	m_Title = title;
 	m_URL = url;

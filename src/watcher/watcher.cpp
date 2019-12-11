@@ -194,15 +194,47 @@ void Watcher::OnMessageReceived(const json& message)
 	{
 		AddCamera(message);
 	}
+	else if (messageType == "stream_started")
+	{
+		CameraSharedPtr pCamera = FindCamera(message["url"]);
+		if (pCamera != nullptr)
+		{
+			ChangeCameraState(pCamera, Camera::State::StreamAvailable);
+		}
+	}
 
 	m_pPluginManager->BroadcastMessage(message);
+}
+
+CameraSharedPtr Watcher::FindCamera(const std::string& url)
+{
+	std::scoped_lock lock(m_CamerasMutex);
+	for (CameraSharedPtr& pCamera : m_Cameras)
+	{
+		if (pCamera->GetURL() == url)
+		{
+			return pCamera;
+		}
+	}
+	return CameraSharedPtr();
+}
+
+void Watcher::ChangeCameraState(CameraSharedPtr pCamera, Camera::State state)
+{
+	pCamera->SetState(state);
+
+	Database::PreparedStatement statement(m_pDatabase.get(), "UPDATE Cameras SET Type=?1, Date=?2 WHERE URL=?3;");
+	statement.Bind(1, static_cast<int>(state));
+	statement.Bind(2, GetDate());
+	statement.Bind(3, pCamera->GetURL());
+	m_pDatabase->Execute(statement);
 }
 
 void Watcher::LoadGeolocationDataCallback(const Database::QueryResult& result, void* pData)
 {
 	for (auto& row : result.Get())
 	{
-		const int numCells = 7;
+		static const int numCells = 7;
 		if (numCells != row.size())
 		{
 			Log::Error("Invalid number of rows returned from query in LoadGeolocationDataCallback(). Expected %d, got %d.", numCells, row.size());
@@ -227,7 +259,7 @@ void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pDa
 {
 	for (auto& row : result.Get())
 	{
-		const int numCells = 9;
+		static const int numCells = 7;
 		if (numCells != row.size())
 		{
 			Log::Error("Invalid number of rows returned from query in LoadCamerasCallback(). Expected %d, got %d.", numCells, row.size());
@@ -239,13 +271,13 @@ void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pDa
 		Network::IPAddress address(ip);
 		address.SetPort(row[2]->GetInt());
 
-		Camera camera(row[3]->GetString(), row[0]->GetString(), address, Camera::State::Unknown);
+		CameraSharedPtr camera = std::make_shared<Camera>(row[3]->GetString(), row[0]->GetString(), address, Camera::State::Unknown);
 		if (g_pWatcher->m_GeolocationData.find(ip) != g_pWatcher->m_GeolocationData.cend())
 		{
-			camera.SetGeolocationData(g_pWatcher->m_GeolocationData[ip]);
+			camera->SetGeolocationData(g_pWatcher->m_GeolocationData[ip]);
 		}
 
-		camera.SetState(static_cast<Camera::State>(row[6]->GetInt()));
+		camera->SetState(static_cast<Camera::State>(row[6]->GetInt()));
 
 		g_pWatcher->m_Cameras.push_back(camera);
 	}
@@ -263,11 +295,11 @@ void Watcher::AddGeolocationData(const json& message)
 		std::scoped_lock lock(m_GeolocationDataMutex, m_CamerasMutex);
 		m_GeolocationData[addressStr] = pGeolocationData;
 
-		for (Camera& camera : m_Cameras)
+		for (CameraSharedPtr& camera : m_Cameras)
 		{
-			if (camera.GetAddress().GetHost() == pGeolocationData->GetIPAddress().GetHost())
+			if (camera->GetAddress().GetHost() == pGeolocationData->GetIPAddress().GetHost())
 			{
-				camera.SetGeolocationData(pGeolocationData);
+				camera->SetGeolocationData(pGeolocationData);
 			}
 		}
 	}
@@ -284,7 +316,7 @@ std::string Watcher::GetDate() const
 	static char buffer[128];
 	time(&rawTime);
 
-	if (localtime_s(&timeInfo, &rawTime))
+	if (localtime_s(&timeInfo, &rawTime) == 0)
 	{
 		strftime(buffer, sizeof(buffer), "%F %T.000", &timeInfo);
 		return std::string(buffer);
@@ -312,7 +344,7 @@ void Watcher::AddCamera(const json& message)
 		const std::string username;
 		const std::string password;
 
-		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9);");
+		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);");
 		addCameraStatement.Bind(1, url);
 		addCameraStatement.Bind(2, ipAddress);
 		addCameraStatement.Bind(3, port);
@@ -320,8 +352,6 @@ void Watcher::AddCamera(const json& message)
 		addCameraStatement.Bind(5, 0); // Geolocation pending.
 		addCameraStatement.Bind(6, GetDate());
 		addCameraStatement.Bind(7, static_cast<int>(Camera::State::Unknown));
-		addCameraStatement.Bind(8, username);
-		addCameraStatement.Bind(9, password);
 
 		m_pDatabase->Execute(addCameraStatement);
 
@@ -336,7 +366,9 @@ void Watcher::AddCamera(const json& message)
 			std::scoped_lock lock(m_CamerasMutex);
 			Network::IPAddress fullAddress(ipAddress);
 			fullAddress.SetPort(port);
-			m_Cameras.emplace_back(title, url, fullAddress, Camera::State::Unknown);
+
+			CameraSharedPtr camera = std::make_shared<Camera>(title, url, fullAddress);
+			m_Cameras.push_back(camera);
 		}
 	}
 }

@@ -31,9 +31,9 @@
 class CameraRep
 {
 public:
-	CameraRep(const Camera& camera);
+	CameraRep(CameraWeakPtr cameraWeakPtr);
 
-	const Camera& GetCamera() const;
+	CameraWeakPtr GetCameraWeakPtr() const;
 	bool IsOpen() const;
 	void Close();
 
@@ -41,13 +41,12 @@ public:
 
 	GLuint GetTexture() const;
 
-	bool m_Open;
-
 private:
-	Camera m_Camera;
+	CameraWeakPtr m_CameraWeakPtr;
 	GLuint m_Texture;
 	GLint m_TextureWidth;
 	GLint m_TextureHeight;
 	float m_WindowWidth;
 	float m_WindowHeight;
+	bool m_Open;
 };

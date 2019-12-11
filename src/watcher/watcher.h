@@ -66,6 +66,8 @@ private:
 	void AddGeolocationData(const json& message);
 	void AddCamera(const json& message);
 	std::string GetDate() const;
+	CameraSharedPtr FindCamera(const std::string& url);
+	void ChangeCameraState(CameraSharedPtr pCamera, Camera::State state);
 
 	bool m_Active;
 	Database::DatabaseUniquePtr m_pDatabase;

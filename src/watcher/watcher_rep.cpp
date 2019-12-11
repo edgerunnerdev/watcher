@@ -40,9 +40,9 @@ WatcherRep::WatcherRep(SDL_Window* pWindow) :
 
 	m_PinTexture = TextureLoader::LoadTexture("textures/pin.png");
 
-	m_PinColor[static_cast<size_t>(Camera::State::Unknown)]			= ImColor(255, 123, 0);
-	m_PinColor[static_cast<size_t>(Camera::State::StreamAvailable)] = ImColor(255,   0, 0);
-	m_PinColor[static_cast<size_t>(Camera::State::Unauthorised)]	= ImColor(  0, 255, 0);
+	m_PinColor[static_cast<size_t>(Camera::State::Unknown)]			= ImColor(123, 123, 123);
+	m_PinColor[static_cast<size_t>(Camera::State::StreamAvailable)] = ImColor(  0, 200, 0);
+	m_PinColor[static_cast<size_t>(Camera::State::Unauthorised)]	= ImColor(255,   0, 0);
 }
 
 WatcherRep::~WatcherRep()
@@ -191,9 +191,9 @@ void WatcherRep::Render()
 	ImGui::End();
 
 	CameraVector cameras = g_pWatcher->GetCameras();
-	for (Camera camera : cameras)
+	for (CameraSharedPtr& camera : cameras)
 	{
-		GeolocationData* pGeolocationData = camera.GetGeolocationData();
+		GeolocationData* pGeolocationData = camera->GetGeolocationData();
 		if (pGeolocationData != nullptr)
 		{
 			float locationX, locationY;
@@ -204,7 +204,7 @@ void WatcherRep::Render()
 				ImVec2(locationX + sPinHalfWidth, locationY),
 				ImVec2(0, 0),
 				ImVec2(1, 1),
-				GetPinColor(camera.GetState())
+				GetPinColor(camera->GetState())
 			);
 		}
 	}
@@ -220,16 +220,16 @@ void WatcherRep::OpenPickedCamera()
 	{
 		// TODO: This needs to support multiple overlapping cameras, with a dropdown menu to choose from.
 		CameraVector hoveredCameras = GetHoveredCameras();
-		for (Camera& camera : hoveredCameras)
+		for (CameraSharedPtr& pCamera : hoveredCameras)
 		{
-			GeolocationData* pGeo = camera.GetGeolocationData();
+			GeolocationData* pGeo = pCamera->GetGeolocationData();
 			if (pGeo == nullptr)
 			{
-				ImGui::SetTooltip("%s", camera.GetAddress().ToString().c_str());
+				ImGui::SetTooltip("%s", pCamera->GetAddress().ToString().c_str());
 			}
 			else
 			{
-				ImGui::SetTooltip("%s (%s, %s)", camera.GetAddress().ToString().c_str(), pGeo->GetCity().c_str(), pGeo->GetCountry().c_str());
+				ImGui::SetTooltip("%s (%s, %s)", pCamera->GetAddress().ToString().c_str(), pGeo->GetCity().c_str(), pGeo->GetCountry().c_str());
 			}
 		}
 
@@ -238,7 +238,8 @@ void WatcherRep::OpenPickedCamera()
 			bool found = false;
 			for (auto& cameraDisplay : m_CameraReps)
 			{
-				if (cameraDisplay.GetCamera().GetURL() == hoveredCameras.front().GetURL())
+				CameraSharedPtr pCamera = cameraDisplay.GetCameraWeakPtr().lock();
+				if (pCamera != nullptr && pCamera->GetURL() == hoveredCameras.front()->GetURL())
 				{
 					found = true;
 					break;
@@ -249,11 +250,10 @@ void WatcherRep::OpenPickedCamera()
 			{
 				m_CameraReps.emplace_back(hoveredCameras.front());
 
-
 				json message =
 				{
 					{ "type", "stream_request" },
-					{ "url", hoveredCameras.front().GetURL() },
+					{ "url", hoveredCameras.front()->GetURL() },
 					{ "texture_id", m_CameraReps.back().GetTexture() }
 				};
 				g_pWatcher->OnMessageReceived(message);
@@ -290,9 +290,9 @@ CameraVector WatcherRep::GetHoveredCameras()
 	int mx, my;
 	SDL_GetMouseState(&mx, &my);
 
-	for (Camera camera : cameras)
+	for (CameraSharedPtr pCamera : cameras)
 	{
-		GeolocationData* pGeolocationData = camera.GetGeolocationData();
+		GeolocationData* pGeolocationData = pCamera->GetGeolocationData();
 		if (pGeolocationData != nullptr)
 		{
 			float locationX, locationY;
@@ -301,7 +301,7 @@ CameraVector WatcherRep::GetHoveredCameras()
 			if (mx > locationX - sPinHalfWidth && mx < locationX + sPinHalfWidth && 
 				my > locationY - sPinHeight && my < locationY)
 			{
-				hoveredCameras.push_back(camera);
+				hoveredCameras.push_back(pCamera);
 			}
 		}
 	}
