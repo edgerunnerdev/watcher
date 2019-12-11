@@ -42,6 +42,8 @@ public:
 	GLuint GetTexture() const;
 
 private:
+	static void ConstrainedRatio(ImGuiSizeCallbackData* pData);
+
 	CameraWeakPtr m_CameraWeakPtr;
 	GLuint m_Texture;
 	GLint m_TextureWidth;

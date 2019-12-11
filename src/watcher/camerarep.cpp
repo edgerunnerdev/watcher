@@ -51,6 +51,23 @@ GLuint CameraRep::GetTexture() const
 	return m_Texture;
 }
 
+void CameraRep::ConstrainedRatio(ImGuiSizeCallbackData* pData) 
+{ 
+	CameraRep* pCameraRep = reinterpret_cast<CameraRep*>(pData->UserData);
+	const float ratio = static_cast<float>(pCameraRep->m_TextureHeight) / static_cast<float>(pCameraRep->m_TextureWidth);
+	if (static_cast<int>(pCameraRep->m_WindowWidth) != static_cast<int>(pData->DesiredSize.x))
+	{
+		pData->DesiredSize.y = pData->DesiredSize.x * ratio;
+	}
+	else if (static_cast<int>(pCameraRep->m_WindowHeight) != static_cast<int>(pData->DesiredSize.y))
+	{
+		pData->DesiredSize.x = pData->DesiredSize.y * 1.0f / ratio;
+	}
+
+	pCameraRep->m_WindowWidth = pData->DesiredSize.x;
+	pCameraRep->m_WindowHeight = pData->DesiredSize.y;
+}
+
 void CameraRep::Render()
 {
 	if (!m_Open)
@@ -64,7 +81,20 @@ void CameraRep::Render()
 		return;
 	}
 
-	ImGui::SetNextWindowSize(ImVec2(m_WindowWidth, m_WindowHeight), ImGuiCond_Always);
+	if (m_TextureWidth == 0 && m_TextureHeight == 0)
+	{
+		ImGui::SetNextWindowSize(ImVec2(m_WindowWidth, m_WindowHeight));
+	}
+	else
+	{
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(0, 0), 
+			ImVec2((float)m_TextureWidth, (float)m_TextureHeight), 
+			ConstrainedRatio,
+			this
+		);
+	}
+
 	if (ImGui::Begin(pCamera->GetURL().c_str(), &m_Open, ImGuiWindowFlags_NoSavedSettings))
 	{
 		ImVec2 windowPos = ImGui::GetWindowPos();
