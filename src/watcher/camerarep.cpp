@@ -55,15 +55,7 @@ void CameraRep::ConstrainedRatio(ImGuiSizeCallbackData* pData)
 { 
 	CameraRep* pCameraRep = reinterpret_cast<CameraRep*>(pData->UserData);
 	const float ratio = static_cast<float>(pCameraRep->m_TextureHeight) / static_cast<float>(pCameraRep->m_TextureWidth);
-	if (static_cast<int>(pCameraRep->m_WindowWidth) != static_cast<int>(pData->DesiredSize.x))
-	{
-		pData->DesiredSize.y = pData->DesiredSize.x * ratio;
-	}
-	else if (static_cast<int>(pCameraRep->m_WindowHeight) != static_cast<int>(pData->DesiredSize.y))
-	{
-		pData->DesiredSize.x = pData->DesiredSize.y * 1.0f / ratio;
-	}
-
+	pData->DesiredSize.y = pData->DesiredSize.x * ratio;
 	pCameraRep->m_WindowWidth = pData->DesiredSize.x;
 	pCameraRep->m_WindowHeight = pData->DesiredSize.y;
 }

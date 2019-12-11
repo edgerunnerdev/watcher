@@ -290,6 +290,11 @@ bool GoogleSearch::ExtractTotalResults(const json& data, int& result)
 	if (!request.is_array()) return false;
 	for (auto& entry : request)
 	{
+		if (entry.find("totalResults") == entry.cend())
+		{
+			return false;
+		}
+
 		// Oddly enough, the "totalResults" entry returned by the API isn't an integer, but a string.
 		const json& totalResults = entry["totalResults"];
 		if (totalResults.is_string())
@@ -303,6 +308,11 @@ bool GoogleSearch::ExtractTotalResults(const json& data, int& result)
 
 bool GoogleSearch::ExtractResults(const json& data, QueryResults& results)
 {
+	if (data.find("items") == data.end())
+	{
+		return false;
+	}
+
 	const json& items = data["items"];
 	if (!items.is_array()) return false;
 
