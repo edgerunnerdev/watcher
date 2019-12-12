@@ -103,7 +103,22 @@ void CodecMJPEG::ProcessStreamRequest(const std::string& url, uint32_t textureId
 {
 	if (url.rfind(".mjpg") != std::string::npos)
 	{
-		StreamMJPEG* pStream = new StreamMJPEG(url, textureId);
+		std::string streamUrl = url;
+
+		// If a "imagepath=" is present in the URL, the actual stream file is located
+		// somewhere else.
+		size_t imagePathPos = url.find("imagepath=");
+		if (imagePathPos != std::string::npos)
+		{
+			size_t viewPos = url.find("/view/view.shtml");
+			if (viewPos != std::string::npos)
+			{
+				// TODO: use the dynamic imagepath.
+				streamUrl = url.substr(0, viewPos) + "/mjpg/video.mjpg";
+			}
+		}
+
+		StreamMJPEG* pStream = new StreamMJPEG(streamUrl, textureId);
 		m_Streams.push_back(pStream);
 	}
 }
