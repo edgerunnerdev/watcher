@@ -38,6 +38,7 @@ StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
 	m_State(State::Initialising),
 	m_Id(++s_Id),
 	m_TextureId(textureId),
+	m_Url(url),
 	m_pMultipartBlock(nullptr),
 	m_FrameAvailable(false)
 {
@@ -93,6 +94,11 @@ StreamMJPEG::State StreamMJPEG::GetState() const
 StreamMJPEG::Id StreamMJPEG::GetId() const
 {
 	return m_Id;
+}
+
+const std::string& StreamMJPEG::GetUrl() const
+{
+	return m_Url;
 }
 
 void StreamMJPEG::SetError(Error error)

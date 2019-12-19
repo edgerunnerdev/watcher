@@ -56,6 +56,8 @@ public:
 	using Id = unsigned int;
 	Id GetId() const;
 
+	const std::string& GetUrl() const;
+
 private:
 	static size_t WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
 	static size_t WriteResponseCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);

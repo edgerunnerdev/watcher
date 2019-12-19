@@ -16,13 +16,15 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
+#include <list>
+#include <memory>
 
 #include "../watcher/plugin.h"
 #include "network/network.h"
 
 class StreamMJPEG;
-using StreamMJPEGVector = std::vector<StreamMJPEG*>;
+using StreamMJPEGSharedPtr = std::shared_ptr<StreamMJPEG>;
+using StreamMJPEGList = std::list<StreamMJPEGSharedPtr>;
 
 class CodecMJPEG : public Plugin
 {
@@ -38,5 +40,5 @@ private:
 	void ProcessStreamRequest(const std::string& url, uint32_t textureId);
 
 	PluginMessageCallback m_pMessageCallback;
-	StreamMJPEGVector m_Streams;
+	StreamMJPEGList m_Streams;
 };

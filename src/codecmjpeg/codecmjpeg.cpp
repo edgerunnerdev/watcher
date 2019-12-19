@@ -35,10 +35,7 @@ CodecMJPEG::CodecMJPEG()
 
 CodecMJPEG::~CodecMJPEG()
 {
-	for (StreamMJPEG* pStream : m_Streams)
-	{
-		delete pStream;
-	}
+
 }
 
 bool CodecMJPEG::Initialise(PluginMessageCallback pMessageCallback)
@@ -64,13 +61,14 @@ void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
 			ProcessStreamRequest(url.get<std::string>(), textureId.get<uint32_t>());
 		}
 	}
-	else if (messageType == "stream_frame_info")
+	else if (messageType == "stream_stopped")
 	{
-
+		const std::string& url = message["url"];
+		m_Streams.remove_if([&url](const StreamMJPEGSharedPtr& pStream) { return pStream->GetUrl() == url; });
 	}
 	else if (messageType == "update")
 	{
-		for (StreamMJPEG* pStream : m_Streams)
+		for (StreamMJPEGSharedPtr pStream : m_Streams)
 		{
 			pStream->Update();
 		}
@@ -101,7 +99,7 @@ void CodecMJPEG::ProcessStreamRequest(const std::string& url, uint32_t textureId
 			}
 		}
 
-		StreamMJPEG* pStream = new StreamMJPEG(streamUrl, textureId);
+		StreamMJPEGSharedPtr pStream = std::make_shared<StreamMJPEG>(streamUrl, textureId);
 		m_Streams.push_back(pStream);
 	}
 }
