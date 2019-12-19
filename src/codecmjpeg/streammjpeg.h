@@ -43,8 +43,11 @@ public:
 	enum class Error
 	{
 		NoError,
+		InvalidBlock,
 		UnsupportedContentType,
 		UnknownBoundary,
+		DecodingError,
+		UnknownError,
 		Timeout
 	};
 
@@ -63,9 +66,10 @@ private:
 	static void ProcessMultipartContent(StreamMJPEG* pStream);
 	static size_t FindInStream(StreamMJPEG* pStream, size_t offset, const std::string& toFind);
 
-	void CopyFrame(const MultipartBlock& block);
-
-	Error m_Error;
+	void SetError(Error error);
+	Error CopyFrame(const MultipartBlock& block);
+	
+	Error m_Error; // Do not set directly, use SetError().
 	State m_State;
 	Id m_Id;
 	CURL* m_pCurlMultiHandle;

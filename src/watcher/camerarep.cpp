@@ -44,6 +44,17 @@ void CameraRep::Close()
 {
 	m_Open = false;
 	glDeleteTextures(1, &m_Texture);
+
+	CameraSharedPtr pCamera = m_CameraWeakPtr.lock();
+	if (pCamera)
+	{
+		json message =
+		{
+			{ "type", "stream_stopped" },
+			{ "url", pCamera->GetURL() }
+		};
+		g_pWatcher->OnMessageReceived(message);
+	}
 }
 
 GLuint CameraRep::GetTexture() const
@@ -117,6 +128,11 @@ void CameraRep::Render()
 		GeolocationData* pGeo = pCamera->GetGeolocationData();
 		ImGui::Text("%s, %s, %s", pGeo->GetCity().c_str(), pGeo->GetRegion().c_str(), pGeo->GetCountry().c_str());
 		ImGui::Text("%s", pGeo->GetIPAddress().GetHostAsString().c_str());
+
+		if (m_Open == false)
+		{
+			Close();
+		}
 	}
 
 	ImGui::End();

@@ -66,16 +66,22 @@ StreamMJPEG::~StreamMJPEG()
 void StreamMJPEG::Update()
 {
 	int running = INT_MAX;
-	curl_multi_perform(m_pCurlMultiHandle, &running);
-
-	if (running <= 1)
+	if (m_State == State::Initialising || m_State == State::Streaming)
 	{
-		int a = 0;
-	}
+		curl_multi_perform(m_pCurlMultiHandle, &running);
 
-	if (m_pMultipartBlock && m_FrameAvailable)
-	{
-		CopyFrame(*m_pMultipartBlock);
+		if (running < 1)
+		{
+			m_State = State::Terminated;
+		}
+		else if (m_pMultipartBlock && m_FrameAvailable)
+		{
+			Error result = CopyFrame(*m_pMultipartBlock);
+			if (result != Error::NoError)
+			{
+				SetError(result);
+			}
+		}
 	}
 }
 
@@ -89,10 +95,20 @@ StreamMJPEG::Id StreamMJPEG::GetId() const
 	return m_Id;
 }
 
+void StreamMJPEG::SetError(Error error)
+{
+	if (m_State != State::Error)
+	{
+		m_State = State::Error;
+		m_Error = error;
+	}
+}
+
 size_t StreamMJPEG::WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData)
 {
 	size_t realSize = size * nmemb;
 	StreamMJPEG* pStream = reinterpret_cast<StreamMJPEG*>(pUserData);
+	pStream->m_State = State::Streaming;
 	std::vector<uint8_t>& data = pStream->m_HeaderBuffer;
 	if (data.size() < realSize + 1)
 	{
@@ -108,12 +124,12 @@ size_t StreamMJPEG::WriteHeaderCallback(void* pContents, size_t size, size_t nme
 		{
 			if (ExtractMultipartBoundary(header, pStream->m_MultipartBoundary) == false)
 			{
-				pStream->m_Error = Error::UnknownBoundary;
+				pStream->SetError(Error::UnknownBoundary);
 			}
 		}
 		else
 		{
-			pStream->m_Error = Error::UnsupportedContentType;
+			pStream->SetError(Error::UnsupportedContentType);
 		}
 	}
 
@@ -124,6 +140,7 @@ size_t StreamMJPEG::WriteResponseCallback(void* pContents, size_t size, size_t n
 {
 	size_t realSize = size * nmemb;
 	StreamMJPEG* pStream = reinterpret_cast<StreamMJPEG*>(pUserData);
+	pStream->m_State = State::Streaming;
 	ByteArray& data = pStream->m_ResponseBuffer;
 	size_t curDataSize = data.size();
 	data.resize(curDataSize + realSize);
@@ -226,15 +243,15 @@ size_t StreamMJPEG::FindInStream(StreamMJPEG* pStream, size_t offset, const std:
 	return -1;
 }
 
-void StreamMJPEG::CopyFrame(const MultipartBlock& block)
+StreamMJPEG::Error StreamMJPEG::CopyFrame(const MultipartBlock& block)
 {
 	if (!block.IsValid()) // The block has not received the expected data or is missing headers.
 	{
-		return;
+		return Error::InvalidBlock;
 	}
 	else if (block.GetType() != "image/jpeg") // It's a valid block, but not one we can process.
 	{
-		return;
+		return Error::UnsupportedContentType;
 	}
 
 	const ByteArray& bytes = block.GetBytes();
@@ -244,8 +261,8 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 		SDL_Surface* pSurface = IMG_LoadJPG_RW(pOps);
 		if (pSurface == nullptr)
 		{
-			const char* pError = IMG_GetError();
-			int a = 0;
+			//const char* pError = IMG_GetError();
+			return Error::DecodingError;
 		}
 		else
 		{
@@ -265,6 +282,11 @@ void StreamMJPEG::CopyFrame(const MultipartBlock& block)
 			SDL_FreeSurface(pSurface);
 		}
 	}
+	else
+	{
+		return Error::UnknownError;
+	}
 
 	m_FrameAvailable = false;
+	return Error::NoError;
 }

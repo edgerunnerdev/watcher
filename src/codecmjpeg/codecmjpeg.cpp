@@ -50,8 +50,8 @@ bool CodecMJPEG::Initialise(PluginMessageCallback pMessageCallback)
 // Messages:
 // - stream_request: received when the user opens a camera.
 // - stream_request_accepted: sent if the codec is capable of handling the requested camera.
-// - stream_frame_info: received when watcher allocates a buffer for the codec to write a frame to.
 // - stream_frame: sent when a frame has been written to the buffer.
+// - stream_stopped: stop streaming the requested camera.
 void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
 {
 	std::string messageType = message["type"];
@@ -79,24 +79,7 @@ void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
 
 void CodecMJPEG::DrawUI(ImGuiContext* pContext)
 {
-	//ImGui::SetCurrentContext(pContext);
 
-	//if (ImGui::CollapsingHeader("Geolocation", ImGuiTreeNodeFlags_DefaultOpen))
-	//{
-	//	std::lock_guard< std::mutex > lock(m_AccessMutex);
-	//	ImGui::Text("Provider: ipinfo.io");
-
-	//	if (m_RateLimitExceeded)
-	//	{
-	//		ImGui::Text("Rate limit exceeded.");
-	//	}
-	//	else
-	//	{
-	//		std::stringstream ss;
-	//		ss << "Queue size: " << m_Queue.size();
-	//		ImGui::Text(ss.str().c_str());
-	//	}
-	//}
 }
 
 void CodecMJPEG::ProcessStreamRequest(const std::string& url, uint32_t textureId)
