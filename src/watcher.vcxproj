@@ -82,16 +82,63 @@
     <ClCompile Include="atlas\tile.cpp" />
     <ClCompile Include="atlas\tile_streamer.cpp" />
     <ClCompile Include="camerarep.cpp" />
+    <ClCompile Include="codecs\mjpeg\codecmjpeg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="codecs\mjpeg\multipartblock.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="codecs\mjpeg\streammjpeg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
     <ClCompile Include="database\prepared_statement.cpp" />
     <ClCompile Include="database\query_result.cpp" />
     <ClCompile Include="filesystem.cpp" />
     <ClCompile Include="geolocationdata.cpp" />
+    <ClCompile Include="GL\gl3w.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="network\network.cpp" />
+    <ClCompile Include="network\network_linux.cpp" />
+    <ClCompile Include="network\network_windows.cpp" />
     <ClCompile Include="plugin_manager.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c" />
+    <ClCompile Include="tasks\geolocation\geolocation.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\googlesearch\googlesearch.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\googlesearch\query.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\htmlstreamparser.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\httpcameradetector.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\rule.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\coverage.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\ipgenerator.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\portprobe.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\portscanner.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="texture_loader.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcher_rep.cpp" />
@@ -102,6 +149,15 @@
     <ClInclude Include="atlas\tile_streamer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camerarep.h" />
+    <ClInclude Include="codecs\mjpeg\codecmjpeg.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="codecs\mjpeg\multipartblock.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="codecs\mjpeg\streammjpeg.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
     <ClInclude Include="database\prepared_statement.h" />
@@ -109,14 +165,57 @@
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="geolocationdata.h" />
     <ClInclude Include="ext\json.h" />
+    <ClInclude Include="GL\gl3w.h" />
+    <ClInclude Include="GL\glcorearb.h" />
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_impl_sdl_gl3.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\stb_rect_pack.h" />
+    <ClInclude Include="imgui\stb_textedit.h" />
+    <ClInclude Include="imgui\stb_truetype.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="network\network.h" />
     <ClInclude Include="plugin.h" />
     <ClInclude Include="plugin_manager.h" />
     <ClInclude Include="ext\sqlite\sqlite3.h" />
     <ClInclude Include="render.h" />
+    <ClInclude Include="tasks\geolocation\geolocation.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\googlesearch\googlesearch.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\googlesearch\query.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\htmlstreamparser.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\httpcameradetector.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\rule.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\coverage.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\ipgenerator.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\portprobe.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\portscanner.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="texture_loader.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcher_rep.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="imgui\LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

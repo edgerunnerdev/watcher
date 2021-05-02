@@ -1,0 +1,255 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="configuration.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="watcher.cpp" />
+    <ClCompile Include="watcher_rep.cpp" />
+    <ClCompile Include="ext\sqlite\sqlite3.c">
+      <Filter>ext\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas\atlas.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_manager.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="database\database.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="database\prepared_statement.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas\tile_streamer.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas\tile.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="texture_loader.cpp" />
+    <ClCompile Include="filesystem.cpp" />
+    <ClCompile Include="database\query_result.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="geolocationdata.cpp" />
+    <ClCompile Include="camerarep.cpp" />
+    <ClCompile Include="tasks\googlesearch\query.cpp">
+      <Filter>tasks\googlesearch</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\googlesearch\googlesearch.cpp">
+      <Filter>tasks\googlesearch</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\portscanner.cpp">
+      <Filter>tasks\portscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\coverage.cpp">
+      <Filter>tasks\portscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\ipgenerator.cpp">
+      <Filter>tasks\portscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\portscanner\portprobe.cpp">
+      <Filter>tasks\portscanner</Filter>
+    </ClCompile>
+    <ClCompile Include="codecs\mjpeg\multipartblock.cpp">
+      <Filter>codecs\mjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="codecs\mjpeg\streammjpeg.cpp">
+      <Filter>codecs\mjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="codecs\mjpeg\codecmjpeg.cpp">
+      <Filter>codecs\mjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\rule.cpp">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\htmlstreamparser.c">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\httpcameradetector\httpcameradetector.cpp">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks\geolocation\geolocation.cpp">
+      <Filter>tasks\geolocation</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\gl3w.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network_linux.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\network_windows.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ext">
+      <UniqueIdentifier>{6e3f66dd-35b8-47f3-bcd3-23f6e12531f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\sqlite">
+      <UniqueIdentifier>{786d36b5-9ffd-46e6-803f-fe7487a52e34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="atlas">
+      <UniqueIdentifier>{d2fa59ad-5c7e-465c-9132-431688af48b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="database">
+      <UniqueIdentifier>{6185a3f2-6956-4fd1-92ad-3e0299894968}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tasks">
+      <UniqueIdentifier>{a892e924-6bf4-41e5-bc63-1ea72b5c5876}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tasks\googlesearch">
+      <UniqueIdentifier>{58205c7f-8004-4749-84b8-da9ede976966}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tasks\portscanner">
+      <UniqueIdentifier>{85f485f3-651e-462b-a08d-d48b5d5ea3d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="codecs">
+      <UniqueIdentifier>{84c97ee1-d93f-4ac5-8d1a-0ca1e35d038f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="codecs\mjpeg">
+      <UniqueIdentifier>{2705e408-54f3-48e6-bdea-9a051213add4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tasks\httpcameradetector">
+      <UniqueIdentifier>{bde586fc-21b2-417b-9ffd-881fe29e254d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tasks\geolocation">
+      <UniqueIdentifier>{063fa45c-96e9-4ead-bf2c-82181a623a05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{a819423d-326f-4e95-b18b-daef00293242}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{c405e6fa-0149-4034-b09f-641653f59dd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{4f514c76-9657-41e8-89c7-f67151c0d241}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="configuration.h" />
+    <ClInclude Include="render.h" />
+    <ClInclude Include="watcher.h" />
+    <ClInclude Include="watcher_rep.h" />
+    <ClInclude Include="ext\sqlite\sqlite3.h">
+      <Filter>ext\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\json.h">
+      <Filter>ext</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\atlas.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin.h" />
+    <ClInclude Include="plugin_manager.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="database\database.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\prepared_statement.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\query_result.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\tile_streamer.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas\tile.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="texture_loader.h" />
+    <ClInclude Include="filesystem.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="geolocationdata.h" />
+    <ClInclude Include="camerarep.h" />
+    <ClInclude Include="tasks\googlesearch\googlesearch.h">
+      <Filter>tasks\googlesearch</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\googlesearch\query.h">
+      <Filter>tasks\googlesearch</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\portprobe.h">
+      <Filter>tasks\portscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\portscanner.h">
+      <Filter>tasks\portscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\coverage.h">
+      <Filter>tasks\portscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\portscanner\ipgenerator.h">
+      <Filter>tasks\portscanner</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\mjpeg\multipartblock.h">
+      <Filter>codecs\mjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\mjpeg\streammjpeg.h">
+      <Filter>codecs\mjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\mjpeg\codecmjpeg.h">
+      <Filter>codecs\mjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\httpcameradetector.h">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\rule.h">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\httpcameradetector\htmlstreamparser.h">
+      <Filter>tasks\httpcameradetector</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks\geolocation\geolocation.h">
+      <Filter>tasks\geolocation</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\glcorearb.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\gl3w.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_sdl_gl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_rect_pack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\stb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="network\network.h">
+      <Filter>network</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="imgui\LICENSE.txt">
+      <Filter>imgui</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
