@@ -28,6 +28,9 @@
 
 #include "camera.h"
 
+namespace Watcher
+{
+
 class CameraRep
 {
 public:
@@ -52,3 +55,5 @@ private:
 	float m_WindowHeight;
 	bool m_Open;
 };
+
+} // namespace Watcher

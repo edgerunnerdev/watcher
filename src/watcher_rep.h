@@ -1,3 +1,20 @@
+///////////////////////////////////////////////////////////////////////////////
+// This file is part of watcher.
+//
+// watcher is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// watcher is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with watcher. If not, see <https://www.gnu.org/licenses/>.
+///////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 // Needed to include GL.h properly.
@@ -21,19 +38,19 @@
 struct SDL_Surface;
 struct SDL_Window;
 
-namespace Atlas
+namespace Watcher
 {
+
 class Atlas;
-using AtlasUniquePtr = std::unique_ptr< Atlas >;
-}
+using AtlasUniquePtr = std::unique_ptr<Atlas>;
 
 class WatcherRep
 {
 public:
-	WatcherRep( SDL_Window* pWindow );
+	WatcherRep(SDL_Window* pWindow);
 	~WatcherRep();
 
-	void ProcessEvent( const SDL_Event& event );
+	void ProcessEvent(const SDL_Event& event);
 	void Update();
 	void Render();
 
@@ -47,7 +64,7 @@ private:
 	const ImColor& GetPinColor(Camera::State state) const;
 
 	SDL_Window* m_pWindow;
-	Atlas::AtlasUniquePtr m_pAtlas;
+	AtlasUniquePtr m_pAtlas;
 	float m_CellSize;
 	GLuint m_PinTexture;
 	
@@ -57,3 +74,5 @@ private:
 
 	std::array<ImColor, static_cast<size_t>(Camera::State::Count)> m_PinColor;
 };
+
+} // namespace Watcher

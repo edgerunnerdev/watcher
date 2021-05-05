@@ -1,3 +1,4 @@
+///////////////////////////////////////////////////////////////////////////////
 // This file is part of watcher.
 //
 // watcher is free software: you can redistribute it and/or modify
@@ -12,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
+///////////////////////////////////////////////////////////////////////////////
 
 #include <SDL.h>
 #include "imgui/imgui.h"
@@ -22,19 +24,22 @@
 #include "watcher_rep.h"
 #include "watcher.h"
 
+namespace Watcher
+{
+
 static unsigned int sPinWidth = 16;
 static unsigned int sPinHeight = 26;
 static unsigned int sPinHalfWidth = sPinWidth / 2;
 
 WatcherRep::WatcherRep(SDL_Window* pWindow) :
-	m_pWindow(pWindow),
-	m_CellSize(128.0f),
-	m_SelectCamera(false)
+m_pWindow(pWindow),
+m_CellSize(128.0f),
+m_SelectCamera(false)
 {
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize(m_pWindow, &windowWidth, &windowHeight);
-	m_pAtlas = std::make_unique< Atlas::Atlas >(windowWidth, windowHeight);
+	m_pAtlas = std::make_unique<Atlas>(windowWidth, windowHeight);
 
 	SetUserInterfaceStyle();
 
@@ -308,3 +313,5 @@ CameraVector WatcherRep::GetHoveredCameras()
 
 	return hoveredCameras;
 }
+
+} // namespace Watcher

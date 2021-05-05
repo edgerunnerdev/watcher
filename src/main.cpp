@@ -32,8 +32,8 @@ int main(int, char**)
 		return 2;
 	}
 
-    Network::Result res = Network::Initialise();
-    SDL_assert( res == Network::Result::Success );
+    Watcher::Network::Result res = Watcher::Network::Initialise();
+    SDL_assert( res == Watcher::Network::Result::Success );
 
     // Initialise curl, but don't attempt to initialise the Win32 socket libraries
     // as that would have been done by Network::Initialise().
@@ -83,7 +83,7 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 
-	Watcher watcher( window, 64 );
+	Watcher::Watcher watcher(window, 64);
 
     // Main loop
     bool done = false;
@@ -123,7 +123,7 @@ int main(int, char**)
     ImGui_ImplSdlGL3_Shutdown();
     ImGui::DestroyContext();
 
-	Network::Shutdown();
+	Watcher::Network::Shutdown();
     curl_global_cleanup();
 
     SDL_GL_DeleteContext(gl_context);

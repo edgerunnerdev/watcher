@@ -22,6 +22,9 @@
 #include <network/network.h>
 #include "geolocationdata.h"
 
+namespace Watcher
+{
+
 class Camera;
 using CameraSharedPtr = std::shared_ptr<Camera>;
 using CameraWeakPtr = std::weak_ptr<Camera>;
@@ -99,3 +102,5 @@ inline void Camera::SetState(State state)
 {
 	m_State = state;
 }
+
+} // namespace Watcher

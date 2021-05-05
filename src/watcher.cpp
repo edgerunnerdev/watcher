@@ -1,3 +1,4 @@
+///////////////////////////////////////////////////////////////////////////////
 // This file is part of watcher.
 //
 // watcher is free software: you can redistribute it and/or modify
@@ -12,12 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
+///////////////////////////////////////////////////////////////////////////////
 
 #include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
 #include <SDL.h>
+
 #include "ext/json.h"
 #include "imgui/imgui.h"
 #include "configuration.h"
@@ -25,12 +29,14 @@
 #include "log.h"
 #include "watcher.h"
 #include "watcher_rep.h"
-#include "plugin_manager.h"
-#include "plugin.h"
 #include "texture_loader.h"
 
-Watcher* g_pWatcher = nullptr;
 extern IMGUI_API ImGuiContext* GImGui;
+
+namespace Watcher
+{
+
+Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
 	m_Active(true),
@@ -48,7 +54,6 @@ Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
 	m_pConfiguration = std::make_unique<Configuration>();
 	m_pRep = std::make_unique< WatcherRep >(pWindow);
 
-	m_pPluginManager = std::make_unique<PluginManager>();
 	InitialiseDatabase();
 
 	// All the geolocation data needs to be loaded before the cameras are, as every 
@@ -84,38 +89,26 @@ void Watcher::InitialiseDatabase()
 		std::ofstream destination(databaseFilename, std::ios::binary);
 		destination << source.rdbuf();
 	}
-	m_pDatabase = std::make_unique< Database::Database >(databaseFilename);
+	m_pDatabase = std::make_unique<Database>(databaseFilename);
 }
 
-void Watcher::GeolocationRequestCallback(const Database::QueryResult& result, void* pData)
+void Watcher::GeolocationRequestCallback(const QueryResult& result, void* pData)
 {
-	PluginManager* pPluginManager = reinterpret_cast<PluginManager*>(pData);
-	for (auto& row : result.Get())
-	{
-		for (auto& cell : row)
-		{
-			json message =
-			{
-				{ "type", "geolocation_request" },
-				{ "ip_address", cell->GetString() },
-			};
-			pPluginManager->BroadcastMessage(message);
-		}
-	}
+
 }
 
 void Watcher::InitialiseGeolocation()
 {
-	Database::PreparedStatement statement(m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeolocationDataCallback);
+	PreparedStatement statement(m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeolocationDataCallback);
 	m_pDatabase->Execute(statement);
 
-	Database::PreparedStatement query(m_pDatabase.get(), "SELECT IP FROM Cameras WHERE Geolocated=0", &Watcher::GeolocationRequestCallback, m_pPluginManager.get());
+	PreparedStatement query(m_pDatabase.get(), "SELECT IP FROM Cameras WHERE Geolocated=0", &Watcher::GeolocationRequestCallback);
 	m_pDatabase->Execute(query);
 }
 
 void Watcher::InitialiseCameras()
 {
-	Database::PreparedStatement query(m_pDatabase.get(), "SELECT * FROM Cameras", &Watcher::LoadCamerasCallback);
+	PreparedStatement query(m_pDatabase.get(), "SELECT * FROM Cameras", &Watcher::LoadCamerasCallback);
 	m_pDatabase->Execute(query);
 }
 
@@ -128,48 +121,12 @@ void Watcher::Update()
 {
 	TextureLoader::Update();
 
-	json updateMessage =
-	{
-		{ "type", "update" }
-	};
-	m_pPluginManager->BroadcastMessage(updateMessage);
-
 	m_pRep->Update();
 	m_pRep->Render();
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(400, 0));
 	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
-
-	for (Plugin* pPlugin : m_pPluginManager->GetPlugins())
-	{
-		pPlugin->DrawUI(GImGui);
-	}
-
-	if (ImGui::CollapsingHeader("Plugins"))
-	{
-		if (m_pPluginManager->GetPlugins().empty())
-		{
-			ImGui::Text("No plugins found.");
-		}
-		else
-		{
-			ImGui::Columns(2);
-			ImGui::Text("Plugin"); ImGui::NextColumn();
-			ImGui::Text("Version"); ImGui::NextColumn();
-			for (Plugin* pPlugin : m_pPluginManager->GetPlugins())
-			{
-				ImGui::Text(pPlugin->GetName().c_str());
-				ImGui::NextColumn();
-
-				int version[3] = { 0, 0, 0 };
-				pPlugin->GetVersion(version[0], version[1], version[2]);
-				ImGui::Text("%d.%d.%d", version[0], version[1], version[2]);
-				ImGui::NextColumn();
-			}
-			ImGui::Columns(1);
-		}
-	}
 
 	ImGui::End();
 }
@@ -202,8 +159,6 @@ void Watcher::OnMessageReceived(const json& message)
 			ChangeCameraState(pCamera, Camera::State::StreamAvailable);
 		}
 	}
-
-	m_pPluginManager->BroadcastMessage(message);
 }
 
 CameraSharedPtr Watcher::FindCamera(const std::string& url)
@@ -223,14 +178,14 @@ void Watcher::ChangeCameraState(CameraSharedPtr pCamera, Camera::State state)
 {
 	pCamera->SetState(state);
 
-	Database::PreparedStatement statement(m_pDatabase.get(), "UPDATE Cameras SET Type=?1, Date=?2 WHERE URL=?3;");
+	PreparedStatement statement(m_pDatabase.get(), "UPDATE Cameras SET Type=?1, Date=?2 WHERE URL=?3;");
 	statement.Bind(1, static_cast<int>(state));
 	statement.Bind(2, GetDate());
 	statement.Bind(3, pCamera->GetURL());
 	m_pDatabase->Execute(statement);
 }
 
-void Watcher::LoadGeolocationDataCallback(const Database::QueryResult& result, void* pData)
+void Watcher::LoadGeolocationDataCallback(const QueryResult& result, void* pData)
 {
 	for (auto& row : result.Get())
 	{
@@ -255,7 +210,7 @@ void Watcher::LoadGeolocationDataCallback(const Database::QueryResult& result, v
 	}
 }
 
-void Watcher::LoadCamerasCallback(const Database::QueryResult& result, void* pData)
+void Watcher::LoadCamerasCallback(const QueryResult& result, void* pData)
 {
 	for (auto& row : result.Get())
 	{
@@ -344,7 +299,7 @@ void Watcher::AddCamera(const json& message)
 		const std::string username;
 		const std::string password;
 
-		Database::PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);");
+		PreparedStatement addCameraStatement(m_pDatabase.get(), "INSERT OR REPLACE INTO Cameras VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);");
 		addCameraStatement.Bind(1, url);
 		addCameraStatement.Bind(2, ipAddress);
 		addCameraStatement.Bind(3, port);
@@ -354,13 +309,6 @@ void Watcher::AddCamera(const json& message)
 		addCameraStatement.Bind(7, static_cast<int>(Camera::State::Unknown));
 
 		m_pDatabase->Execute(addCameraStatement);
-
-		json message =
-		{
-			{ "type", "geolocation_request" },
-			{ "ip_address", ipAddress },
-		};
-		m_pPluginManager->BroadcastMessage(message);
 
 		{
 			std::scoped_lock lock(m_CamerasMutex);
@@ -372,3 +320,5 @@ void Watcher::AddCamera(const json& message)
 		}
 	}
 }
+
+} // namespace Watcher

@@ -24,6 +24,9 @@
 #undef SetPort
 #endif
 
+namespace Watcher
+{
+
 namespace Network
 {
 
@@ -102,4 +105,5 @@ Result Resolve( const std::string& host, IPAddress& address );
 
 std::string ToString( Result result );
 
-}
+} // namespace Network
+} // namespace Watcher

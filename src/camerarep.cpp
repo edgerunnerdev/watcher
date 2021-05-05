@@ -19,6 +19,9 @@
 #include "camerarep.h"
 #include "watcher.h"
 
+namespace Watcher
+{
+
 CameraRep::CameraRep(CameraWeakPtr cameraWeakPtr)
 {
 	m_CameraWeakPtr = cameraWeakPtr;
@@ -137,3 +140,5 @@ void CameraRep::Render()
 
 	ImGui::End();
 }
+
+} // namespace Watcher

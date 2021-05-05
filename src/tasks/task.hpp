@@ -15,45 +15,40 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "database/query_result.h"
+#pragma once
+
+#include <string>
 
 namespace Watcher
 {
 
-QueryResultType::QueryResultType( int value ) :
-m_Int( value ),
-m_Double( 0.0 )
+///////////////////////////////////////////////////////////////////////////////
+// Task
+// A background task, performing work over time without requiring interaction
+// by the user. These are used to discover new cameras in various ways, as well
+// as where they're located, etc.
+///////////////////////////////////////////////////////////////////////////////
+
+class Task
 {
+public:
+	enum class State
+	{
+		Disabled,
+		Idle,
+		Running,
+		Error
+	};
 
-}
+	Task(const std::string& name);
+	virtual ~Task();
+	virtual void Update(float delta);
 
-QueryResultType::QueryResultType( double value ) :
-m_Int( 0 ),
-m_Double( value )
-{
+	void Draw();
 
-}
-
-QueryResultType::QueryResultType( const std::string& value ) :
-m_Int( 0 ),
-m_Double( 0.0 )
-{
-	m_String = value;
-}
-
-int QueryResultType::GetInt() const
-{
-	return m_Int;
-}
-
-double QueryResultType::GetDouble() const
-{
-	return m_Double;
-}
-
-const std::string& QueryResultType::GetString() const
-{
-	return m_String;
-}
+private:
+	std::string m_Name;
+	State m_State;
+};
 
 } // namespace Watcher

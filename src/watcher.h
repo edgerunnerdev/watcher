@@ -1,3 +1,4 @@
+///////////////////////////////////////////////////////////////////////////////
 // This file is part of watcher.
 //
 // watcher is free software: you can redistribute it and/or modify
@@ -12,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
+///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
@@ -30,15 +32,17 @@
 #include "json.h"
 using json = nlohmann::json;
 
-class Configuration;
-class PluginManager;
-class WatcherRep;
 struct SDL_Window;
+
+namespace Watcher
+{
+
+class Configuration;
+class WatcherRep;
 
 using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
 using GeolocationDataMap = std::unordered_map<std::string, GeolocationDataSharedPtr>;
 using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
-using PluginManagerUniquePtr = std::unique_ptr< PluginManager >;
 
 
 class Watcher
@@ -56,9 +60,9 @@ public:
 	CameraVector GetCameras() const;
 
 private:
-	static void GeolocationRequestCallback(const Database::QueryResult& result, void* pData);
-	static void LoadGeolocationDataCallback(const Database::QueryResult& result, void* pData);
-	static void LoadCamerasCallback(const Database::QueryResult& result, void* pData);
+	static void GeolocationRequestCallback(const QueryResult& result, void* pData);
+	static void LoadGeolocationDataCallback(const QueryResult& result, void* pData);
+	static void LoadCamerasCallback(const QueryResult& result, void* pData);
 
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
@@ -70,7 +74,7 @@ private:
 	void ChangeCameraState(CameraSharedPtr pCamera, Camera::State state);
 
 	bool m_Active;
-	Database::DatabaseUniquePtr m_pDatabase;
+	DatabaseUniquePtr m_pDatabase;
 
 	std::mutex m_GeolocationDataMutex;
 	GeolocationDataMap m_GeolocationData;
@@ -80,8 +84,6 @@ private:
 
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
-
-	PluginManagerUniquePtr m_pPluginManager;
 };
 
 extern Watcher* g_pWatcher;
@@ -101,3 +103,5 @@ inline CameraVector Watcher::GetCameras() const
 	std::scoped_lock lock(m_CamerasMutex);
 	return m_Cameras;
 }
+
+} // namespace Watcher

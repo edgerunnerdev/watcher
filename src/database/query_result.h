@@ -1,15 +1,11 @@
 #pragma once
 
-#ifdef __linux__
-#include <experimental/optional>
-#else
 #include <optional>
-#endif
 #include <string>
 #include <utility>
 #include <vector>
 
-namespace Database
+namespace Watcher
 {
 
 // Less than ideal but at the moment std::variant isn't easily
@@ -31,11 +27,7 @@ private:
 	std::string m_String;
 };
 
-#ifdef __linux
-using QueryResultCell = std::experimental::optional< QueryResultType >;
-#else
 using QueryResultCell = std::optional< QueryResultType >;
-#endif
 using QueryResultRow = std::vector< QueryResultCell >;
 using QueryResultTable = std::vector< QueryResultRow >;
 
@@ -54,4 +46,4 @@ inline const QueryResultTable& QueryResult::Get() const { return m_Result; }
 
 using QueryResultCallback = void (*)( const QueryResult& result, void* pData );
 
-}
+} // namespace Watcher
