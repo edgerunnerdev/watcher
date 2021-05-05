@@ -26,7 +26,7 @@
 #undef WIN32_LEAN_AND_MEAN
 #endif
 
-#include <GL/gl.h>
+#include <SDL_opengl.h>
 
 #include "network/network.h"
 

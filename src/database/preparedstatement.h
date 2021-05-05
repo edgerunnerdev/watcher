@@ -17,49 +17,32 @@
 
 #pragma once
 
-// Needed to include GL.h properly.
-#ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
-#endif
-#include <GL/gl.h>
-
-#include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
-#include <thread>
+
+#include "database/queryresult.h"
+
+struct sqlite3_stmt;
 
 namespace Watcher
 {
 
-class TextureLoader
+class Database;
+
+class PreparedStatement
 {
 public:
-	static void Initialise();
-	static void Update();
-	static GLuint LoadTexture( const std::string& filename );
-	static void UnloadTexture( GLuint texture );
+	PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback = nullptr, void* pCallbackData = nullptr ); 
+	void Execute();
+	void Bind( unsigned int index, const std::string& text );
+	void Bind( unsigned int index, int value );
+	void Bind( unsigned int index, double value );
 
 private:
-	static void ProcessQueuedLoads();
-	static void ProcessQueuedUnloads();
-
-	static std::thread::id m_MainThreadId;
-	static std::queue< std::string > m_TextureLoadQueue;
-	struct TextureLoadResult
-	{
-		std::string filename;
-		GLuint texture;
-	};
-	static std::queue< TextureLoadResult > m_TextureLoadResultQueue;
-	static std::mutex m_LoadMutex;
-	static std::mutex m_ResultMutex;
-	static std::queue< GLuint > m_TextureUnloadQueue;
-	static std::mutex m_UnloadMutex;
+	std::string m_Query;
+	sqlite3_stmt* m_pStatement;
+	bool m_Executed;
+	QueryResultCallback m_pCallback;
+	void* m_pCallbackData;
 };
 
 } // namespace Watcher

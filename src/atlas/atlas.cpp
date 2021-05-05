@@ -20,7 +20,7 @@
 #include <string>
 #include <SDL.h>
 #include "atlas/atlas.h"
-#include "atlas/tile_streamer.h"
+#include "atlas/tilestreamer.h"
 #include "imgui/imgui.h"
 #include "log.h"
 

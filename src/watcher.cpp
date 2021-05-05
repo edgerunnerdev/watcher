@@ -28,8 +28,8 @@
 #include "geolocationdata.h"
 #include "log.h"
 #include "watcher.h"
-#include "watcher_rep.h"
-#include "texture_loader.h"
+#include "watcherrep.h"
+#include "textureloader.h"
 
 extern IMGUI_API ImGuiContext* GImGui;
 

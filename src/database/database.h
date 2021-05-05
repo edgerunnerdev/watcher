@@ -24,7 +24,7 @@
 #include <thread>
 #include <vector>
 
-#include "prepared_statement.h"
+#include "preparedstatement.h"
 
 struct sqlite3;
 

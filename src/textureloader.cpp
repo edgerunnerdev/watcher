@@ -18,7 +18,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "log.h"
-#include "texture_loader.h"
+#include "textureloader.h"
 
 namespace Watcher
 {

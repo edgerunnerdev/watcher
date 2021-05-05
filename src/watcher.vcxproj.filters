@@ -4,7 +4,6 @@
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="watcher.cpp" />
-    <ClCompile Include="watcher_rep.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c">
       <Filter>ext\sqlite</Filter>
     </ClCompile>
@@ -15,18 +14,8 @@
     <ClCompile Include="database\database.cpp">
       <Filter>database</Filter>
     </ClCompile>
-    <ClCompile Include="database\prepared_statement.cpp">
-      <Filter>database</Filter>
-    </ClCompile>
-    <ClCompile Include="atlas\tile_streamer.cpp">
-      <Filter>atlas</Filter>
-    </ClCompile>
     <ClCompile Include="atlas\tile.cpp">
       <Filter>atlas</Filter>
-    </ClCompile>
-    <ClCompile Include="texture_loader.cpp" />
-    <ClCompile Include="database\query_result.cpp">
-      <Filter>database</Filter>
     </ClCompile>
     <ClCompile Include="geolocationdata.cpp" />
     <ClCompile Include="camerarep.cpp" />
@@ -87,15 +76,26 @@
     <ClCompile Include="network\network.cpp">
       <Filter>network</Filter>
     </ClCompile>
-    <ClCompile Include="network\network_linux.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
-    <ClCompile Include="network\network_windows.cpp">
-      <Filter>network</Filter>
-    </ClCompile>
     <ClCompile Include="tasks\task.cpp">
       <Filter>tasks</Filter>
     </ClCompile>
+    <ClCompile Include="atlas\tilestreamer.cpp">
+      <Filter>atlas</Filter>
+    </ClCompile>
+    <ClCompile Include="database\preparedstatement.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="database\queryresult.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="network\networkwindows.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\networklinux.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="textureloader.cpp" />
+    <ClCompile Include="watcherrep.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -145,7 +145,6 @@
     <ClInclude Include="configuration.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="watcher.h" />
-    <ClInclude Include="watcher_rep.h" />
     <ClInclude Include="ext\sqlite\sqlite3.h">
       <Filter>ext\sqlite</Filter>
     </ClInclude>
@@ -159,19 +158,9 @@
     <ClInclude Include="database\database.h">
       <Filter>database</Filter>
     </ClInclude>
-    <ClInclude Include="database\prepared_statement.h">
-      <Filter>database</Filter>
-    </ClInclude>
-    <ClInclude Include="database\query_result.h">
-      <Filter>database</Filter>
-    </ClInclude>
-    <ClInclude Include="atlas\tile_streamer.h">
-      <Filter>atlas</Filter>
-    </ClInclude>
     <ClInclude Include="atlas\tile.h">
       <Filter>atlas</Filter>
     </ClInclude>
-    <ClInclude Include="texture_loader.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="geolocationdata.h" />
     <ClInclude Include="camerarep.h" />
@@ -244,9 +233,20 @@
     <ClInclude Include="network\network.h">
       <Filter>network</Filter>
     </ClInclude>
-    <ClInclude Include="tasks\task.hpp">
+    <ClInclude Include="tasks\task.h">
       <Filter>tasks</Filter>
     </ClInclude>
+    <ClInclude Include="atlas\tilestreamer.h">
+      <Filter>atlas</Filter>
+    </ClInclude>
+    <ClInclude Include="database\preparedstatement.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\queryresult.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="textureloader.h" />
+    <ClInclude Include="watcherrep.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

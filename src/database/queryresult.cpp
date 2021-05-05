@@ -15,31 +15,45 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "task.h"
+#include "database/queryresult.h"
 
 namespace Watcher
 {
 
-Task::Task(const std::string& name) :
-m_Name(name),
-m_State(State::Disabled)
+QueryResultType::QueryResultType( int value ) :
+m_Int( value ),
+m_Double( 0.0 )
 {
 
 }
 
-Task::~Task()
+QueryResultType::QueryResultType( double value ) :
+m_Int( 0 ),
+m_Double( value )
 {
 
 }
 
-void Task::Update(float delta)
+QueryResultType::QueryResultType( const std::string& value ) :
+m_Int( 0 ),
+m_Double( 0.0 )
 {
-
+	m_String = value;
 }
 
-void Task::Draw()
+int QueryResultType::GetInt() const
 {
+	return m_Int;
+}
 
+double QueryResultType::GetDouble() const
+{
+	return m_Double;
+}
+
+const std::string& QueryResultType::GetString() const
+{
+	return m_String;
 }
 
 } // namespace Watcher

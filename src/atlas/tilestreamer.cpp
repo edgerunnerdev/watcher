@@ -23,9 +23,9 @@
 #include <curl/curl.h>
 
 #include "atlas/atlas.h"
-#include "atlas/tile_streamer.h"
+#include "atlas/tilestreamer.h"
 #include "atlas/tile.h"
-#include "texture_loader.h"
+#include "textureloader.h"
 #include "log.h"
 
 namespace Watcher

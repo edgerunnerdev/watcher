@@ -17,13 +17,6 @@
 
 #pragma once
 
-#include <atomic>
-#include <deque>
-#include <memory>
-#include <mutex>
-#include <thread>
-#include <vector>
-
 // Needed to include GL.h properly.
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -33,32 +26,53 @@
 #undef WIN32_LEAN_AND_MEAN
 #endif
 
-#include <GL/gl.h>
+#include <array>
+#include <memory>
+#include <string>
 
-#include "atlas/tile.h"
+#include <SDL_opengl.h>
+
+#include "camera.h"
+#include "camerarep.h"
+
+struct SDL_Surface;
+struct SDL_Window;
 
 namespace Watcher
 {
 
-class TileStreamer
+class Atlas;
+using AtlasUniquePtr = std::unique_ptr<Atlas>;
+
+class WatcherRep
 {
 public:
-	TileStreamer();
-	~TileStreamer();
-	TileSharedPtr Get( int x, int y, int zoomLevel );
-	
-private:
-	static int TileStreamerThreadMain( TileStreamer* pTileRequester );
-	static bool LoadFromFile( Tile& tile );
-	static bool DownloadFromTileServer( Tile& tile ); 
-	void CreateDirectories();
+	WatcherRep(SDL_Window* pWindow);
+	~WatcherRep();
 
-	std::mutex m_AccessMutex;
-	TileDeque m_Queue;
-	TileDeque m_LoadedTiles;
-	TileSharedPtr m_LoadingTile;
-	std::thread m_Thread;
-	std::atomic_bool m_RunThread;
+	void ProcessEvent(const SDL_Event& event);
+	void Update();
+	void Render();
+
+private:
+	void SetUserInterfaceStyle();
+	CameraVector GetHoveredCameras();
+
+	void RenderCameras();
+	void OpenPickedCamera();
+	void FlushClosedCameras();
+	const ImColor& GetPinColor(Camera::State state) const;
+
+	SDL_Window* m_pWindow;
+	AtlasUniquePtr m_pAtlas;
+	float m_CellSize;
+	GLuint m_PinTexture;
+	
+	using CameraRepList = std::list<CameraRep>;
+	CameraRepList m_CameraReps;
+	bool m_SelectCamera;
+
+	std::array<ImColor, static_cast<size_t>(Camera::State::Count)> m_PinColor;
 };
 
 } // namespace Watcher

@@ -15,45 +15,41 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "database/query_result.h"
+#pragma once
+
+#include <atomic>
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
+
+#include <SDL_opengl.h>
+
+#include "atlas/tile.h"
 
 namespace Watcher
 {
 
-QueryResultType::QueryResultType( int value ) :
-m_Int( value ),
-m_Double( 0.0 )
+class TileStreamer
 {
+public:
+	TileStreamer();
+	~TileStreamer();
+	TileSharedPtr Get( int x, int y, int zoomLevel );
+	
+private:
+	static int TileStreamerThreadMain( TileStreamer* pTileRequester );
+	static bool LoadFromFile( Tile& tile );
+	static bool DownloadFromTileServer( Tile& tile ); 
+	void CreateDirectories();
 
-}
-
-QueryResultType::QueryResultType( double value ) :
-m_Int( 0 ),
-m_Double( value )
-{
-
-}
-
-QueryResultType::QueryResultType( const std::string& value ) :
-m_Int( 0 ),
-m_Double( 0.0 )
-{
-	m_String = value;
-}
-
-int QueryResultType::GetInt() const
-{
-	return m_Int;
-}
-
-double QueryResultType::GetDouble() const
-{
-	return m_Double;
-}
-
-const std::string& QueryResultType::GetString() const
-{
-	return m_String;
-}
+	std::mutex m_AccessMutex;
+	TileDeque m_Queue;
+	TileDeque m_LoadedTiles;
+	TileSharedPtr m_LoadingTile;
+	std::thread m_Thread;
+	std::atomic_bool m_RunThread;
+};
 
 } // namespace Watcher

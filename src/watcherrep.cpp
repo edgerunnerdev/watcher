@@ -20,8 +20,8 @@
 
 #include "atlas/atlas.h"
 #include "log.h"
-#include "texture_loader.h"
-#include "watcher_rep.h"
+#include "textureloader.h"
+#include "watcherrep.h"
 #include "watcher.h"
 
 namespace Watcher

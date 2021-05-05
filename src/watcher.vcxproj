@@ -80,7 +80,7 @@
   <ItemGroup>
     <ClCompile Include="atlas\atlas.cpp" />
     <ClCompile Include="atlas\tile.cpp" />
-    <ClCompile Include="atlas\tile_streamer.cpp" />
+    <ClCompile Include="atlas\tilestreamer.cpp" />
     <ClCompile Include="camerarep.cpp" />
     <ClCompile Include="codecs\mjpeg\codecmjpeg.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -93,8 +93,8 @@
     </ClCompile>
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
-    <ClCompile Include="database\prepared_statement.cpp" />
-    <ClCompile Include="database\query_result.cpp" />
+    <ClCompile Include="database\preparedstatement.cpp" />
+    <ClCompile Include="database\queryresult.cpp" />
     <ClCompile Include="geolocationdata.cpp" />
     <ClCompile Include="GL\gl3w.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -104,8 +104,8 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="network\network.cpp" />
-    <ClCompile Include="network\network_linux.cpp" />
-    <ClCompile Include="network\network_windows.cpp" />
+    <ClCompile Include="network\networklinux.cpp" />
+    <ClCompile Include="network\networkwindows.cpp" />
     <ClCompile Include="ext\sqlite\sqlite3.c" />
     <ClCompile Include="tasks\geolocation\geolocation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -138,14 +138,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="tasks\task.cpp" />
-    <ClCompile Include="texture_loader.cpp" />
+    <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcher.cpp" />
-    <ClCompile Include="watcher_rep.cpp" />
+    <ClCompile Include="watcherrep.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas\atlas.h" />
     <ClInclude Include="atlas\tile.h" />
-    <ClInclude Include="atlas\tile_streamer.h" />
+    <ClInclude Include="atlas\tilestreamer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camerarep.h" />
     <ClInclude Include="codecs\mjpeg\codecmjpeg.h">
@@ -159,8 +159,8 @@
     </ClInclude>
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
-    <ClInclude Include="database\prepared_statement.h" />
-    <ClInclude Include="database\query_result.h" />
+    <ClInclude Include="database\preparedstatement.h" />
+    <ClInclude Include="database\queryresult.h" />
     <ClInclude Include="geolocationdata.h" />
     <ClInclude Include="ext\json.h" />
     <ClInclude Include="GL\gl3w.h" />
@@ -206,10 +206,10 @@
     <ClInclude Include="tasks\portscanner\portscanner.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="tasks\task.hpp" />
-    <ClInclude Include="texture_loader.h" />
+    <ClInclude Include="tasks\task.h" />
+    <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcher.h" />
-    <ClInclude Include="watcher_rep.h" />
+    <ClInclude Include="watcherrep.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt" />

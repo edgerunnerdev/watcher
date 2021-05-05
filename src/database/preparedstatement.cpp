@@ -18,9 +18,9 @@
 #include <cassert>
 #include "sqlite/sqlite3.h"
 #include "database/database.h"
-#include "database/query_result.h"
+#include "database/queryresult.h"
 #include "log.h"
-#include "prepared_statement.h"
+#include "preparedstatement.h"
 
 namespace Watcher
 {

@@ -17,32 +17,41 @@
 
 #pragma once
 
+#include <SDL_opengl.h>
+
+#include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
-
-#include "database/query_result.h"
-
-struct sqlite3_stmt;
+#include <thread>
 
 namespace Watcher
 {
 
-class Database;
-
-class PreparedStatement
+class TextureLoader
 {
 public:
-	PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback = nullptr, void* pCallbackData = nullptr ); 
-	void Execute();
-	void Bind( unsigned int index, const std::string& text );
-	void Bind( unsigned int index, int value );
-	void Bind( unsigned int index, double value );
+	static void Initialise();
+	static void Update();
+	static GLuint LoadTexture( const std::string& filename );
+	static void UnloadTexture( GLuint texture );
 
 private:
-	std::string m_Query;
-	sqlite3_stmt* m_pStatement;
-	bool m_Executed;
-	QueryResultCallback m_pCallback;
-	void* m_pCallbackData;
+	static void ProcessQueuedLoads();
+	static void ProcessQueuedUnloads();
+
+	static std::thread::id m_MainThreadId;
+	static std::queue< std::string > m_TextureLoadQueue;
+	struct TextureLoadResult
+	{
+		std::string filename;
+		GLuint texture;
+	};
+	static std::queue< TextureLoadResult > m_TextureLoadResultQueue;
+	static std::mutex m_LoadMutex;
+	static std::mutex m_ResultMutex;
+	static std::queue< GLuint > m_TextureUnloadQueue;
+	static std::mutex m_UnloadMutex;
 };
 
 } // namespace Watcher

@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "atlas/tile.h"
-#include "texture_loader.h"
+#include "textureloader.h"
 
 namespace Watcher
 {
