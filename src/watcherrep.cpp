@@ -19,6 +19,7 @@
 #include "imgui/imgui.h"
 
 #include "atlas/atlas.h"
+#include "commandbar.h"
 #include "log.h"
 #include "textureloader.h"
 #include "watcherrep.h"
@@ -40,6 +41,7 @@ m_SelectCamera(false)
 	int windowHeight;
 	SDL_GetWindowSize(m_pWindow, &windowWidth, &windowHeight);
 	m_pAtlas = std::make_unique<Atlas>(windowWidth, windowHeight);
+    m_pCommandBar = std::make_unique<CommandBar>();
 
 	SetUserInterfaceStyle();
 
@@ -193,6 +195,7 @@ void WatcherRep::Render()
 	ImGui::Begin("Watcher", nullptr, flags);
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	m_pAtlas->Render();
+    m_pCommandBar->Render();
 	ImGui::End();
 
 	CameraVector cameras = g_pWatcher->GetCameras();

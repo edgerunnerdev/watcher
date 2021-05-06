@@ -52,6 +52,8 @@ public:
 	~Watcher();
 	void ProcessEvent(const SDL_Event& event);
 	void Update();
+    bool IsSearching() const;
+    void SetSearching(bool state);
 	bool IsActive() const;
 	Configuration* GetConfiguration() const;
 
@@ -73,6 +75,7 @@ private:
 	CameraSharedPtr FindCamera(const std::string& url);
 	void ChangeCameraState(CameraSharedPtr pCamera, Camera::State state);
 
+    bool m_Searching;
 	bool m_Active;
 	DatabaseUniquePtr m_pDatabase;
 
@@ -87,6 +90,16 @@ private:
 };
 
 extern Watcher* g_pWatcher;
+
+inline bool Watcher::IsSearching() const
+{
+    return m_Searching;
+}
+
+inline void Watcher::SetSearching(bool state)
+{
+    m_Searching = state;
+}
 
 inline bool Watcher::IsActive() const
 {

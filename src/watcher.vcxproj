@@ -91,6 +91,7 @@
     <ClCompile Include="codecs\mjpeg\streammjpeg.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="commandbar.cpp" />
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
     <ClCompile Include="database\preparedstatement.cpp" />
@@ -141,6 +142,7 @@
     <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcherrep.cpp" />
+    <ClCompile Include="widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas\atlas.h" />
@@ -157,6 +159,7 @@
     <ClInclude Include="codecs\mjpeg\streammjpeg.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="commandbar.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
     <ClInclude Include="database\preparedstatement.h" />
@@ -210,6 +213,7 @@
     <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcherrep.h" />
+    <ClInclude Include="widgets.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt" />

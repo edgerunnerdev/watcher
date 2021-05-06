@@ -96,6 +96,8 @@
     </ClCompile>
     <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcherrep.cpp" />
+    <ClCompile Include="widgets.cpp" />
+    <ClCompile Include="commandbar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -247,6 +249,8 @@
     </ClInclude>
     <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcherrep.h" />
+    <ClInclude Include="widgets.h" />
+    <ClInclude Include="commandbar.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

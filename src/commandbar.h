@@ -17,56 +17,28 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
-#include <string>
 
-#include <SDL_opengl.h>
-
-#include "camera.h"
-#include "camerarep.h"
-
-struct SDL_Surface;
-struct SDL_Window;
+#include <imgui/imgui.h>
 
 namespace Watcher
 {
 
-class Atlas;
-using AtlasUniquePtr = std::unique_ptr<Atlas>;
 class CommandBar;
 using CommandBarUniquePtr = std::unique_ptr<CommandBar>;
 
-class WatcherRep
+class CommandBar
 {
 public:
-	WatcherRep(SDL_Window* pWindow);
-	~WatcherRep();
+    CommandBar();
 
-	void ProcessEvent(const SDL_Event& event);
-	void Update();
-	void Render();
+    void Render();
 
 private:
-	void SetUserInterfaceStyle();
-	CameraVector GetHoveredCameras();
-
-	void RenderCameras();
-	void OpenPickedCamera();
-	void FlushClosedCameras();
-	const ImColor& GetPinColor(Camera::State state) const;
-
-	SDL_Window* m_pWindow;
-	AtlasUniquePtr m_pAtlas;
-	float m_CellSize;
-	GLuint m_PinTexture;
-    CommandBarUniquePtr m_pCommandBar;
-	
-	using CameraRepList = std::list<CameraRep>;
-	CameraRepList m_CameraReps;
-	bool m_SelectCamera;
-
-	std::array<ImColor, static_cast<size_t>(Camera::State::Count)> m_PinColor;
+    void RenderSearchWidget();
+    void RenderSearchBackground();
+    void RenderSearchButton();
+    float m_AnimTimer;
 };
 
 } // namespace Watcher

@@ -39,8 +39,9 @@ namespace Watcher
 Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
-	m_Active(true),
-	m_pDatabase(nullptr)
+m_Searching(true),
+m_Active(true),
+m_pDatabase(nullptr)
 {
 	g_pWatcher = this;
 
@@ -124,11 +125,6 @@ void Watcher::Update()
 	m_pRep->Update();
 	m_pRep->Render();
 
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(400, 0));
-	ImGui::Begin("LeftBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
-
-	ImGui::End();
 }
 
 void Watcher::OnMessageReceived(const json& message)
