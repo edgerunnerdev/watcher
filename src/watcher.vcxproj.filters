@@ -96,8 +96,13 @@
     </ClCompile>
     <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcherrep.cpp" />
-    <ClCompile Include="widgets.cpp" />
     <ClCompile Include="commandbar.cpp" />
+    <ClCompile Include="imguiext\widgets.cpp">
+      <Filter>imguiext</Filter>
+    </ClCompile>
+    <ClCompile Include="imguiext\cubicbezier.cpp">
+      <Filter>imguiext</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -141,6 +146,9 @@
     </Filter>
     <Filter Include="network">
       <UniqueIdentifier>{4f514c76-9657-41e8-89c7-f67151c0d241}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imguiext">
+      <UniqueIdentifier>{237681d3-77a7-4ee7-b094-9397fc289483}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -249,8 +257,13 @@
     </ClInclude>
     <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcherrep.h" />
-    <ClInclude Include="widgets.h" />
     <ClInclude Include="commandbar.h" />
+    <ClInclude Include="imguiext\widgets.h">
+      <Filter>imguiext</Filter>
+    </ClInclude>
+    <ClInclude Include="imguiext\cubicbezier.h">
+      <Filter>imguiext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

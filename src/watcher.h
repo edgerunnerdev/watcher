@@ -38,12 +38,14 @@ namespace Watcher
 {
 
 class Configuration;
+class Task;
 class WatcherRep;
 
-using WatcherRepUniquePtr = std::unique_ptr< WatcherRep >;
+using WatcherRepUniquePtr = std::unique_ptr<WatcherRep>;
 using GeolocationDataMap = std::unordered_map<std::string, GeolocationDataSharedPtr>;
-using ConfigurationUniquePtr = std::unique_ptr< Configuration >;
-
+using ConfigurationUniquePtr = std::unique_ptr<Configuration>;
+using TaskUniquePtr = std::unique_ptr<Task>;
+using TaskVector = std::vector<TaskUniquePtr>;
 
 class Watcher
 {
@@ -56,6 +58,7 @@ public:
     void SetSearching(bool state);
 	bool IsActive() const;
 	Configuration* GetConfiguration() const;
+    const TaskVector& GetTasks() const;
 
 	void OnMessageReceived(const json& message);
 
@@ -69,6 +72,7 @@ private:
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
 	void InitialiseCameras();
+    void InitialiseTasks();
 	void AddGeolocationData(const json& message);
 	void AddCamera(const json& message);
 	std::string GetDate() const;
@@ -87,6 +91,7 @@ private:
 
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
+    TaskVector m_Tasks;
 };
 
 extern Watcher* g_pWatcher;
@@ -109,6 +114,11 @@ inline bool Watcher::IsActive() const
 inline Configuration* Watcher::GetConfiguration() const
 {
 	return m_pConfiguration.get();
+}
+
+inline const TaskVector& Watcher::GetTasks() const
+{
+    return m_Tasks;
 }
 
 inline CameraVector Watcher::GetCameras() const

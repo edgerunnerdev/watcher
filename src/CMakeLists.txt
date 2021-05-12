@@ -14,6 +14,8 @@ set(SourceFiles
 	database/prepared_statement.h
 	database/query_result.cpp
 	database/query_result.h
+	imguiext/widgets.cpp
+	imguiext/widgets.h
 	network/network.cpp
 	network/network.h
 	network/network_linux.cpp

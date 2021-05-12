@@ -19,8 +19,11 @@
 
 #include <imgui/imgui.h>
 
+#include "tasks/task.h"
 #include "commandbar.h"
 #include "watcher.h"
+
+using namespace ImGui;
 
 namespace Watcher
 {
@@ -32,50 +35,47 @@ CommandBar::CommandBar()
 
 void CommandBar::Render()
 {
-    using namespace ImGui;
-    m_AnimTimer += GetIO().DeltaTime;
-
 	SetNextWindowPos(ImVec2(0, 0));
-	SetNextWindowSize(ImVec2(400, 0));
+	SetNextWindowSize(ImVec2(250, 0));
 	Begin("CommandBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
 
-    if (ImGui::BeginMenuBar())
+    if (BeginMenuBar())
     {
-        if (ImGui::BeginMenu("File"))
+        if (BeginMenu("File"))
         {
-            ImGui::MenuItem("Quit");
-            ImGui::EndMenu();
+            MenuItem("Quit");
+            EndMenu();
         }
-        if (ImGui::BeginMenu("View"))
+        if (BeginMenu("View"))
         {
-            ImGui::EndMenu();
+            EndMenu();
         }
-        if (ImGui::BeginMenu("Help"))
+        if (BeginMenu("Help"))
         {
-            ImGui::MenuItem("About");
-            ImGui::EndMenu();
+            MenuItem("About");
+            EndMenu();
         }
-        ImGui::EndMenuBar();
+        EndMenuBar();
     }
 
     RenderSearchWidget();
+    RenderTasks();
     End();
 }
 
 void CommandBar::RenderSearchWidget()
 {
-    using namespace ImGui;
     PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
     BeginChild("SearchWidget", ImVec2(0.0f, 30.0f), true);
     RenderSearchBackground();
     RenderSearchButton();
     EndChild();
-    PopStyleVar();
+    PopStyleVar(2);
 }
 
 void CommandBar::RenderSearchBackground()
 {
-    using namespace ImGui;
     const bool isSearching = g_pWatcher->IsSearching();
     ImVec2 p = GetCursorScreenPos();
     ImDrawList* pDrawList = GetWindowDrawList();
@@ -115,8 +115,6 @@ void CommandBar::RenderSearchBackground()
 
 void CommandBar::RenderSearchButton()
 {
-    using namespace ImGui;
-
     ImVec2 p = GetCursorScreenPos();
     ImDrawList* pDrawList = GetWindowDrawList();
 
@@ -127,7 +125,7 @@ void CommandBar::RenderSearchButton()
 
     const float width = GetWindowWidth();
     const float height = GetWindowHeight();
-    const ImVec2 padding(100, 6);
+    const ImVec2 padding(20, 6);
     const ImVec2 tl(p.x + padding.x, p.y + padding.y);
     const ImVec2 br(p.x + width - padding.x, p.y + height - padding.y);
 
@@ -138,7 +136,15 @@ void CommandBar::RenderSearchButton()
     const std::string& text = g_pWatcher->IsSearching() ? "Searching" : "Begin search";
     ImVec2 textSize = CalcTextSize(text.c_str());
     pDrawList->AddText(ImVec2(p.x + (width - textSize.x) / 2.0f, p.y + (height - GetTextLineHeight()) / 2.0f), IM_COL32(255, 255, 255, 255), text.c_str());
+}
 
+void CommandBar::RenderTasks()
+{
+    const TaskVector& tasks = g_pWatcher->GetTasks();
+    for (auto&& pTask : tasks)
+    {
+        pTask->Render();
+    }
 }
 
 } // namespace Watcher

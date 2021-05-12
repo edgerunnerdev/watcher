@@ -44,7 +44,7 @@ public:
 	virtual ~Task();
 	virtual void Update(float delta);
 
-	void Draw();
+	void Render();
 
 private:
 	std::string m_Name;

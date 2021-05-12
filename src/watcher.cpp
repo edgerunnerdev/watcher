@@ -24,6 +24,7 @@
 
 #include "ext/json.h"
 #include "imgui/imgui.h"
+#include "tasks/task.h"
 #include "configuration.h"
 #include "geolocationdata.h"
 #include "log.h"
@@ -39,7 +40,7 @@ namespace Watcher
 Watcher* g_pWatcher = nullptr;
 
 Watcher::Watcher(SDL_Window* pWindow, unsigned int scannerCount) :
-m_Searching(true),
+m_Searching(false),
 m_Active(true),
 m_pDatabase(nullptr)
 {
@@ -61,6 +62,7 @@ m_pDatabase(nullptr)
 	// camera will try to associate its IP address with a geolocation entry.
 	InitialiseGeolocation();
 	InitialiseCameras();
+    InitialiseTasks();
 }
 
 Watcher::~Watcher()
@@ -111,6 +113,14 @@ void Watcher::InitialiseCameras()
 {
 	PreparedStatement query(m_pDatabase.get(), "SELECT * FROM Cameras", &Watcher::LoadCamerasCallback);
 	m_pDatabase->Execute(query);
+}
+
+void Watcher::InitialiseTasks()
+{
+    m_Tasks.emplace_back(std::make_unique<Task>("Geolocation"));
+    m_Tasks.emplace_back(std::make_unique<Task>("Google search"));
+    m_Tasks.emplace_back(std::make_unique<Task>("HTTP camera detector"));
+    m_Tasks.emplace_back(std::make_unique<Task>("Port scanner"));
 }
 
 void Watcher::ProcessEvent(const SDL_Event& event)

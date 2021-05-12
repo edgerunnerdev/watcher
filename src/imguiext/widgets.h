@@ -21,8 +21,8 @@
 
 #include <imgui/imgui.h>
 
-namespace ImGuiExt
+namespace ImGui
 {
 	void HelpMarker(const std::string& desc);
-	void Spinner(float radius, int thickness, const ImU32& color);
+    bool Spinner(const char* label, float radius, int thickness, const ImU32& color);
 }

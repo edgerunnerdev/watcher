@@ -98,6 +98,8 @@
     <ClCompile Include="database\queryresult.cpp" />
     <ClCompile Include="geolocationdata.cpp" />
     <ClCompile Include="GL\gl3w.cpp" />
+    <ClCompile Include="imguiext\cubicbezier.cpp" />
+    <ClCompile Include="imguiext\widgets.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
@@ -142,7 +144,6 @@
     <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="watcherrep.cpp" />
-    <ClCompile Include="widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atlas\atlas.h" />
@@ -168,6 +169,8 @@
     <ClInclude Include="ext\json.h" />
     <ClInclude Include="GL\gl3w.h" />
     <ClInclude Include="GL\glcorearb.h" />
+    <ClInclude Include="imguiext\cubicbezier.h" />
+    <ClInclude Include="imguiext\widgets.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_sdl_gl3.h" />
@@ -213,7 +216,6 @@
     <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcher.h" />
     <ClInclude Include="watcherrep.h" />
-    <ClInclude Include="widgets.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt" />
