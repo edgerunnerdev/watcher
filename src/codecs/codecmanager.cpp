@@ -23,9 +23,17 @@ CodecManager::CodecManager()
 
 }
 
-void CodecManager::StreamStart(const std::string& url, uint32_t textureId)
+StreamSharedPtr CodecManager::CreateStream(const std::string& url, uint32_t textureId)
 {
+    for (auto&& pCodec : m_Codecs)
+    {
+        if (pCodec->CanDecode(url))
+        {
+            return pCodec->CreateStream(url, textureId);
+        }
+    }
 
+    return nullptr;
 }
 
 } // namespace Watcher

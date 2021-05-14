@@ -25,17 +25,20 @@
 namespace Watcher
 {
 
-static StreamMJPEG::Id s_Id = 0;
-
-StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) :
+StreamMJPEG::StreamMJPEG(const std::string& url, uint32_t textureId) : 
+    Stream(url, textureId),
 	m_Error(Error::NoError),
 	m_State(State::Initialising),
-	m_Id(++s_Id),
-	m_TextureId(textureId),
-	m_Url(url),
 	m_pMultipartBlock(nullptr),
 	m_FrameAvailable(false)
 {
+    m_ErrorText[static_cast<size_t>(Error::NoError)] = "No error";
+    m_ErrorText[static_cast<size_t>(Error::InvalidBlock)] = "Invalid multipart block";
+    m_ErrorText[static_cast<size_t>(Error::UnsupportedContentType)] = "Unsupported content type";
+    m_ErrorText[static_cast<size_t>(Error::UnknownBoundary)] = "Unknown boundary";
+    m_ErrorText[static_cast<size_t>(Error::DecodingError)] = "Decoding error";
+    m_ErrorText[static_cast<size_t>(Error::UnknownError)] = "Unknown error";
+
 	m_pCurlMultiHandle = curl_multi_init();
 
 	m_pCurlHandle = curl_easy_init();
@@ -80,19 +83,9 @@ void StreamMJPEG::Update()
 	}
 }
 
-StreamMJPEG::State StreamMJPEG::GetState() const
+const std::string& StreamMJPEG::GetError() const
 {
-	return m_State;
-}
-
-StreamMJPEG::Id StreamMJPEG::GetId() const
-{
-	return m_Id;
-}
-
-const std::string& StreamMJPEG::GetUrl() const
-{
-	return m_Url;
+    return m_ErrorText[static_cast<size_t>(m_Error)];
 }
 
 void StreamMJPEG::SetError(Error error)

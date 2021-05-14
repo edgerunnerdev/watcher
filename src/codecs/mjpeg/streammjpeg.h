@@ -15,11 +15,13 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <string>
 
+#include "codecs/stream.h"
+#include "codecs/mjpeg/multipartblock.h"
 #include "network/network.h"
-#include "multipartblock.h"
 
 using CURL = void;
 using ByteArray = std::vector<uint8_t>;
@@ -27,38 +29,13 @@ using ByteArray = std::vector<uint8_t>;
 namespace Watcher
 {
 
-class StreamMJPEG 
+class StreamMJPEG : public Stream
 {
 public:
 	StreamMJPEG(const std::string& url, uint32_t textureId);
-	~StreamMJPEG();
-	void Update();
-
-	enum class State
-	{
-		Initialising,
-		Streaming,
-		Error,
-		Terminated
-	};
-
-	enum class Error
-	{
-		NoError,
-		InvalidBlock,
-		UnsupportedContentType,
-		UnknownBoundary,
-		DecodingError,
-		UnknownError,
-		Timeout
-	};
-
-	State GetState() const;
-
-	using Id = unsigned int;
-	Id GetId() const;
-
-	const std::string& GetUrl() const;
+    virtual ~StreamMJPEG() override;
+    virtual void Update() override;
+    virtual const std::string& GetError() const override;
 
 private:
 	static size_t WriteHeaderCallback(void* pContents, size_t size, size_t nmemb, void* pUserData);
@@ -70,12 +47,26 @@ private:
 	static void ProcessMultipartContent(StreamMJPEG* pStream);
 	static size_t FindInStream(StreamMJPEG* pStream, size_t offset, const std::string& toFind);
 
+    enum class Error
+    {
+        NoError,
+        InvalidBlock,
+        UnsupportedContentType,
+        UnknownBoundary,
+        DecodingError,
+        UnknownError,
+        Timeout,
+
+        Count
+    };
+
 	void SetError(Error error);
 	Error CopyFrame(const MultipartBlock& block);
 	
 	Error m_Error; // Do not set directly, use SetError().
+    std::array<std::string, static_cast<size_t>(Error::Count)> m_ErrorText;
+    
 	State m_State;
-	Id m_Id;
 	CURL* m_pCurlMultiHandle;
 	CURL* m_pCurlHandle;
 	ByteArray m_HeaderBuffer;

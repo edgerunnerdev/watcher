@@ -30,8 +30,7 @@ public:
     Codec() {}
     virtual ~Codec() {}
     virtual bool CanDecode(const std::string& url) const = 0;
-    virtual void StreamStart(const std::string& url, uint32_t textureId) = 0;
-    virtual void StreamEnd(const std::string& url) = 0;
+    virtual StreamSharedPtr CreateStream(const std::string& url, uint32_t textureId) = 0;
 };
 
 } // namespace Watcher

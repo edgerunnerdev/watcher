@@ -34,11 +34,11 @@ bool CodecMJPEG::CanDecode(const std::string& url) const
     return url.rfind(".mjpg") != std::string::npos;
 }
 
-void CodecMJPEG::StreamStart(const std::string& url, uint32_t textureId)
+StreamSharedPtr CodecMJPEG::CreateStream(const std::string& url, uint32_t textureId)
 {
     if (!CanDecode(url))
     {
-        return;
+        return nullptr;
     }
 
     std::string streamUrl = url;
@@ -56,13 +56,7 @@ void CodecMJPEG::StreamStart(const std::string& url, uint32_t textureId)
         }
     }
 
-    StreamMJPEGSharedPtr pStream = std::make_shared<StreamMJPEG>(streamUrl, textureId);
-    m_Streams.push_back(pStream);
-}
-
-void CodecMJPEG::StreamEnd(const std::string& url)
-{
-    m_Streams.remove_if([&url](const StreamMJPEGSharedPtr& pStream) { return pStream->GetUrl() == url; });
+    return std::make_shared<StreamMJPEG>(streamUrl, textureId);
 }
 
 } // namespace Watcher

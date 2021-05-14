@@ -23,20 +23,12 @@
 namespace Watcher
 {
 
-class StreamMJPEG;
-using StreamMJPEGSharedPtr = std::shared_ptr<StreamMJPEG>;
-using StreamMJPEGList = std::list<StreamMJPEGSharedPtr>;
-
 class CodecMJPEG : public Codec
 {
 public:
     CodecMJPEG() {}
     virtual bool CanDecode(const std::string& url) const override;
-    virtual void StreamStart(const std::string& url, uint32_t textureId) override;
-    virtual void StreamEnd(const std::string& url) override;
-
-private:
-	StreamMJPEGList m_Streams;
+    virtual StreamSharedPtr CreateStream(const std::string& url, uint32_t textureId) override;
 };
 
 } // namespace Watcher

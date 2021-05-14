@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "codecs/codec.h"
+#include "codecs/stream.h"
 
 namespace Watcher
 {
@@ -32,7 +33,7 @@ class CodecManager
 public:
     CodecManager();
 
-    void StreamStart(const std::string& url, uint32_t textureId);
+    StreamSharedPtr CreateStream(const std::string& url, uint32_t textureId);
 
 private:
     using CodecUniquePtr = std::unique_ptr<Codec>;
