@@ -13,30 +13,51 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
+#pragma once
+
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace Watcher
 {
 
-using ByteArray = std::vector<uint8_t>;
+class Stream;
+using StreamSharedPtr = std::shared_ptr<Stream>;
 
-class MultipartBlock
+class Stream
 {
 public:
-	MultipartBlock(const ByteArray& bytes, size_t count);
+    Stream(const std::string& url, uint32_t textureId);
+    virtual ~Stream() {}
+    virtual void Update() = 0;
+    virtual const std::string& GetError() const = 0;
 
-	const std::string& GetType() const;
-	bool IsValid() const;
-	const ByteArray& GetBytes() const;
+    enum class State
+    {
+        Initialising,
+        Streaming,
+        Error,
+        Terminated
+    };
+    State GetState() const;
 
 private:
-	bool GetHeader(const ByteArray& bytes, size_t& offset, std::string& header, std::string& headerValue);
-	std::string GetString(const ByteArray& bytes, size_t offset, size_t count);
-
-	std::string m_ContentType;
-	size_t m_ContentLength;
-	ByteArray m_Bytes;
+    std::string m_Url;
+    uint32_t m_TextureId;
+    State m_State;
 };
+
+inline Stream::Stream(const std::string& url, uint32_t textureId) :
+m_Url(url),
+m_TextureId(textureId),
+m_State(State::Initialising)
+{
+}
+
+inline Stream::State Stream::GetState() const
+{
+    return m_State;
+}
 
 } // namespace Watcher

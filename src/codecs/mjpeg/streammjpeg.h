@@ -18,12 +18,14 @@
 #include <cstddef>
 #include <string>
 
-#include "../watcher/plugin.h"
 #include "network/network.h"
 #include "multipartblock.h"
 
 using CURL = void;
 using ByteArray = std::vector<uint8_t>;
+
+namespace Watcher
+{
 
 class StreamMJPEG 
 {
@@ -85,3 +87,5 @@ private:
 
 	MultipartBlock* m_pMultipartBlock;
 };
+
+} // namespace Watcher

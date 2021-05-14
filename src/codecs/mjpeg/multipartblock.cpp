@@ -14,7 +14,11 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
 #include <SDL.h>
-#include "multipartblock.h"
+
+#include "codecs/mjpeg/multipartblock.h"
+
+namespace Watcher
+{
 
 MultipartBlock::MultipartBlock(const ByteArray& bytes, size_t count) :
 m_ContentLength(0u)
@@ -97,3 +101,5 @@ const ByteArray& MultipartBlock::GetBytes() const
 {
 	return m_Bytes;
 }
+
+} // namespace Watcher

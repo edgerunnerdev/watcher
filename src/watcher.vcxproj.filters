@@ -103,6 +103,9 @@
     <ClCompile Include="imguiext\cubicbezier.cpp">
       <Filter>imguiext</Filter>
     </ClCompile>
+    <ClCompile Include="codecs\codecmanager.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -263,6 +266,15 @@
     </ClInclude>
     <ClInclude Include="imguiext\cubicbezier.h">
       <Filter>imguiext</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\codecmanager.h">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\codec.h">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="codecs\stream.h">
+      <Filter>codecs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

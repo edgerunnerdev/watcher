@@ -13,30 +13,25 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
+#pragma once
+
+#include <memory>
 #include <string>
 #include <vector>
+
+#include "codecs/stream.h"
 
 namespace Watcher
 {
 
-using ByteArray = std::vector<uint8_t>;
-
-class MultipartBlock
+class Codec
 {
 public:
-	MultipartBlock(const ByteArray& bytes, size_t count);
-
-	const std::string& GetType() const;
-	bool IsValid() const;
-	const ByteArray& GetBytes() const;
-
-private:
-	bool GetHeader(const ByteArray& bytes, size_t& offset, std::string& header, std::string& headerValue);
-	std::string GetString(const ByteArray& bytes, size_t offset, size_t count);
-
-	std::string m_ContentType;
-	size_t m_ContentLength;
-	ByteArray m_Bytes;
+    Codec() {}
+    virtual ~Codec() {}
+    virtual bool CanDecode(const std::string& url) const = 0;
+    virtual void StreamStart(const std::string& url, uint32_t textureId) = 0;
+    virtual void StreamEnd(const std::string& url) = 0;
 };
 
 } // namespace Watcher

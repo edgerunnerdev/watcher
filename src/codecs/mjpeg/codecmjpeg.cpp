@@ -26,80 +26,43 @@
 
 #include <stdio.h>
 
-IMPLEMENT_PLUGIN(CodecMJPEG)
-
-CodecMJPEG::CodecMJPEG()
-{
-	
-}
-
-CodecMJPEG::~CodecMJPEG()
+namespace Watcher
 {
 
-}
-
-bool CodecMJPEG::Initialise(PluginMessageCallback pMessageCallback)
+bool CodecMJPEG::CanDecode(const std::string& url) const
 {
-	m_pMessageCallback = pMessageCallback;
-	return true;
+    return url.rfind(".mjpg") != std::string::npos;
 }
 
-// Messages:
-// - stream_request: received when the user opens a camera.
-// - stream_request_accepted: sent if the codec is capable of handling the requested camera.
-// - stream_frame: sent when a frame has been written to the buffer.
-// - stream_stopped: stop streaming the requested camera.
-void CodecMJPEG::OnMessageReceived(const nlohmann::json& message)
+void CodecMJPEG::StreamStart(const std::string& url, uint32_t textureId)
 {
-	std::string messageType = message["type"];
-	if (messageType == "stream_request")
-	{
-		const json& url = message["url"];
-		const json& textureId = message["texture_id"];
-		if (url.is_string() && textureId.is_number_unsigned())
-		{
-			ProcessStreamRequest(url.get<std::string>(), textureId.get<uint32_t>());
-		}
-	}
-	else if (messageType == "stream_stopped")
-	{
-		const std::string& url = message["url"];
-		m_Streams.remove_if([&url](const StreamMJPEGSharedPtr& pStream) { return pStream->GetUrl() == url; });
-	}
-	else if (messageType == "update")
-	{
-		for (StreamMJPEGSharedPtr pStream : m_Streams)
-		{
-			pStream->Update();
-		}
-	}
+    if (!CanDecode(url))
+    {
+        return;
+    }
+
+    std::string streamUrl = url;
+
+    // If a "imagepath=" is present in the URL, the actual stream file is located
+    // somewhere else.
+    size_t imagePathPos = url.find("imagepath=");
+    if (imagePathPos != std::string::npos)
+    {
+        size_t viewPos = url.find("/view/view.shtml");
+        if (viewPos != std::string::npos)
+        {
+            // TODO: use the dynamic imagepath.
+            streamUrl = url.substr(0, viewPos) + "/mjpg/video.mjpg";
+        }
+    }
+
+    StreamMJPEGSharedPtr pStream = std::make_shared<StreamMJPEG>(streamUrl, textureId);
+    m_Streams.push_back(pStream);
 }
 
-void CodecMJPEG::DrawUI(ImGuiContext* pContext)
+void CodecMJPEG::StreamEnd(const std::string& url)
 {
-
+    m_Streams.remove_if([&url](const StreamMJPEGSharedPtr& pStream) { return pStream->GetUrl() == url; });
 }
 
-void CodecMJPEG::ProcessStreamRequest(const std::string& url, uint32_t textureId)
-{
-	if (url.rfind(".mjpg") != std::string::npos)
-	{
-		std::string streamUrl = url;
-
-		// If a "imagepath=" is present in the URL, the actual stream file is located
-		// somewhere else.
-		size_t imagePathPos = url.find("imagepath=");
-		if (imagePathPos != std::string::npos)
-		{
-			size_t viewPos = url.find("/view/view.shtml");
-			if (viewPos != std::string::npos)
-			{
-				// TODO: use the dynamic imagepath.
-				streamUrl = url.substr(0, viewPos) + "/mjpg/video.mjpg";
-			}
-		}
-
-		StreamMJPEGSharedPtr pStream = std::make_shared<StreamMJPEG>(streamUrl, textureId);
-		m_Streams.push_back(pStream);
-	}
-}
+} // namespace Watcher

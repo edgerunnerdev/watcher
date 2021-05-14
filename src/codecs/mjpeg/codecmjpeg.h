@@ -15,30 +15,28 @@
 
 #pragma once
 
-#include <cstddef>
 #include <list>
 #include <memory>
 
-#include "../watcher/plugin.h"
-#include "network/network.h"
+#include "codecs/codec.h"
+
+namespace Watcher
+{
 
 class StreamMJPEG;
 using StreamMJPEGSharedPtr = std::shared_ptr<StreamMJPEG>;
 using StreamMJPEGList = std::list<StreamMJPEGSharedPtr>;
 
-class CodecMJPEG : public Plugin
+class CodecMJPEG : public Codec
 {
-	DECLARE_PLUGIN(CodecMJPEG, 0, 1, 0);
 public:
-	CodecMJPEG();
-	virtual ~CodecMJPEG();
-	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
-	virtual void OnMessageReceived(const nlohmann::json& message) override;
-	virtual void DrawUI(ImGuiContext* pContext) override;
+    CodecMJPEG() {}
+    virtual bool CanDecode(const std::string& url) const override;
+    virtual void StreamStart(const std::string& url, uint32_t textureId) override;
+    virtual void StreamEnd(const std::string& url) override;
 
 private:
-	void ProcessStreamRequest(const std::string& url, uint32_t textureId);
-
-	PluginMessageCallback m_pMessageCallback;
 	StreamMJPEGList m_Streams;
 };
+
+} // namespace Watcher

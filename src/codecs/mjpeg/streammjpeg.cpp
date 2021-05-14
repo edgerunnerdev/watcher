@@ -20,7 +20,10 @@
 #include <SDL_image.h>
 #include <SDL_opengl.h>
 
-#include "streammjpeg.h"
+#include "codecs/mjpeg/streammjpeg.h"
+
+namespace Watcher
+{
 
 static StreamMJPEG::Id s_Id = 0;
 
@@ -287,3 +290,5 @@ StreamMJPEG::Error StreamMJPEG::CopyFrame(const MultipartBlock& block)
 	m_FrameAvailable = false;
 	return Error::NoError;
 }
+
+} // namespace Watcher

@@ -82,14 +82,15 @@
     <ClCompile Include="atlas\tile.cpp" />
     <ClCompile Include="atlas\tilestreamer.cpp" />
     <ClCompile Include="camerarep.cpp" />
+    <ClCompile Include="codecs\codecmanager.cpp" />
     <ClCompile Include="codecs\mjpeg\codecmjpeg.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="codecs\mjpeg\multipartblock.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="codecs\mjpeg\streammjpeg.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="commandbar.cpp" />
     <ClCompile Include="configuration.cpp" />
@@ -151,15 +152,18 @@
     <ClInclude Include="atlas\tilestreamer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camerarep.h" />
+    <ClInclude Include="codecs\codec.h" />
+    <ClInclude Include="codecs\codecmanager.h" />
     <ClInclude Include="codecs\mjpeg\codecmjpeg.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="codecs\mjpeg\multipartblock.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="codecs\mjpeg\streammjpeg.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="codecs\stream.h" />
     <ClInclude Include="commandbar.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
