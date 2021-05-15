@@ -17,6 +17,7 @@
 
 #include <SDL_opengl.h>
 
+#include "codecs/stream.h"
 #include "camera.h"
 
 namespace Watcher
@@ -31,6 +32,7 @@ public:
 	bool IsOpen() const;
 	void Close();
 
+    void Update();
 	void Render();
 
 	GLuint GetTexture() const;
@@ -45,6 +47,7 @@ private:
 	float m_WindowWidth;
 	float m_WindowHeight;
 	bool m_Open;
+    StreamSharedPtr m_pStream;
 };
 
 } // namespace Watcher

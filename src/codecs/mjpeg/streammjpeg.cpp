@@ -205,9 +205,12 @@ void StreamMJPEG::ProcessMultipartContent(StreamMJPEG* pStream)
 
 		boundaryIdx = boundaryIdx + pStream->m_MultipartBoundary.size();
 		size_t bytesToCopy = pStream->m_ResponseBuffer.size() - boundaryIdx;
-		memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
-		pStream->m_ResponseBuffer.resize(bytesToCopy);
-		pStream->m_FrameAvailable = true;
+        if (bytesToCopy > 0)
+        {
+            memmove(&pStream->m_ResponseBuffer[0], &pStream->m_ResponseBuffer[boundaryIdx], bytesToCopy * sizeof(uint8_t));
+            pStream->m_ResponseBuffer.resize(bytesToCopy);
+            pStream->m_FrameAvailable = true;
+        }
 	}
 }
 
@@ -259,7 +262,7 @@ StreamMJPEG::Error StreamMJPEG::CopyFrame(const MultipartBlock& block)
 		}
 		else
 		{
-			glBindTexture(GL_TEXTURE_2D, m_TextureId);
+			glBindTexture(GL_TEXTURE_2D, GetTextureId());
 
 			int bpp = pSurface->format->BytesPerPixel;
 			if (bpp == 3 || bpp == 4)

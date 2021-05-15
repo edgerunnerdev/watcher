@@ -165,6 +165,11 @@ void WatcherRep::Update()
 {
 	static const float sBaseCellSize = 128.0f;
 	m_CellSize = sBaseCellSize;
+
+    for (auto& cameraDisplay : m_CameraReps)
+    {
+        cameraDisplay.Update();
+    }
 }
 
 const ImColor& WatcherRep::GetPinColor(Camera::State state) const

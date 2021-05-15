@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
+#include "codecs/mjpeg/codecmjpeg.h"
 #include "codecs/codecmanager.h"
 
 namespace Watcher
@@ -20,7 +21,7 @@ namespace Watcher
 
 CodecManager::CodecManager()
 {
-
+    m_Codecs.push_back(std::move(std::make_unique<CodecMJPEG>()));
 }
 
 StreamSharedPtr CodecManager::CreateStream(const std::string& url, uint32_t textureId)

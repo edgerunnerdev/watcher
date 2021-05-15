@@ -22,6 +22,7 @@
 
 #include <SDL.h>
 
+#include "codecs/codecmanager.h"
 #include "ext/json.h"
 #include "imgui/imgui.h"
 #include "tasks/task.h"
@@ -54,7 +55,8 @@ m_pDatabase(nullptr)
 	TextureLoader::Initialise();
 
 	m_pConfiguration = std::make_unique<Configuration>();
-	m_pRep = std::make_unique< WatcherRep >(pWindow);
+	m_pRep = std::make_unique<WatcherRep>(pWindow);
+    m_pCodecManager = std::make_unique<CodecManager>();
 
 	InitialiseDatabase();
 

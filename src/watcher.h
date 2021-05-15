@@ -37,10 +37,12 @@ struct SDL_Window;
 namespace Watcher
 {
 
+class CodecManager;
 class Configuration;
 class Task;
 class WatcherRep;
 
+using CodecManagerUniquePtr = std::unique_ptr<CodecManager>;
 using WatcherRepUniquePtr = std::unique_ptr<WatcherRep>;
 using GeolocationDataMap = std::unordered_map<std::string, GeolocationDataSharedPtr>;
 using ConfigurationUniquePtr = std::unique_ptr<Configuration>;
@@ -63,6 +65,7 @@ public:
 	void OnMessageReceived(const json& message);
 
 	CameraVector GetCameras() const;
+    CodecManager* GetCodecManager() const;
 
 private:
 	static void GeolocationRequestCallback(const QueryResult& result, void* pData);
@@ -92,6 +95,7 @@ private:
 	WatcherRepUniquePtr m_pRep;
 	ConfigurationUniquePtr m_pConfiguration;
     TaskVector m_Tasks;
+    CodecManagerUniquePtr m_pCodecManager;
 };
 
 extern Watcher* g_pWatcher;
@@ -125,6 +129,11 @@ inline CameraVector Watcher::GetCameras() const
 {
 	std::scoped_lock lock(m_CamerasMutex);
 	return m_Cameras;
+}
+
+inline CodecManager* Watcher::GetCodecManager() const
+{
+    return m_pCodecManager.get();
 }
 
 } // namespace Watcher

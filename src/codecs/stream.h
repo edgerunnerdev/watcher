@@ -42,6 +42,10 @@ public:
     };
     State GetState() const;
 
+protected:
+    const std::string& GetUrl() const;
+    uint32_t GetTextureId() const;
+
 private:
     std::string m_Url;
     uint32_t m_TextureId;
@@ -58,6 +62,16 @@ m_State(State::Initialising)
 inline Stream::State Stream::GetState() const
 {
     return m_State;
+}
+
+inline const std::string& Stream::GetUrl() const
+{
+    return m_Url;
+}
+
+inline uint32_t Stream::GetTextureId() const
+{
+    return m_TextureId;
 }
 
 } // namespace Watcher

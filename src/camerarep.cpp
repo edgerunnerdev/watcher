@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "codecs/codecmanager.h"
 #include "imgui/imgui.h"
 #include "camerarep.h"
 #include "watcher.h"
@@ -31,6 +32,9 @@ CameraRep::CameraRep(CameraWeakPtr cameraWeakPtr)
 	m_TextureHeight = 0;
 	glGenTextures(1, &m_Texture);
 	m_Open = true;
+
+    CameraSharedPtr pCamera = cameraWeakPtr.lock();
+    m_pStream = g_pWatcher->GetCodecManager()->CreateStream(pCamera->GetURL(), m_Texture);
 }
 
 CameraWeakPtr CameraRep::GetCameraWeakPtr() const
@@ -47,17 +51,6 @@ void CameraRep::Close()
 {
 	m_Open = false;
 	glDeleteTextures(1, &m_Texture);
-
-	CameraSharedPtr pCamera = m_CameraWeakPtr.lock();
-	if (pCamera)
-	{
-		json message =
-		{
-			{ "type", "stream_stopped" },
-			{ "url", pCamera->GetURL() }
-		};
-		g_pWatcher->OnMessageReceived(message);
-	}
 }
 
 GLuint CameraRep::GetTexture() const
@@ -72,6 +65,14 @@ void CameraRep::ConstrainedRatio(ImGuiSizeCallbackData* pData)
 	pData->DesiredSize.y = pData->DesiredSize.x * ratio;
 	pCameraRep->m_WindowWidth = pData->DesiredSize.x;
 	pCameraRep->m_WindowHeight = pData->DesiredSize.y;
+}
+
+void CameraRep::Update()
+{
+    if (m_pStream != nullptr)
+    {
+        m_pStream->Update();
+    }
 }
 
 void CameraRep::Render()

@@ -26,7 +26,6 @@ namespace Watcher
 {
 
 class CodecManager;
-using CodecManagerUniquePtr = std::unique_ptr<CodecManager>;
 
 class CodecManager
 {
