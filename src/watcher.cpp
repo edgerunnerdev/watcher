@@ -72,29 +72,13 @@ Watcher::~Watcher()
 	m_Active = false;
 }
 
-// Initialises our database. If the database file didn't exist previously, we make a copy
-// of the stub.db file, which contains the basic database structure.
-// This approach is easier to edit than creating the database programatically.
 void Watcher::InitialiseDatabase()
 {
-	const std::string databaseFilename("watcher.db");
-	std::ifstream databaseFile(databaseFilename);
-	if (databaseFile.good())
-	{
-		databaseFile.close();
-	}
-	else
-	{
-		std::ifstream source("stub.db", std::ios::binary);
-		if (source.good() == false)
-		{
-			Log::Error("Couldn't find stub.db file.");
-			return;
-		}
-		std::ofstream destination(databaseFilename, std::ios::binary);
-		destination << source.rdbuf();
-	}
-	m_pDatabase = std::make_unique<Database>(databaseFilename);
+    DatabaseUniquePtr pDatabase = std::make_unique<Database>();
+    if (pDatabase->Initialise("watcher.db"))
+    {
+        m_pDatabase = std::move(pDatabase);
+    }
 }
 
 void Watcher::GeolocationRequestCallback(const QueryResult& result, void* pData)
@@ -107,7 +91,7 @@ void Watcher::InitialiseGeolocation()
 	PreparedStatement statement(m_pDatabase.get(), "SELECT * FROM Geolocation", &Watcher::LoadGeolocationDataCallback);
 	m_pDatabase->Execute(statement);
 
-	PreparedStatement query(m_pDatabase.get(), "SELECT IP FROM Cameras WHERE Geolocated=0", &Watcher::GeolocationRequestCallback);
+	PreparedStatement query(m_pDatabase.get(), "SELECT IP FROM Cameras WHERE GeolocationId IS NULL", &Watcher::GeolocationRequestCallback);
 	m_pDatabase->Execute(query);
 }
 

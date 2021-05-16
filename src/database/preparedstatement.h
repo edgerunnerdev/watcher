@@ -32,7 +32,7 @@ class PreparedStatement
 {
 public:
 	PreparedStatement( Database* pDatabase, const std::string& query, QueryResultCallback pCallback = nullptr, void* pCallbackData = nullptr ); 
-	void Execute();
+	void ExecuteBlocking();
 	void Bind( unsigned int index, const std::string& text );
 	void Bind( unsigned int index, int value );
 	void Bind( unsigned int index, double value );

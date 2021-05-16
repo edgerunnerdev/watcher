@@ -66,7 +66,7 @@ void PreparedStatement::Bind(unsigned int index, double value)
 	}
 }
 
-void PreparedStatement::Execute()
+void PreparedStatement::ExecuteBlocking()
 {
 	assert(!m_Executed);
 
