@@ -25,7 +25,6 @@
 #include "network/network.h"
 #include "query.h"
 
-using CURL = void;
 using json = nlohmann::json;
 
 namespace Watcher
@@ -60,7 +59,6 @@ private:
 	std::atomic_bool m_QueryThreadActive;
 	std::atomic_bool m_QueryThreadStopFlag;
 	bool m_ShowResultsUI;
-	CURL* m_pCurlHandle;
 	std::string m_CurlData;
 	QueryDatum m_QueryDatum;
 	std::mutex m_QueryDatumMutex;

@@ -70,6 +70,7 @@ m_pDatabase(nullptr)
 
 Watcher::~Watcher()
 {
+	m_Tasks.clear();
 	m_Active = false;
 }
 

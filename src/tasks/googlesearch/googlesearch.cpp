@@ -54,20 +54,16 @@ m_QueryThreadStopFlag(false),
 m_ShowResultsUI(false)
 {
 	Enable();
-	m_pCurlHandle = curl_easy_init();
 	LoadQueries();
 }
 
 GoogleSearch::~GoogleSearch()
 {
 	m_QueryThreadStopFlag = true;
-	if (m_QueryThreadActive && m_QueryThread.joinable())
+	if (m_QueryThread.joinable())
 	{
 		m_QueryThread.join();
 	}
-
-	//curl_easy_cleanup(m_pCurlHandle);
-	int a = 0;
 }
 
 void GoogleSearch::Update(float delta)
@@ -119,6 +115,7 @@ void GoogleSearch::LoadQueries()
 
 void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 {
+	CURL* pCurlHandle = curl_easy_init();
 	pGoogleSearch->SetState(Task::State::Running);
 	for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
 	{
@@ -134,7 +131,6 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 
 			Log::Info("[GoogleSearch] %s", url.str().c_str());
 
-			CURL* pCurlHandle = pGoogleSearch->m_pCurlHandle;
 			char pErrorBuffer[CURL_ERROR_SIZE];
 			curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
 			curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
@@ -196,7 +192,7 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 			pGoogleSearch->m_CurlData.clear();
 
 			// Break for debugging purposes
-			// break;
+			break;
 
 		} while (queryData.state.IsValid() && !queryData.state.IsCompleted() && !pGoogleSearch->m_QueryThreadStopFlag);
 
@@ -212,6 +208,7 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 		}
 	}
 
+	curl_easy_cleanup(pCurlHandle);
 	pGoogleSearch->m_QueryThreadActive = false;
 }
 
