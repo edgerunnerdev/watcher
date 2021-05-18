@@ -20,6 +20,7 @@
 
 #include "atlas/atlas.h"
 #include "commandbar.h"
+#include "icons.h"
 #include "log.h"
 #include "textureloader.h"
 #include "watcherrep.h"
@@ -45,7 +46,7 @@ m_SelectCamera(false)
 
 	SetUserInterfaceStyle();
 
-	m_PinTexture = TextureLoader::LoadTexture("textures/pin.png");
+	Icons::Load();
 
 	m_PinColor[static_cast<size_t>(Camera::State::Unknown)]			= ImColor(123, 123, 123);
 	m_PinColor[static_cast<size_t>(Camera::State::StreamAvailable)] = ImColor(  0, 200, 0);
@@ -212,7 +213,7 @@ void WatcherRep::Render()
 			float locationX, locationY;
 			m_pAtlas->GetScreenCoordinates(pGeolocationData->GetLongitude(), pGeolocationData->GetLatitude(), locationX, locationY);
 			pDrawList->AddImage(
-				reinterpret_cast<ImTextureID>(m_PinTexture),
+				reinterpret_cast<ImTextureID>(Icons::GetIcon(IconId::Pin)),
 				ImVec2(locationX - sPinHalfWidth, locationY - sPinHeight),
 				ImVec2(locationX + sPinHalfWidth, locationY),
 				ImVec2(0, 0),

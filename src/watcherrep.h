@@ -59,7 +59,6 @@ private:
 	SDL_Window* m_pWindow;
 	AtlasUniquePtr m_pAtlas;
 	float m_CellSize;
-	GLuint m_PinTexture;
     CommandBarUniquePtr m_pCommandBar;
 	
 	using CameraRepList = std::list<CameraRep>;

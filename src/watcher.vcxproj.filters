@@ -106,6 +106,7 @@
     <ClCompile Include="codecs\codecmanager.cpp">
       <Filter>codecs</Filter>
     </ClCompile>
+    <ClCompile Include="icons.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -276,6 +277,7 @@
     <ClInclude Include="codecs\stream.h">
       <Filter>codecs</Filter>
     </ClInclude>
+    <ClInclude Include="icons.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

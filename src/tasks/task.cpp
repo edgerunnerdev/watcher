@@ -18,6 +18,7 @@
 #include "imgui/imgui.h"
 #include "imguiext/widgets.h"
 #include "tasks/task.h"
+#include "icons.h"
 #include "watcher.h"
 
 namespace Watcher
@@ -80,8 +81,8 @@ void Task::Render()
     }
 	else if (GetState() == State::Disabled)
 	{
-		SetCursorScreenPos(ImVec2(pos.x + 8, pos.y + 4));
-		Spinner("spinner", 10.0f, 4, IM_COL32(120, 120, 120, 255));
+		SetCursorScreenPos(ImVec2(pos.x + 6, pos.y + 6));
+        Image(reinterpret_cast<ImTextureID>(Icons::GetIcon(IconId::TaskDisabled)), ImVec2(26, 26));
 		SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 4));
 		TextDisabled("%s", m_Name.c_str());
 		SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 20));
@@ -89,10 +90,10 @@ void Task::Render()
 	}
 	else if (GetState() == State::Error)
 	{
-		SetCursorScreenPos(ImVec2(pos.x + 8, pos.y + 4));
-		Spinner("spinner", 10.0f, 4, IM_COL32(120, 120, 120, 255));
+		SetCursorScreenPos(ImVec2(pos.x + 6, pos.y + 6));
+        Image(reinterpret_cast<ImTextureID>(Icons::GetIcon(IconId::TaskError)), ImVec2(26, 26), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1));
 		SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 4));
-		TextDisabled("%s", m_Name.c_str());
+		TextColored(ImVec4(1, 0, 0, 1), "%s", m_Name.c_str());
 		SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 20));
         if (m_Error.empty())
         {
@@ -100,7 +101,7 @@ void Task::Render()
         }
         else
         {
-            TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", m_Error.c_str());
+            TextColored(ImVec4(1, 0, 0, 1), "%s", m_Error.c_str());
         }
 	}
     else
