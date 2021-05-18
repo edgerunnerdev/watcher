@@ -19,6 +19,9 @@
 #include <string>
 #include <vector>
 
+namespace Watcher {
+namespace Tasks {
+
 //////////////////////////////////////////////////////////////////////////
 // Query
 //////////////////////////////////////////////////////////////////////////
@@ -102,3 +105,6 @@ struct QueryData
 };
 
 using QueryDatum = std::vector<QueryData>;
+
+} // namespace Tasks
+} // namespace Watcher

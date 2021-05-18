@@ -44,11 +44,37 @@ public:
 	virtual ~Task();
 	virtual void Update(float delta);
 
+	virtual void Start();
+	virtual void Stop();
+
+	void Enable();
+	void Disable();
 	void Render();
+
+protected:
+	State GetState() const;
+	void SetState(State state);
+	void SetErrorString(const std::string& error);
 
 private:
 	std::string m_Name;
 	State m_State;
+	std::string m_Error;
 };
+
+inline Task::State Task::GetState() const
+{
+	return m_State;
+}
+
+inline void Task::SetState(State state)
+{
+	m_State = state;
+}
+
+inline void Task::SetErrorString(const std::string& error)
+{
+	m_Error = error;
+}
 
 } // namespace Watcher

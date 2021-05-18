@@ -105,11 +105,6 @@ inline bool Watcher::IsSearching() const
     return m_Searching;
 }
 
-inline void Watcher::SetSearching(bool state)
-{
-    m_Searching = state;
-}
-
 inline bool Watcher::IsActive() const
 {
 	return m_Active;

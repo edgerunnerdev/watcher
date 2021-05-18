@@ -17,14 +17,19 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <curl/curl.h>
 #include <imgui/imgui.h>
 
 #include <stdio.h>
 
+#include "log.h"
 
-IMPLEMENT_PLUGIN(GoogleSearch)
+namespace Watcher
+{
+namespace Tasks
+{
 
 // API documentation: https://developers.google.com/custom-search/v1/cse/list
 static const std::string sApiKey("AIzaSyBHnMEOSkTM7Lazvou27FXgJb6M4hjn9uE");
@@ -43,28 +48,31 @@ static size_t WriteMemoryCallback(void* pContents, size_t size, size_t nmemb, vo
 }
 
 GoogleSearch::GoogleSearch():
+Task("Google search"),
 m_QueryThreadActive(false),
 m_QueryThreadStopFlag(false),
 m_ShowResultsUI(false)
 {
+	Enable();
 	m_pCurlHandle = curl_easy_init();
 	LoadQueries();
 }
 
 GoogleSearch::~GoogleSearch()
 {
-	if (m_QueryThread.joinable())
+	m_QueryThreadStopFlag = true;
+	if (m_QueryThreadActive && m_QueryThread.joinable())
 	{
 		m_QueryThread.join();
 	}
 
-	curl_easy_cleanup(m_pCurlHandle);
+	//curl_easy_cleanup(m_pCurlHandle);
+	int a = 0;
 }
 
-bool GoogleSearch::Initialise(PluginMessageCallback pMessageCallback)
+void GoogleSearch::Update(float delta)
 {
-	m_pMessageCallback = pMessageCallback;
-	return true;
+	Task::Update(delta);
 }
 
 void GoogleSearch::LoadQueries()
@@ -74,48 +82,44 @@ void GoogleSearch::LoadQueries()
 	m_QueryDatum.push_back(data);
 }
 
-void GoogleSearch::OnMessageReceived(const nlohmann::json& message)
-{
-
-}
-
-void GoogleSearch::DrawUI(ImGuiContext* pContext)
-{
-	ImGui::SetCurrentContext(pContext);
-
-	if (ImGui::CollapsingHeader("Google search", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		ImGui::Text("Queries loaded: %d", m_QueryDatum.size());
-
-		if (ImGui::Button("View results##GoogleSearch"))
-		{
-			m_ShowResultsUI = !m_ShowResultsUI;
-		}
-
-		if (m_ShowResultsUI)
-		{
-			DrawResultsUI(&m_ShowResultsUI);
-		}
-
-		if (IsRunning() == false)
-		{
-			if (ImGui::Button("Begin queries"))
-			{
-				Start();
-			}
-		}
-		else
-		{
-			if (ImGui::Button("Stop queries"))
-			{
-				Stop();
-			}
-		}
-	}
-}
+//void GoogleSearch::DrawUI(ImGuiContext* pContext)
+//{
+//	ImGui::SetCurrentContext(pContext);
+//
+//	if (ImGui::CollapsingHeader("Google search", ImGuiTreeNodeFlags_DefaultOpen))
+//	{
+//		ImGui::Text("Queries loaded: %d", m_QueryDatum.size());
+//
+//		if (ImGui::Button("View results##GoogleSearch"))
+//		{
+//			m_ShowResultsUI = !m_ShowResultsUI;
+//		}
+//
+//		if (m_ShowResultsUI)
+//		{
+//			DrawResultsUI(&m_ShowResultsUI);
+//		}
+//
+//		if (IsRunning() == false)
+//		{
+//			if (ImGui::Button("Begin queries"))
+//			{
+//				Start();
+//			}
+//		}
+//		else
+//		{
+//			if (ImGui::Button("Stop queries"))
+//			{
+//				Stop();
+//			}
+//		}
+//	}
+//}
 
 void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 {
+	pGoogleSearch->SetState(Task::State::Running);
 	for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
 	{
 		do
@@ -128,6 +132,8 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 				url << "&start=" << queryData.state.GetCurrentStart();
 			}
 
+			Log::Info("[GoogleSearch] %s", url.str().c_str());
+
 			CURL* pCurlHandle = pGoogleSearch->m_pCurlHandle;
 			char pErrorBuffer[CURL_ERROR_SIZE];
 			curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
@@ -139,14 +145,9 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 
 			if (curl_easy_perform(pCurlHandle) != CURLE_OK)
 			{
-				json message =
-				{
-					{ "type", "log" },
-					{ "level", "error" },
-					{ "plugin", "googlesearch" },
-					{ "message", pErrorBuffer }
-				};
-				pGoogleSearch->m_pMessageCallback(message);
+				Log::Error("GoogleSearch error: %s.", pErrorBuffer);
+				pGoogleSearch->SetState(Task::State::Error);
+				pGoogleSearch->SetErrorString(pErrorBuffer);
 			}
 			else
 			{
@@ -154,21 +155,39 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 				std::string filteredCurlData = FilterCurlData(curlData);
 				json data = json::parse(filteredCurlData, nullptr, false);
 
-				int startIndex;
-				if (ExtractStartIndex(data, startIndex))
+				json::iterator errorIt = data.find("error");
+				if (errorIt != data.end())
 				{
-					queryData.state.SetCurrentStart(startIndex);
+					pGoogleSearch->SetState(Task::State::Error);
+					std::string error = (*errorIt)["status"].get<std::string>();
+					if (error == "RESOURCE_EXHAUSTED")
+					{
+						pGoogleSearch->SetErrorString("Quota exceeded");
+					}
+					else
+					{
+						pGoogleSearch->SetErrorString(error);
+					}
 				}
-
-				int totalResults;
-				if (ExtractTotalResults(data, totalResults))
+				else
 				{
-					queryData.state.SetResultCount(totalResults);
-				}
 
-				{
-					std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
-					ExtractResults(data, queryData.results);
+					int startIndex;
+					if (ExtractStartIndex(data, startIndex))
+					{
+						queryData.state.SetCurrentStart(startIndex);
+					}
+
+					int totalResults;
+					if (ExtractTotalResults(data, totalResults))
+					{
+						queryData.state.SetResultCount(totalResults);
+					}
+
+					{
+						std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
+						ExtractResults(data, queryData.results);
+					}
 				}
 			}
 
@@ -176,11 +195,21 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 			// so further requests have a clean slate.
 			pGoogleSearch->m_CurlData.clear();
 
-		} while (queryData.state.IsValid() && !queryData.state.IsCompleted());
+			// Break for debugging purposes
+			// break;
 
-		// This can be called without locking as it only reads the results and this thread
-		// is the only one which would write to them.
-		ProcessResults(pGoogleSearch, queryData);
+		} while (queryData.state.IsValid() && !queryData.state.IsCompleted() && !pGoogleSearch->m_QueryThreadStopFlag);
+
+		if (pGoogleSearch->m_QueryThreadStopFlag)
+		{
+			break;
+		}
+		else
+		{
+			// This can be called without locking as it only reads the results and this thread
+			// is the only one which would write to them.
+			ProcessResults(pGoogleSearch, queryData);
+		}
 	}
 
 	pGoogleSearch->m_QueryThreadActive = false;
@@ -214,14 +243,14 @@ void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryData& 
 		Network::IPAddress address;
 		if (Network::Resolve(host, address) == Network::Result::Success)
 		{
-			json message =
-			{
-				{ "type", "http_server_found" },
-				{ "url", url },
-				{ "ip_address", address.GetHostAsString() },
-				{ "port", port }
-			};
-			pGoogleSearch->m_pMessageCallback(message);
+			//json message =
+			//{
+			//	{ "type", "http_server_found" },
+			//	{ "url", url },
+			//	{ "ip_address", address.GetHostAsString() },
+			//	{ "port", port }
+			//};
+			//pGoogleSearch->m_pMessageCallback(message);
 		}
 	}
 }
@@ -338,8 +367,16 @@ bool GoogleSearch::ExtractResults(const json& data, QueryResults& results)
 
 void GoogleSearch::Start()
 {
+	Task::Start();
+
+	if (GetState() == Task::State::Disabled)
+	{
+		return;
+	}
+
 	if (IsRunning() == false)
 	{
+		SetState(Task::State::Idle);
 		m_QueryThreadActive = true;
 		m_QueryThreadStopFlag = false;
 		m_QueryThread = std::thread(GoogleSearch::ThreadMain, this);
@@ -348,6 +385,8 @@ void GoogleSearch::Start()
 
 void GoogleSearch::Stop()
 {
+	Task::Stop();
+
 	if (IsRunning())
 	{
 		m_QueryThreadStopFlag = true;
@@ -435,3 +474,6 @@ void GoogleSearch::DrawResultsUI(bool* pShow)
 //	}
 //	return false;
 //}
+
+} // namespace Tasks
+} // namespace Watcher

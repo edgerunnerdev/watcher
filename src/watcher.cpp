@@ -25,6 +25,7 @@
 #include "codecs/codecmanager.h"
 #include "ext/json.h"
 #include "imgui/imgui.h"
+#include "tasks/googlesearch/googlesearch.h"
 #include "tasks/task.h"
 #include "configuration.h"
 #include "geolocationdata.h"
@@ -104,7 +105,7 @@ void Watcher::InitialiseCameras()
 void Watcher::InitialiseTasks()
 {
     m_Tasks.emplace_back(std::make_unique<Task>("Geolocation"));
-    m_Tasks.emplace_back(std::make_unique<Task>("Google search"));
+    m_Tasks.emplace_back(std::make_unique<Tasks::GoogleSearch>());
     m_Tasks.emplace_back(std::make_unique<Task>("HTTP camera detector"));
     m_Tasks.emplace_back(std::make_unique<Task>("Port scanner"));
 }
@@ -309,6 +310,23 @@ void Watcher::AddCamera(const json& message)
 
 			CameraSharedPtr camera = std::make_shared<Camera>(title, url, fullAddress);
 			m_Cameras.push_back(camera);
+		}
+	}
+}
+
+void Watcher::SetSearching(bool state)
+{
+	m_Searching = state;
+
+	for (auto& pTask : m_Tasks)
+	{
+		if (m_Searching)
+		{
+			pTask->Start();
+		}
+		else
+		{
+			pTask->Stop();
 		}
 	}
 }

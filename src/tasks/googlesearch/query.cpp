@@ -20,6 +20,9 @@
 
 #include "query.h"
 
+namespace Watcher {
+namespace Tasks {
+
 //////////////////////////////////////////////////////////////////////////
 // Query
 //////////////////////////////////////////////////////////////////////////
@@ -145,3 +148,6 @@ const std::string& QueryResult::GetTitle() const
 {
 	return m_Title;
 }
+
+} // namespace Tasks
+} // namespace Watcher

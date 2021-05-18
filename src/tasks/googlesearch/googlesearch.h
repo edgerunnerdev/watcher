@@ -20,24 +20,29 @@
 #include <thread>
 #include <vector>
 
-#include "../watcher/plugin.h"
+#include "ext/json.h"
+#include "tasks/task.h"
 #include "network/network.h"
 #include "query.h"
 
 using CURL = void;
+using json = nlohmann::json;
 
-class GoogleSearch : public Plugin
+namespace Watcher
 {
-	DECLARE_PLUGIN(GoogleSearch, 0, 1, 0);
+
+namespace Tasks
+{
+
+class GoogleSearch : public Task
+{
 public:
 	GoogleSearch();
-	virtual ~GoogleSearch();
-	virtual bool Initialise(PluginMessageCallback pMessageCallback) override;
-	virtual void OnMessageReceived(const nlohmann::json& message) override;
-	virtual void DrawUI(ImGuiContext* pContext) override;
+	virtual ~GoogleSearch() override;
+    virtual void Update(float delta) override;
 
-	void Start();
-	void Stop();
+	virtual void Start() override;
+	virtual void Stop() override;
 
 private:
 	static void ThreadMain(GoogleSearch* pGoogleSearch);
@@ -51,7 +56,6 @@ private:
 	void LoadQueries();
 	void DrawResultsUI(bool* pShow);
 
-	PluginMessageCallback m_pMessageCallback;
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
 	std::atomic_bool m_QueryThreadStopFlag;
@@ -61,3 +65,6 @@ private:
 	QueryDatum m_QueryDatum;
 	std::mutex m_QueryDatumMutex;
 };
+
+} // namespace Tasks
+} // namespace Watcher
