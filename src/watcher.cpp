@@ -120,9 +120,13 @@ void Watcher::Update()
 {
 	TextureLoader::Update();
 
+	for (auto& pTask : m_Tasks)
+	{
+		pTask->Update(ImGui::GetIO().DeltaTime);
+	}
+
 	m_pRep->Update();
 	m_pRep->Render();
-
 }
 
 void Watcher::OnMessageReceived(const json& message)

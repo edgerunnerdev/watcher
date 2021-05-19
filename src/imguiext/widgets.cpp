@@ -76,7 +76,7 @@ float sawtooth(float t) {
     return ImFmod(((float)T)*t, 1.0f);
 }
 
-bool Spinner(const char* label, float radius, int thickness, const ImU32& color) 
+bool Spinner(float radius, int thickness, const ImU32& color, float* pTimer /* = nullptr */) 
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -84,7 +84,7 @@ bool Spinner(const char* label, float radius, int thickness, const ImU32& color)
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
+    const ImGuiID id = window->GetID("spinner");
 
     ImVec2 pos = window->DC.CursorPos;
     ImVec2 size((radius) * 2, (radius + style.FramePadding.y) * 2);
@@ -101,7 +101,7 @@ bool Spinner(const char* label, float radius, int thickness, const ImU32& color)
     const int num_detents = 5;                       // how many rotations we want before a repeat
     const int skip_detents = 3;                      // how many steps we skip each rotation
     const float period = 5.0f;                       // in seconds
-    const float t = ImFmod(g.Time, period) / period; // map period into [0, 1]
+    const float t = ImFmod((pTimer == nullptr) ? g.Time : *pTimer, period) / period; // map period into [0, 1]
 
     // Tweening functions for each part of the spinner
     auto stroke_head_tween = [num_detents](float t) {

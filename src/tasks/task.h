@@ -60,6 +60,7 @@ private:
 	std::string m_Name;
 	State m_State;
 	std::string m_Error;
+	float m_SpinnerTimer;
 };
 
 inline Task::State Task::GetState() const

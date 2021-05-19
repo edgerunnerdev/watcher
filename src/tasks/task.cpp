@@ -26,7 +26,8 @@ namespace Watcher
 
 Task::Task(const std::string& name) :
 m_Name(name),
-m_State(State::Disabled)
+m_State(State::Disabled),
+m_SpinnerTimer(0.0f)
 {
 
 }
@@ -38,7 +39,14 @@ Task::~Task()
 
 void Task::Update(float delta)
 {
-
+    if (m_State == State::Idle)
+    {
+        m_SpinnerTimer += delta * 0.1f;
+    }
+    else
+    {
+        m_SpinnerTimer += delta;
+    }
 }
 
 void Task::Start()
@@ -73,7 +81,7 @@ void Task::Render()
     if (GetState() == State::Idle)
     {
         SetCursorScreenPos(ImVec2(pos.x + 8, pos.y + 4));
-        Spinner("spinner", 10.0f, 4, IM_COL32(120, 120, 120, 255));
+        Spinner(10.0f, 4, IM_COL32(120, 120, 120, 255), &m_SpinnerTimer);
         SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 4));
         TextDisabled("%s", m_Name.c_str());
         SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 20));
@@ -107,7 +115,7 @@ void Task::Render()
     else
     {
         SetCursorScreenPos(ImVec2(pos.x + 8, pos.y + 4));
-        Spinner("spinner", 10.0f, 4, IM_COL32(0, 255, 255, 255));
+        Spinner(10.0f, 4, IM_COL32(0, 255, 255, 255), &m_SpinnerTimer);
         SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 4));
         Text("%s", m_Name.c_str());
         SetCursorScreenPos(ImVec2(pos.x + 38, pos.y + 20));
