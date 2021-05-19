@@ -31,6 +31,7 @@ namespace Watcher
 CommandBar::CommandBar()
 {
     m_AnimTimer = 0.0f;
+    m_ShowDemoWindow = false;
 }
 
 void CommandBar::Render()
@@ -48,6 +49,10 @@ void CommandBar::Render()
         }
         if (BeginMenu("View"))
         {
+            if (MenuItem("ImGui demo window", nullptr, m_ShowDemoWindow))
+            {
+                m_ShowDemoWindow = !m_ShowDemoWindow;
+            }
             EndMenu();
         }
         if (BeginMenu("Help"))
@@ -56,6 +61,11 @@ void CommandBar::Render()
             EndMenu();
         }
         EndMenuBar();
+    }
+
+    if (m_ShowDemoWindow)
+    {
+        ImGui::ShowDemoWindow(&m_ShowDemoWindow);
     }
 
     RenderSearchWidget();

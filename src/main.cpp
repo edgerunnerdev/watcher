@@ -79,8 +79,6 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
-    bool show_demo_window = true;
-    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 
 	Watcher::Watcher watcher(window, 64);
@@ -105,8 +103,6 @@ int main(int, char**)
 			watcher.ProcessEvent( event );
         }
         ImGui_ImplSdlGL3_NewFrame(window);
-
-        ImGui::ShowDemoWindow(&show_demo_window);
 
 		watcher.Update();
 

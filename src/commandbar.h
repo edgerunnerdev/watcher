@@ -40,6 +40,7 @@ private:
     void RenderSearchButton();
     void RenderTasks();
     float m_AnimTimer;
+    bool m_ShowDemoWindow;
 };
 
 } // namespace Watcher
