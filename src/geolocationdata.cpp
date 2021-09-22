@@ -42,10 +42,10 @@ bool GeolocationData::LoadFromDatabase(const std::string& city, const std::strin
 
 bool GeolocationData::LoadFromJSON(const json& geolocationDataJson)
 {
-	m_City = geolocationDataJson["city"];
-	m_Region = geolocationDataJson["region"];
-	m_Country = geolocationDataJson["country"];
-	m_Organisation = geolocationDataJson["org"];
+	m_City = geolocationDataJson["city"].get<std::string>();
+	m_Region = geolocationDataJson["region"].get<std::string>();
+	m_Country = geolocationDataJson["country"].get<std::string>();
+	m_Organisation = geolocationDataJson["org"].get<std::string>();
 
 	std::string location = geolocationDataJson["loc"];
 	size_t locationSeparator = location.find_first_of(',');
