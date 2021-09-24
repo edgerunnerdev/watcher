@@ -15,6 +15,15 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#include <shlobj.h>
+#undef WIN32_LEAN_AND_MEAN
+#endif
+
 #include <fstream>
 #include <string>
 #include <SDL.h>
@@ -24,9 +33,14 @@
 namespace Watcher
 {
 
-Configuration::Configuration()
+static const std::string sGoogleCSEApiKey("google_cse_api_key");
+static const std::string sGoogleCSEId("google_cse_id");
+
+Configuration::Configuration() :
+m_GoogleCSEApiKey("AIzaSyBHnMEOSkTM7Lazvou27FXgJb6M4hjn9uE"),
+m_GoogleCSEId("016794710981670214596:sgntarey42m")
 {
-	UseDefaults();
+	CreateStorage();
 	Load();
 }
 
@@ -35,15 +49,35 @@ Configuration::~Configuration()
 	Save();
 }
 
+void Configuration::CreateStorage()
+{
+#ifdef _WIN32
+	// Return %USERPROFILE%\Saved Games for Windows Vista or newer
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/bb762188%28v=vs.85%29.aspx
+	PWSTR pKnownFolderPath = nullptr;
+	HRESULT result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &pKnownFolderPath);
+	SDL_assert_release(result == S_OK);
+	std::wstring folder(pKnownFolderPath);
+	CoTaskMemFree(pKnownFolderPath);
+	m_StoragePath = folder;
+	m_StoragePath.append("watcher");
+	std::filesystem::create_directories(m_StoragePath);
+#else
+	struct passwd* pw = getpwuid(getuid());
+	const char* pHomeDir = pw->pw_dir;
+	m_StoragePath = std::filesystem::path(pHomeDir) / ".local" / "share" / "watcher";
+#endif
+}
+
 void Configuration::Save()
 {
 	using json = nlohmann::json;
 	json config;
-	config[ "start_address" ] = m_StartAddress.GetHostAsString();
-	config[ "rate" ] = m_Rate;
-	config[ "ports" ] = m_Ports;
+	config[sGoogleCSEApiKey] = m_GoogleCSEApiKey;
+	config[sGoogleCSEId] = m_GoogleCSEId;
 
-	std::ofstream file( "config.json" );
+	std::filesystem::path filePath = m_StoragePath / "config.json";
+	std::ofstream file( filePath );
 	file << config;
 	file.close();
 }
@@ -58,65 +92,18 @@ void Configuration::Load()
 		file >> config;
 		file.close();
 
-		std::string startAddress = config[ "start_address" ];
-		m_StartAddress = Network::IPAddress( startAddress );
-		m_Rate = config[ "rate" ];
-
-		m_Ports.clear();
-		for ( json::iterator it = config.begin(); it != config.end(); ++it ) 
+		json jGoogleCSEApiKey = config[sGoogleCSEApiKey];
+		if (jGoogleCSEApiKey.is_string())
 		{
-			const std::string& key = it.key();
-			if ( key == "ports" )
-			{
-				if ( it.value().is_array() )
-				{
-					for ( auto& port : it.value() )
-					{
-						SDL_assert( port >= 0 );
-						SDL_assert( port <= 65535 );
-						m_Ports.push_back( static_cast< unsigned short >( port ) );
-					}
-				}
-			}
+			m_GoogleCSEApiKey = jGoogleCSEApiKey.get<std::string>();
+		}
+
+		json jGoogleCSEId = config[sGoogleCSEId];
+		if (jGoogleCSEId.is_string())
+		{
+			m_GoogleCSEId = jGoogleCSEId.get<std::string>();
 		}
 	}
-}
-
-void Configuration::UseDefaults()
-{
-	m_StartAddress = Network::IPAddress( "1.0.0.0" );
-	m_Rate = 100;
-	m_Ports = { 80, 81, 8080 };
-}
-
-Network::IPAddress Configuration::GetWebScannerStartAddress() const
-{
-	return m_StartAddress;
-}
-
-void Configuration::SetWebScannerStartAddress( Network::IPAddress address )
-{
-	m_StartAddress = address;
-}
-
-int Configuration::GetWebScannerRate() const 
-{
-	return m_Rate;
-}
-
-void Configuration::SetWebScannerRate( int value )
-{
-	m_Rate = value;
-}
-
-const Network::PortVector& Configuration::GetWebScannerPorts() const
-{
-	return m_Ports;
-}
-
-void Configuration::SetWebScannerPorts( const Network::PortVector& ports )
-{
-	m_Ports = ports;
 }
 
 } // namespace Watcher

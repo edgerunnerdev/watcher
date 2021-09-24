@@ -24,7 +24,9 @@
 
 #include <stdio.h>
 
+#include "configuration.h"
 #include "log.h"
+#include "watcher.h"
 
 namespace Watcher
 {
@@ -32,8 +34,6 @@ namespace Tasks
 {
 
 // API documentation: https://developers.google.com/custom-search/v1/cse/list
-static const std::string sApiKey("AIzaSyBHnMEOSkTM7Lazvou27FXgJb6M4hjn9uE");
-static const std::string sSearchEngineId("016794710981670214596:sgntarey42m");
 
 // This needs to be a static function as libcurl is a C library and will segfault if passed
 // a local lambda.
@@ -115,6 +115,7 @@ void GoogleSearch::LoadQueries()
 
 void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 {
+	Configuration* pConfiguration = g_pWatcher->GetConfiguration();
 	CURL* pCurlHandle = curl_easy_init();
 	pGoogleSearch->SetState(Task::State::Running);
 	for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
@@ -122,7 +123,7 @@ void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 		do
 		{
 			std::stringstream url;
-			url << "https://www.googleapis.com/customsearch/v1?q=" << queryData.query.GetEncoded() << "&cx=" << sSearchEngineId << "&key=" << sApiKey;
+			url << "https://www.googleapis.com/customsearch/v1?q=" << queryData.query.GetEncoded() << "&cx=" << pConfiguration->GetGoogleCSEId() << "&key=" << pConfiguration->GetGoogleCSEApiKey();
 
 			if (queryData.state.IsValid())
 			{
