@@ -77,7 +77,7 @@ Watcher::~Watcher()
 void Watcher::InitialiseDatabase()
 {
     DatabaseUniquePtr pDatabase = std::make_unique<Database>();
-    if (pDatabase->Initialise("watcher.db"))
+    if (pDatabase->Initialise())
     {
         m_pDatabase = std::move(pDatabase);
     }

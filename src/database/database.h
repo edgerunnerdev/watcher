@@ -18,7 +18,6 @@
 #pragma once
 
 #include <atomic>
-#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -42,14 +41,14 @@ public:
 
     Database();
     ~Database();
-    bool Initialise(const std::filesystem::path filename);
+    bool Initialise();
     void Execute(PreparedStatement statement);
 
 private:
     void CreateTables();
     void CreateCamerasTable();
     void CreateGeolocationTable();
-    void CreateSettingsTable();
+    void CreateGoogleQueriesTable();
 
     static void sThreadMain(Database* pDatabase);
     void ConsumeStatements();

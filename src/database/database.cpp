@@ -16,9 +16,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <chrono>
+#include <filesystem>
 #include "sqlite/sqlite3.h"
+#include "configuration.h"
 #include "database.h"
 #include "log.h"
+#include "watcher.h"
 
 namespace Watcher
 {
@@ -44,8 +47,9 @@ Database::~Database()
     }
 }
 
-bool Database::Initialise(const std::filesystem::path filename)
+bool Database::Initialise()
 {   
+    std::filesystem::path filename = g_pWatcher->GetConfiguration()->GetStoragePath() / "watcher.db";
     const bool createTables = (std::filesystem::exists(filename) == false);
     if (sqlite3_open(filename.string().c_str(), &m_pDatabase) != SQLITE_OK)
     {
@@ -70,7 +74,7 @@ void Database::CreateTables()
 {
     CreateCamerasTable();
     CreateGeolocationTable();
-    CreateSettingsTable();
+    CreateGoogleQueriesTable();
 }
 
 void Database::CreateCamerasTable()
@@ -90,7 +94,6 @@ void Database::CreateCamerasTable()
     );
     PreparedStatement statement(this, query);
     statement.ExecuteBlocking();
-
 }
 
 void Database::CreateGeolocationTable()
@@ -111,25 +114,18 @@ void Database::CreateGeolocationTable()
     statement.ExecuteBlocking();
 }
 
-void Database::CreateSettingsTable()
+void Database::CreateGoogleQueriesTable()
 {
-    {
-        std::string query(
-            "CREATE TABLE 'Settings' ("
-            "'Setting' TEXT NOT NULL UNIQUE, "
-            "'Value' TEXT NOT NULL"
-            "); "
-        );
-
-        PreparedStatement statement(this, query);
-        statement.ExecuteBlocking();
-    }
-
-    {
-        std::string query("INSERT INTO Settings (Setting,Value) VALUES ('Version', '1');");
-        PreparedStatement statement(this, query);
-        statement.ExecuteBlocking();
-    }
+    std::string query(
+        "CREATE TABLE 'GoogleQueries' ("
+            "'Id' INTEGER UNIQUE, "
+            "'Query' TEXT NOT NULL, "
+            "'Date' TEXT, "
+            "PRIMARY KEY('Id' AUTOINCREMENT) "
+        "); "
+    );
+    PreparedStatement statement(this, query);
+    statement.ExecuteBlocking();
 }
 
 void Database::Execute(PreparedStatement statement)
