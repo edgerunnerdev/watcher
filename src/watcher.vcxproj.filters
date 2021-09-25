@@ -107,6 +107,9 @@
       <Filter>codecs</Filter>
     </ClCompile>
     <ClCompile Include="icons.cpp" />
+    <ClCompile Include="database\databasetime.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -278,6 +281,12 @@
       <Filter>codecs</Filter>
     </ClInclude>
     <ClInclude Include="icons.h" />
+    <ClInclude Include="tasks\searchtask.h">
+      <Filter>tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="database\databasetime.h">
+      <Filter>database</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

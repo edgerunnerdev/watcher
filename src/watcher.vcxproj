@@ -96,6 +96,7 @@
     <ClCompile Include="commandbar.cpp" />
     <ClCompile Include="configuration.cpp" />
     <ClCompile Include="database\database.cpp" />
+    <ClCompile Include="database\databasetime.cpp" />
     <ClCompile Include="database\preparedstatement.cpp" />
     <ClCompile Include="database\queryresult.cpp" />
     <ClCompile Include="geolocationdata.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="commandbar.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="database\database.h" />
+    <ClInclude Include="database\databasetime.h" />
     <ClInclude Include="database\preparedstatement.h" />
     <ClInclude Include="database\queryresult.h" />
     <ClInclude Include="geolocationdata.h" />
@@ -219,6 +221,7 @@
     <ClInclude Include="tasks\portscanner\portscanner.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="tasks\searchtask.h" />
     <ClInclude Include="tasks\task.h" />
     <ClInclude Include="textureloader.h" />
     <ClInclude Include="watcher.h" />
