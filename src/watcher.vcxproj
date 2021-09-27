@@ -144,6 +144,7 @@
     <ClCompile Include="tasks\portscanner\portscanner.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="tasks\searchtask.cpp" />
     <ClCompile Include="tasks\task.cpp" />
     <ClCompile Include="textureloader.cpp" />
     <ClCompile Include="watcher.cpp" />

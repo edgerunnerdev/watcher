@@ -110,6 +110,9 @@
     <ClCompile Include="database\databasetime.cpp">
       <Filter>database</Filter>
     </ClCompile>
+    <ClCompile Include="tasks\searchtask.cpp">
+      <Filter>tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
