@@ -19,6 +19,7 @@
 
 #include <SDL_opengl.h>
 
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -33,24 +34,24 @@ class TextureLoader
 public:
 	static void Initialise();
 	static void Update();
-	static GLuint LoadTexture( const std::string& filename );
-	static void UnloadTexture( GLuint texture );
+	static GLuint LoadTexture(const std::filesystem::path& path);
+	static void UnloadTexture(GLuint texture);
 
 private:
 	static void ProcessQueuedLoads();
 	static void ProcessQueuedUnloads();
 
 	static std::thread::id m_MainThreadId;
-	static std::queue< std::string > m_TextureLoadQueue;
+	static std::queue<std::filesystem::path> m_TextureLoadQueue;
 	struct TextureLoadResult
 	{
-		std::string filename;
+		std::filesystem::path path;
 		GLuint texture;
 	};
-	static std::queue< TextureLoadResult > m_TextureLoadResultQueue;
+	static std::queue<TextureLoadResult> m_TextureLoadResultQueue;
 	static std::mutex m_LoadMutex;
 	static std::mutex m_ResultMutex;
-	static std::queue< GLuint > m_TextureUnloadQueue;
+	static std::queue<GLuint> m_TextureUnloadQueue;
 	static std::mutex m_UnloadMutex;
 };
 

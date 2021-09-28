@@ -17,18 +17,20 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+
 #include "log.h"
 #include "textureloader.h"
+#include "utf8.h"
 
 namespace Watcher
 {
 
 std::thread::id TextureLoader::m_MainThreadId;
-std::queue< std::string > TextureLoader::m_TextureLoadQueue;
-std::queue< TextureLoader::TextureLoadResult > TextureLoader::m_TextureLoadResultQueue;
+std::queue<std::filesystem::path> TextureLoader::m_TextureLoadQueue;
+std::queue<TextureLoader::TextureLoadResult> TextureLoader::m_TextureLoadResultQueue;
 std::mutex TextureLoader::m_LoadMutex;
 std::mutex TextureLoader::m_ResultMutex;
-std::queue< GLuint > TextureLoader::m_TextureUnloadQueue;
+std::queue<GLuint> TextureLoader::m_TextureUnloadQueue;
 std::mutex TextureLoader::m_UnloadMutex;
 
 void TextureLoader::Initialise()
@@ -44,16 +46,16 @@ void TextureLoader::Update()
 
 void TextureLoader::ProcessQueuedLoads()
 {
-	std::lock_guard< std::mutex > loadLock( m_LoadMutex );
-	while ( m_TextureLoadQueue.empty() == false )
+	std::lock_guard< std::mutex > loadLock(m_LoadMutex);
+	while (m_TextureLoadQueue.empty() == false)
 	{
-		GLuint texture = LoadTexture( m_TextureLoadQueue.front() );
+		GLuint texture = LoadTexture(m_TextureLoadQueue.front());
 		{
-			std::lock_guard< std::mutex > resultLock( m_ResultMutex );
+			std::lock_guard< std::mutex > resultLock(m_ResultMutex);
 			TextureLoadResult result;
-			result.filename = m_TextureLoadQueue.front();
+			result.path = m_TextureLoadQueue.front();
 			result.texture = texture;
-			m_TextureLoadResultQueue.push( result );
+			m_TextureLoadResultQueue.push(result);
 			m_TextureLoadQueue.pop();
 		}
 	}
@@ -61,28 +63,28 @@ void TextureLoader::ProcessQueuedLoads()
 
 void TextureLoader::ProcessQueuedUnloads()
 {
-	std::lock_guard< std::mutex > unloadLock( m_UnloadMutex );
-	while ( m_TextureUnloadQueue.empty() == false )
+	std::lock_guard<std::mutex> unloadLock(m_UnloadMutex);
+	while (m_TextureUnloadQueue.empty() == false)
 	{
 		GLuint texture = m_TextureUnloadQueue.front();
-		glDeleteTextures( 1, &texture );
+		glDeleteTextures(1, &texture);
 		m_TextureUnloadQueue.pop();
 	}
 }
 
-GLuint TextureLoader::LoadTexture( const std::string& filename )
+GLuint TextureLoader::LoadTexture(const std::filesystem::path& path)
 {
-	if ( std::this_thread::get_id() != m_MainThreadId )
+	if (std::this_thread::get_id() != m_MainThreadId)
 	{
 		{
-			std::lock_guard< std::mutex > lock( m_LoadMutex );
-			m_TextureLoadQueue.push( filename );
+			std::lock_guard< std::mutex > lock(m_LoadMutex);
+			m_TextureLoadQueue.push(path);
 		}
 
-		while ( 1 )
+		while (1)
 		{
-			std::lock_guard< std::mutex > lock( m_ResultMutex );
-			if ( m_TextureLoadResultQueue.empty() == false && m_TextureLoadResultQueue.front().filename == filename )
+			std::lock_guard< std::mutex > lock(m_ResultMutex);
+			if (m_TextureLoadResultQueue.empty() == false && m_TextureLoadResultQueue.front().path == path)
 			{
 				GLuint texture = m_TextureLoadResultQueue.front().texture;
 				m_TextureLoadResultQueue.pop();
@@ -91,18 +93,24 @@ GLuint TextureLoader::LoadTexture( const std::string& filename )
 		}
 	}
 
-	SDL_Surface* pSurface = IMG_Load( filename.c_str() );
-	SDL_assert( pSurface != nullptr );
-	if ( pSurface == nullptr )
+#if _UNICODE
+	// Annoyingly, IMG_Load() doesn't actually support wide strings for loading...
+	SDL_Surface* pSurface = IMG_Load(utf8_encode(path.c_str()).c_str());
+#else
+	SDL_Surface* pSurface = IMG_Load(path.c_str());
+#endif
+
+	SDL_assert(pSurface != nullptr);
+	if (pSurface == nullptr)
 	{
- 		Log::Error( "WatcherRep::LoadTexture error: %s", IMG_GetError() );
+		Log::Error("WatcherRep::LoadTexture error: %s", IMG_GetError());
 		return 0;
 	}
 
 	GLuint tex;
-	glGenTextures( 1, &tex );
+	glGenTextures(1, &tex);
 	GLenum err = glGetError();
-	glBindTexture( GL_TEXTURE_2D, tex );
+	glBindTexture(GL_TEXTURE_2D, tex);
 	int bpp = pSurface->format->BytesPerPixel;
 	if (bpp == 3 || bpp == 4)
 	{
@@ -118,31 +126,31 @@ GLuint TextureLoader::LoadTexture( const std::string& filename )
 			int j = i * 3;
 			GLubyte b = ((GLubyte*)pSurface->pixels)[i];
 			pTexture[j] = b;
-			pTexture[j+1] = b;
-			pTexture[j+2] = b;
+			pTexture[j + 1] = b;
+			pTexture[j + 2] = b;
 		}
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, pSurface->w, pSurface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, pTexture );
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pSurface->w, pSurface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, pTexture);
 		delete[] pTexture;
 	}
 
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	
-	SDL_FreeSurface( pSurface );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	SDL_FreeSurface(pSurface);
 
 	return tex;
 }
 
-void TextureLoader::UnloadTexture( GLuint texture )
+void TextureLoader::UnloadTexture(GLuint texture)
 {
-	std::lock_guard< std::mutex > lock( m_UnloadMutex );
-	if ( std::this_thread::get_id() != m_MainThreadId )
+	std::lock_guard< std::mutex > lock(m_UnloadMutex);
+	if (std::this_thread::get_id() != m_MainThreadId)
 	{
-		m_TextureUnloadQueue.push( texture );
+		m_TextureUnloadQueue.push(texture);
 	}
 	else
 	{
-		glDeleteTextures( 1, &texture );
+		glDeleteTextures(1, &texture);
 	}
 }
 

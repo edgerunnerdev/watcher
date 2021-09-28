@@ -25,8 +25,10 @@
 #include "atlas/atlas.h"
 #include "atlas/tilestreamer.h"
 #include "atlas/tile.h"
+#include "configuration.h"
 #include "textureloader.h"
 #include "log.h"
+#include "watcher.h"
 
 namespace Watcher
 {
@@ -120,14 +122,17 @@ int TileStreamer::TileStreamerThreadMain(TileStreamer* pTS)
 bool TileStreamer::LoadFromFile(Tile& tile)
 {
 	std::stringstream filename;
-	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
-	if (std::filesystem::exists(filename.str()) == false)
+	filename << tile.X() << "_" << tile.Y() << ".png";
+
+	std::filesystem::path path = g_pWatcher->GetConfiguration()->GetStoragePath() / "atlas" / std::to_string(tile.ZoomLevel()) / filename.str();
+
+	if (std::filesystem::exists(path) == false)
 	{
 		return false;
 	}
 	else
 	{
-		GLuint texture = TextureLoader::LoadTexture(filename.str());
+		GLuint texture = TextureLoader::LoadTexture(path);
 		if (texture > 0)
 		{
 			tile.AssignTexture(texture);
@@ -150,26 +155,34 @@ bool TileStreamer::DownloadFromTileServer(Tile& tile)
 	CURL* pCurlHandle;
 	std::stringstream url;
 	url << "http://a.tile.stamen.com/toner/" << tile.ZoomLevel() << "/" << tile.X() << "/" << tile.Y() << ".png";
+
 	std::stringstream filename;
-	filename << "textures/atlas/" << tile.ZoomLevel() << "/" << tile.X() << "_" << tile.Y() << ".png";
+	filename << tile.X() << "_" << tile.Y() << ".png";
+
+	std::filesystem::path path = g_pWatcher->GetConfiguration()->GetStoragePath() / "atlas" / std::to_string(tile.ZoomLevel()) / filename.str();
 	FILE* pTileFile = nullptr;
 
 	pCurlHandle = curl_easy_init();
-	curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
+	curl_easy_setopt(pCurlHandle, CURLOPT_URL, path.c_str());
+
 	curl_easy_setopt(pCurlHandle, CURLOPT_NOPROGRESS, 1L);
-	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback);
+	//curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback);
 
 #ifdef _WIN32
-	fopen_s(&pTileFile, filename.str().c_str(), "wb");
+	_wfopen_s(&pTileFile, path.c_str(), L"wb");
 #else
 	pTileFile = fopen(filename.str().c_str(), "wb");
 #endif
 	bool result = false;
 	if (pTileFile != nullptr)
 	{
-		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, pTileFile);
-		result = (curl_easy_perform(pCurlHandle) == CURLE_OK);
+		//curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, pTileFile);
+		CURLcode code = curl_easy_perform(pCurlHandle);
 		fclose(pTileFile);
+		if (code != CURLE_OK)
+		{
+			std::filesystem::remove(path);
+		}
 	}
 
 	curl_easy_cleanup(pCurlHandle);
@@ -180,9 +193,8 @@ void TileStreamer::CreateDirectories()
 {
 	for (int zoomLevel = 0; zoomLevel < sMaxZoomLevels; ++zoomLevel)
 	{
-		std::stringstream path;
-		path << "textures/atlas/" << zoomLevel;
-		std::filesystem::create_directories(path.str());
+		std::filesystem::path path = g_pWatcher->GetConfiguration()->GetStoragePath() / "atlas" / std::to_string(zoomLevel);
+		std::filesystem::create_directories(path);
 	}
 }
 
