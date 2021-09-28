@@ -238,18 +238,18 @@ void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryData& 
 			host = host.substr(0, portPos);
 		}
 
-		Network::IPAddress address;
-		if (Network::Resolve(host, address) == Network::Result::Success)
-		{
-			//json message =
-			//{
-			//	{ "type", "http_server_found" },
-			//	{ "url", url },
-			//	{ "ip_address", address.GetHostAsString() },
-			//	{ "port", port }
-			//};
-			//pGoogleSearch->m_pMessageCallback(message);
-		}
+		//Network::IPAddress address;
+		//if (Network::Resolve(host, address) == Network::Result::Success)
+		//{
+		//	//json message =
+		//	//{
+		//	//	{ "type", "http_server_found" },
+		//	//	{ "url", url },
+		//	//	{ "ip_address", address.GetHostAsString() },
+		//	//	{ "port", port }
+		//	//};
+		//	//pGoogleSearch->m_pMessageCallback(message);
+		//}
 	}
 }
 

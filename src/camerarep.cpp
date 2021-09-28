@@ -131,7 +131,7 @@ void CameraRep::Render()
 
 		GeolocationData* pGeo = pCamera->GetGeolocationData();
 		ImGui::Text("%s, %s, %s", pGeo->GetCity().c_str(), pGeo->GetRegion().c_str(), pGeo->GetCountry().c_str());
-		ImGui::Text("%s", pGeo->GetIPAddress().GetHostAsString().c_str());
+		ImGui::Text("%s", pGeo->GetIPAddress().ToString().c_str());
 
 		if (m_Open == false)
 		{

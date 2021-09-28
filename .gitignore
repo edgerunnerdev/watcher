@@ -1,16 +1,8 @@
 .vs/
-watcher.vcxproj.user
 imgui.ini
-temp/
-x64/
-bin/plugins/
-bin/textures/atlas/
 bin/config.json
 bin/log.txt
-bin/watcher.db
 bin/watcher.exe
 bin/watcher.ilk
 bin/watcher.pdb
-
-# watcher_shared library is build as part of the compilation process.
-libs/watcher_shared
+build/

@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memory>
-#include "network/network.h"
+#include "ipaddress.h"
 #include "json.h"
 using json = nlohmann::json;
 
@@ -32,12 +32,12 @@ using GeolocationDataSharedPtr = std::shared_ptr<GeolocationData>;
 class GeolocationData
 {
 public:
-	GeolocationData(Network::IPAddress address);
+	GeolocationData(IPAddress address);
 	bool LoadFromDatabase(const std::string& city, const std::string& region, const std::string& country, const std::string& organisation, float x, float y);
 	bool LoadFromJSON(const json& message);
 	void SaveToDatabase(Database* pDatabase);
 
-	const Network::IPAddress& GetIPAddress() const;
+	const IPAddress& GetIPAddress() const;
 	const std::string& GetCity() const;
 	const std::string& GetRegion() const;
 	const std::string& GetCountry() const;
@@ -46,7 +46,7 @@ public:
 	float GetLongitude() const;
 
 private:
-	Network::IPAddress m_Address;
+	IPAddress m_Address;
 	std::string m_City;
 	std::string m_Region;
 	std::string m_Country;
@@ -55,7 +55,7 @@ private:
 	float m_Longitude;
 };
 
-inline const Network::IPAddress& GeolocationData::GetIPAddress() const
+inline const IPAddress& GeolocationData::GetIPAddress() const
 {
 	return m_Address;
 }

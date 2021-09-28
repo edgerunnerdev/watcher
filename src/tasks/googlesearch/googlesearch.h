@@ -22,7 +22,6 @@
 
 #include "ext/json.h"
 #include "tasks/task.h"
-#include "network/network.h"
 #include "query.h"
 
 using json = nlohmann::json;

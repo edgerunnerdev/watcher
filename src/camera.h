@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
-#include <network/network.h>
 #include "geolocationdata.h"
+#include "ipaddress.h"
 
 namespace Watcher
 {
@@ -42,11 +42,11 @@ public:
 		Count
 	};
 
-	Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState = State::Unknown);
+	Camera(const std::string& title, const std::string& url, const IPAddress& address, State cameraState = State::Unknown);
 
 	const std::string& GetTitle() const;
 	const std::string& GetURL() const;
-	const Network::IPAddress& GetAddress() const;
+	const IPAddress& GetAddress() const;
 	GeolocationData* GetGeolocationData() const;
 	void SetGeolocationData(GeolocationDataSharedPtr pGeolocationData);
 	State GetState() const;
@@ -55,12 +55,12 @@ public:
 private:
 	std::string m_Title;
 	std::string m_URL;
-	Network::IPAddress m_Address;
+	IPAddress m_Address;
 	GeolocationDataSharedPtr m_pGeolocationData;
 	State m_State;
 };
 
-inline Camera::Camera(const std::string& title, const std::string& url, const Network::IPAddress& address, State cameraState /* = State::Unknown */)
+inline Camera::Camera(const std::string& title, const std::string& url, const IPAddress& address, State cameraState /* = State::Unknown */)
 {
 	m_Title = title;
 	m_URL = url;
@@ -78,7 +78,7 @@ inline const std::string& Camera::GetURL() const
 	return m_URL;
 }
 
-inline const Network::IPAddress& Camera::GetAddress() const
+inline const IPAddress& Camera::GetAddress() const
 {
 	return m_Address;
 }

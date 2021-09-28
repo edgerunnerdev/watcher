@@ -1,0 +1,5 @@
+set(CURL_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/libs/curl/include" CACHE STRING "CURL - include directory")
+set(CURL_LIBRARY_DIRS "${CMAKE_SOURCE_DIR}/libs/curl/lib/x64" CACHE STRING "CURL - library directory")
+
+include(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(CURL REQUIRED_VARS CURL_INCLUDE_DIRS CURL_LIBRARY_DIRS)

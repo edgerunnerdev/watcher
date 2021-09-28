@@ -22,7 +22,7 @@
 namespace Watcher
 {
 
-GeolocationData::GeolocationData(Network::IPAddress address) :
+GeolocationData::GeolocationData(IPAddress address) :
 	m_Address(address),
 	m_Latitude(0.0f),
 	m_Longitude(0.0f)

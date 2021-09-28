@@ -1,94 +1,8 @@
 set(NAME "watcher")
 project(${NAME})
-
-set(SourceFiles
-	atlas/atlas.cpp
-	atlas/atlas.h
-	atlas/tile.cpp
-	atlas/tile.h
-	atlas/tile_streamer.cpp
-	atlas/tile_streamer.h
-	database/database.cpp
-	database/database.h
-	database/prepared_statement.cpp
-	database/prepared_statement.h
-	database/query_result.cpp
-	database/query_result.h
-	imguiext/widgets.cpp
-	imguiext/widgets.h
-	network/network.cpp
-	network/network.h
-	network/network_linux.cpp
-	network/network_windows.cpp
-	camera.h
-	camerarep.cpp
-	camerarep.h
-	configuration.cpp
-	configuration.h
-	filesystem.cpp
-	filesystem.h
-	geolocationdata.cpp
-	geolocation.h
-	log.cpp
-	log.h
-	main.cpp
-	plugin.h
-	plugin_manager.cpp
-	plugin_manager.h
-	render.h
-	texture_loader.cpp
-	texture_loader.h
-	watcher.cpp
-	watcher.h
-)
-
-source_group("" FILES 
-	camera.h
-	camerarep.cpp
-	camerarep.h
-	configuration.cpp
-	configuration.h
-	filesystem.cpp
-	filesystem.h
-	geolocationdata.cpp
-	geolocation.h
-	log.cpp
-	log.h
-	main.cpp
-	plugin.h
-	plugin_manager.cpp
-	plugin_manager.h
-	render.h
-	texture_loader.cpp
-	texture_loader.h
-	watcher.cpp
-	watcher.h
-)
-
-source_group("atlas" FILES 
-	atlas/atlas.cpp
-	atlas/atlas.h
-	atlas/tile.cpp
-	atlas/tile.h
-	atlas/tile_streamer.cpp
-	atlas/tile_streamer.h
-)
-
-source_group("database" FILES
-	database/database.cpp
-	database/database.h
-	database/prepared_statement.cpp
-	database/prepared_statement.h
-	database/query_result.cpp
-	database/query_result.h
-)
-
-source_group("network" FILES
-	network/network.cpp
-	network/network.h
-	network/network_linux.cpp
-	network/network_windows.cpp
-)
+ 
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS *.cpp *.hpp *.c *.h *.rc)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${SOURCE_FILES})
 
 set(Win32Executable)
 if (WIN32)
@@ -106,16 +20,34 @@ if (WIN32)
 #    )
 endif()
 
-#source_group("" FILES ${Resources})
+find_package(curl REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 
-#add_executable(${NAME} ${Win32Executable} ${SourceFiles} ${Resources})
+include_directories(
+  "."
+  "ext"
+  ${CURL_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIRS}
+  ${SDL2_IMAGE_INCLUDE_DIRS}
+)
 
-add_executable(${NAME} ${Win32Executable} ${SourceFiles})
+link_directories(
+  ${CURL_LIBRARY_DIRS}
+  ${SDL2_LIBRARY_DIRS}
+  ${SDL2_IMAGE_LIBRARY_DIRS}
+)
 
-find_package(imgui REQUIRED)
-target_link_libraries(${NAME} PRIVATE imgui)
+link_libraries(
+  libcurl
+  SDL2main
+  SDL2
+  SDL2_image
+)
 
-set(OUTPUT_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
+add_executable(${NAME} ${Win32Executable} ${SOURCE_FILES} ${RESOURCES})
+
+set(OUTPUT_BIN_DIR ${CMAKE_CURRENT_LIST_DIR}/../bin)
 
 set_target_properties(${NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY                "${OUTPUT_BIN_DIR}"
@@ -129,9 +61,9 @@ set_target_properties(${NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY           ${OUTPUT_BIN_DIR}
 )
 
-add_custom_command(
-    TARGET ${NAME}
-    PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ARGS ${OUTPUT_BIN_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ARGS ${CMAKE_SOURCE_DIR}/Data ${OUTPUT_BIN_DIR}/Data
-)
+if(WIN32)
+    target_compile_definitions(${NAME} PRIVATE UNICODE _UNICODE _HASEXCEPTIONS=0)
+    target_link_libraries(${NAME} PRIVATE Opengl32 glu32 ws2_32)
+else()
+    target_link_libraries(${NAME} PRIVATE GL pthread)
+endif()

@@ -195,7 +195,7 @@ void Watcher::LoadGeolocationDataCallback(const QueryResult& result, void* pData
 		}
 
 		std::scoped_lock lock(g_pWatcher->m_GeolocationDataMutex);
-		Network::IPAddress address(row[0]->GetString());
+		IPAddress address(row[0]->GetString());
 		std::string city = row[1]->GetString();
 		std::string region = row[2]->GetString();
 		std::string country = row[3]->GetString();
@@ -204,7 +204,7 @@ void Watcher::LoadGeolocationDataCallback(const QueryResult& result, void* pData
 		float longitude = static_cast<float>(row[6]->GetDouble());
 		GeolocationDataSharedPtr pGeolocationData = std::make_shared<GeolocationData>(address);
 		pGeolocationData->LoadFromDatabase(city, region, country, organisation, latitude, longitude);
-		g_pWatcher->m_GeolocationData[address.GetHostAsString()] = pGeolocationData; // No need to lock map here as only the main thread is working on it at this point.
+		g_pWatcher->m_GeolocationData[address.ToString()] = pGeolocationData; // No need to lock map here as only the main thread is working on it at this point.
 	}
 }
 
@@ -221,8 +221,8 @@ void Watcher::LoadCamerasCallback(const QueryResult& result, void* pData)
 
 		std::scoped_lock lock(g_pWatcher->m_CamerasMutex, g_pWatcher->m_GeolocationDataMutex);
 		std::string ip(row[1]->GetString());
-		Network::IPAddress address(ip);
-		address.SetPort(row[2]->GetInt());
+		IPAddress address(ip);
+		// address.SetPort(row[2]->GetInt()); // TODO: pass port directly into camera constructor?
 
 		CameraSharedPtr camera = std::make_shared<Camera>(row[3]->GetString(), row[0]->GetString(), address, Camera::State::Unknown);
 		if (g_pWatcher->m_GeolocationData.find(ip) != g_pWatcher->m_GeolocationData.cend())
@@ -239,7 +239,7 @@ void Watcher::LoadCamerasCallback(const QueryResult& result, void* pData)
 void Watcher::AddGeolocationData(const json& message)
 {
 	std::string addressStr = message["address"];
-	const Network::IPAddress address(addressStr);
+	const IPAddress address(addressStr);
 	GeolocationDataSharedPtr pGeolocationData = std::make_shared<GeolocationData>(address);
 	pGeolocationData->LoadFromJSON(message);
 	Log::Info("Added geolocation data for %s: %s, %s", addressStr.c_str(), pGeolocationData->GetCity().c_str(), pGeolocationData->GetCountry().c_str());
@@ -250,7 +250,7 @@ void Watcher::AddGeolocationData(const json& message)
 
 		for (CameraSharedPtr& camera : m_Cameras)
 		{
-			if (camera->GetAddress().GetHost() == pGeolocationData->GetIPAddress().GetHost())
+			if (camera->GetAddress().ToString() == pGeolocationData->GetIPAddress().ToString())
 			{
 				camera->SetGeolocationData(pGeolocationData);
 			}
@@ -310,8 +310,8 @@ void Watcher::AddCamera(const json& message)
 
 		{
 			std::scoped_lock lock(m_CamerasMutex);
-			Network::IPAddress fullAddress(ipAddress);
-			fullAddress.SetPort(port);
+			IPAddress fullAddress(ipAddress);
+			// fullAddress.SetPort(port); // TODO: Set port directly in Camera's constructor?
 
 			CameraSharedPtr camera = std::make_shared<Camera>(title, url, fullAddress);
 			m_Cameras.push_back(camera);

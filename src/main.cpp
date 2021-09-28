@@ -10,7 +10,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <curl/curl.h>
-#include "network/network.h"
 #include "watcher.h"
 
 int main(int, char**)
@@ -32,11 +31,6 @@ int main(int, char**)
 		return 2;
 	}
 
-    Watcher::Network::Result res = Watcher::Network::Initialise();
-    SDL_assert( res == Watcher::Network::Result::Success );
-
-    // Initialise curl, but don't attempt to initialise the Win32 socket libraries
-    // as that would have been done by Network::Initialise().
     curl_global_init( CURL_GLOBAL_SSL );
 
     // Setup window
@@ -119,7 +113,6 @@ int main(int, char**)
     ImGui_ImplSdlGL3_Shutdown();
     ImGui::DestroyContext();
 
-	Watcher::Network::Shutdown();
     curl_global_cleanup();
 
     SDL_GL_DeleteContext(gl_context);

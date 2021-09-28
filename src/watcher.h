@@ -25,7 +25,6 @@
 #include <SDL.h>
 
 #include "database/database.h"
-#include "network/network.h"
 #include "camera.h"
 #include "geolocationdata.h"
 
