@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <vector>
 
 #include "database/databasetime.h"
@@ -34,12 +35,13 @@ namespace Watcher
 class SearchTask : public Task
 {
 public:
-	SearchTask(const std::string& name);
+	SearchTask(const std::string& name, const std::filesystem::path& defaultQueriesFilePath);
 	virtual ~SearchTask() override;
 	virtual void Update(float delta) override;
 
 	virtual void Start() override;
 	virtual void Stop() override;
+	virtual void OnDatabaseCreated(Database* pDatabase) override;
 
 	void AddQuery(const std::string& query);
 	void RemoveQuery(const std::string& query);
@@ -47,13 +49,23 @@ public:
 	virtual void OnQuery(const std::string& query);
 	virtual void OnResult(const std::string& result, const DatabaseTime& time);
 
-private:
+protected:
+	const std::filesystem::path& GetDefaultQueriesFilePath() const;
+
 	struct QueryData
 	{
 		std::string query;
 		DatabaseTime time;
 	};
 	std::vector<QueryData> m_Queries;
+
+private:
+	std::filesystem::path m_DefaultQueriesFilePath;
 };
+
+inline const std::filesystem::path& SearchTask::GetDefaultQueriesFilePath() const
+{
+	return m_DefaultQueriesFilePath;
+}
 
 } // namespace Watcher

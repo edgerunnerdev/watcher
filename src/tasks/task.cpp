@@ -59,6 +59,11 @@ void Task::Stop()
 
 }
 
+void Task::OnDatabaseCreated(Database* pDatabase)
+{
+
+}
+
 void Task::Enable()
 {
     m_State = State::Idle;

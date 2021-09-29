@@ -42,13 +42,14 @@ public:
     Database();
     ~Database();
     bool Initialise();
+    bool IsFreshlyCreated() const;
     void Execute(PreparedStatement statement);
 
 private:
     void CreateTables();
     void CreateCamerasTable();
     void CreateGeolocationTable();
-    void CreateGoogleQueriesTable();
+    void CreateSearchQueriesTable();
 
     static void sThreadMain(Database* pDatabase);
     void ConsumeStatements();
@@ -71,6 +72,8 @@ private:
 
     std::atomic_bool m_RunThread;
     std::thread m_Thread;
+
+    bool m_FreshlyCreated;
 };
 
 } // namespace Watcher

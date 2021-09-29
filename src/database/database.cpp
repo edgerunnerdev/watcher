@@ -28,7 +28,8 @@ namespace Watcher
 
 Database::Database() :
     m_pDatabase(nullptr),
-    m_RunThread(true)
+    m_RunThread(true),
+    m_FreshlyCreated(false)
 {
 
 }
@@ -64,17 +65,23 @@ bool Database::Initialise()
         if (createTables)
         {
             CreateTables();
+            m_FreshlyCreated = true;
         }
 
         return true;
     }
 }
 
+bool Database::IsFreshlyCreated() const
+{
+    return m_FreshlyCreated;
+}
+
 void Database::CreateTables()
 {
     CreateCamerasTable();
     CreateGeolocationTable();
-    CreateGoogleQueriesTable();
+    CreateSearchQueriesTable();
 }
 
 void Database::CreateCamerasTable()
@@ -114,14 +121,13 @@ void Database::CreateGeolocationTable()
     statement.ExecuteBlocking();
 }
 
-void Database::CreateGoogleQueriesTable()
+void Database::CreateSearchQueriesTable()
 {
     std::string query(
-        "CREATE TABLE 'GoogleQueries' ("
-            "'Id' INTEGER UNIQUE, "
+        "CREATE TABLE 'SearchQueries' ("
+            "'Engine' TEXT NOT NULL, "
             "'Query' TEXT NOT NULL, "
-            "'Date' TEXT, "
-            "PRIMARY KEY('Id' AUTOINCREMENT) "
+            "'Date' TEXT"
         "); "
     );
     PreparedStatement statement(this, query);

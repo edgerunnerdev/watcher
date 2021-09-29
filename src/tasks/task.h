@@ -22,6 +22,8 @@
 namespace Watcher
 {
 
+class Database;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Task
 // A background task, performing work over time without requiring interaction
@@ -46,10 +48,13 @@ public:
 
 	virtual void Start();
 	virtual void Stop();
+	virtual void OnDatabaseCreated(Database* pDatabase);
 
 	void Enable();
 	void Disable();
 	void Render();
+
+	const std::string& GetName() const;
 
 protected:
 	State GetState() const;
@@ -62,6 +67,11 @@ private:
 	std::string m_Error;
 	float m_SpinnerTimer;
 };
+
+inline const std::string& Task::GetName() const
+{
+	return m_Name;
+}
 
 inline Task::State Task::GetState() const
 {

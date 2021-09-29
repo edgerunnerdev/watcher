@@ -48,7 +48,7 @@ static size_t WriteMemoryCallback(void* pContents, size_t size, size_t nmemb, vo
 }
 
 GoogleSearch::GoogleSearch():
-Task("Google search"),
+SearchTask("Google search", "queries/googlecse.json"),
 m_QueryThreadActive(false),
 m_QueryThreadStopFlag(false),
 m_ShowResultsUI(false)
@@ -73,9 +73,7 @@ void GoogleSearch::Update(float delta)
 
 void GoogleSearch::LoadQueries()
 {
-	QueryData data;
-	data.query = Query("inurl:/video.mjpg");
-	m_QueryDatum.push_back(data);
+
 }
 
 //void GoogleSearch::DrawUI(ImGuiContext* pContext)
@@ -115,142 +113,142 @@ void GoogleSearch::LoadQueries()
 
 void GoogleSearch::ThreadMain(GoogleSearch* pGoogleSearch)
 {
-	Configuration* pConfiguration = g_pWatcher->GetConfiguration();
-	CURL* pCurlHandle = curl_easy_init();
-	pGoogleSearch->SetState(Task::State::Running);
-	for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
-	{
-		do
-		{
-			std::stringstream url;
-			url << "https://www.googleapis.com/customsearch/v1?q=" << queryData.query.GetEncoded() << "&cx=" << pConfiguration->GetGoogleCSEId() << "&key=" << pConfiguration->GetGoogleCSEApiKey();
+	//Configuration* pConfiguration = g_pWatcher->GetConfiguration();
+	//CURL* pCurlHandle = curl_easy_init();
+	//pGoogleSearch->SetState(Task::State::Running);
+	//for (QueryData& queryData : pGoogleSearch->m_QueryDatum)
+	//{
+	//	do
+	//	{
+	//		std::stringstream url;
+	//		url << "https://www.googleapis.com/customsearch/v1?q=" << queryData.query.GetEncoded() << "&cx=" << pConfiguration->GetGoogleCSEId() << "&key=" << pConfiguration->GetGoogleCSEApiKey();
 
-			if (queryData.state.IsValid())
-			{
-				url << "&start=" << queryData.state.GetCurrentStart();
-			}
+	//		if (queryData.state.IsValid())
+	//		{
+	//			url << "&start=" << queryData.state.GetCurrentStart();
+	//		}
 
-			Log::Info("[GoogleSearch] %s", url.str().c_str());
+	//		Log::Info("[GoogleSearch] %s", url.str().c_str());
 
-			char pErrorBuffer[CURL_ERROR_SIZE];
-			curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
-			curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
-			curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-			curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, &pGoogleSearch->m_CurlData);
-			curl_easy_setopt(pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-			curl_easy_setopt(pCurlHandle, CURLOPT_TIMEOUT, 10L);
+	//		char pErrorBuffer[CURL_ERROR_SIZE];
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, pErrorBuffer);
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, &pGoogleSearch->m_CurlData);
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	//		curl_easy_setopt(pCurlHandle, CURLOPT_TIMEOUT, 10L);
 
-			if (curl_easy_perform(pCurlHandle) != CURLE_OK)
-			{
-				Log::Error("GoogleSearch error: %s.", pErrorBuffer);
-				pGoogleSearch->SetState(Task::State::Error);
-				pGoogleSearch->SetErrorString(pErrorBuffer);
-			}
-			else
-			{
-				std::string curlData = pGoogleSearch->m_CurlData;
-				std::string filteredCurlData = FilterCurlData(curlData);
-				json data = json::parse(filteredCurlData, nullptr, false);
+	//		if (curl_easy_perform(pCurlHandle) != CURLE_OK)
+	//		{
+	//			Log::Error("GoogleSearch error: %s.", pErrorBuffer);
+	//			pGoogleSearch->SetState(Task::State::Error);
+	//			pGoogleSearch->SetErrorString(pErrorBuffer);
+	//		}
+	//		else
+	//		{
+	//			std::string curlData = pGoogleSearch->m_CurlData;
+	//			std::string filteredCurlData = FilterCurlData(curlData);
+	//			json data = json::parse(filteredCurlData, nullptr, false);
 
-				json::iterator errorIt = data.find("error");
-				if (errorIt != data.end())
-				{
-					pGoogleSearch->SetState(Task::State::Error);
-					std::string error = (*errorIt)["status"].get<std::string>();
-					if (error == "RESOURCE_EXHAUSTED")
-					{
-						pGoogleSearch->SetErrorString("Quota exceeded");
-					}
-					else
-					{
-						pGoogleSearch->SetErrorString(error);
-					}
-				}
-				else
-				{
+	//			json::iterator errorIt = data.find("error");
+	//			if (errorIt != data.end())
+	//			{
+	//				pGoogleSearch->SetState(Task::State::Error);
+	//				std::string error = (*errorIt)["status"].get<std::string>();
+	//				if (error == "RESOURCE_EXHAUSTED")
+	//				{
+	//					pGoogleSearch->SetErrorString("Quota exceeded");
+	//				}
+	//				else
+	//				{
+	//					pGoogleSearch->SetErrorString(error);
+	//				}
+	//			}
+	//			else
+	//			{
 
-					int startIndex;
-					if (ExtractStartIndex(data, startIndex))
-					{
-						queryData.state.SetCurrentStart(startIndex);
-					}
+	//				int startIndex;
+	//				if (ExtractStartIndex(data, startIndex))
+	//				{
+	//					queryData.state.SetCurrentStart(startIndex);
+	//				}
 
-					int totalResults;
-					if (ExtractTotalResults(data, totalResults))
-					{
-						queryData.state.SetResultCount(totalResults);
-					}
+	//				int totalResults;
+	//				if (ExtractTotalResults(data, totalResults))
+	//				{
+	//					queryData.state.SetResultCount(totalResults);
+	//				}
 
-					{
-						std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
-						ExtractResults(data, queryData.results);
-					}
-				}
-			}
+	//				{
+	//					std::lock_guard<std::mutex> lock(pGoogleSearch->m_QueryDatumMutex);
+	//					ExtractResults(data, queryData.results);
+	//				}
+	//			}
+	//		}
 
-			// The buffer containing the data from the request needs to be cleared after being used,
-			// so further requests have a clean slate.
-			pGoogleSearch->m_CurlData.clear();
+	//		// The buffer containing the data from the request needs to be cleared after being used,
+	//		// so further requests have a clean slate.
+	//		pGoogleSearch->m_CurlData.clear();
 
-			// Break for debugging purposes
-			break;
+	//		// Break for debugging purposes
+	//		break;
 
-		} while (queryData.state.IsValid() && !queryData.state.IsCompleted() && !pGoogleSearch->m_QueryThreadStopFlag);
+	//	} while (queryData.state.IsValid() && !queryData.state.IsCompleted() && !pGoogleSearch->m_QueryThreadStopFlag);
 
-		if (pGoogleSearch->m_QueryThreadStopFlag)
-		{
-			break;
-		}
-		else
-		{
-			// This can be called without locking as it only reads the results and this thread
-			// is the only one which would write to them.
-			ProcessResults(pGoogleSearch, queryData);
-		}
-	}
+	//	if (pGoogleSearch->m_QueryThreadStopFlag)
+	//	{
+	//		break;
+	//	}
+	//	else
+	//	{
+	//		// This can be called without locking as it only reads the results and this thread
+	//		// is the only one which would write to them.
+	//		ProcessResults(pGoogleSearch, queryData);
+	//	}
+	//}
 
-	curl_easy_cleanup(pCurlHandle);
-	pGoogleSearch->m_QueryThreadActive = false;
+	//curl_easy_cleanup(pCurlHandle);
+	//pGoogleSearch->m_QueryThreadActive = false;
 }
 
 void GoogleSearch::ProcessResults(GoogleSearch* pGoogleSearch, const QueryData& queryData)
 {
-	for (const QueryResult& result : queryData.results)
-	{
-		std::string url = result.GetUrl();
-		std::size_t start = 0;
-		if (url.rfind("https://", 0) == 0)
-		{
-			start = 8;
-		}
-		else if (url.rfind("http://", 0) == 0)
-		{
-			start = 7;
-		}
-		std::size_t slashPos = url.find_first_of('/', start);
-		std::string host = (slashPos == std::string::npos) ? url.substr(start) : url.substr(start, slashPos - start);
+	//for (const QueryResult& result : queryData.results)
+	//{
+	//	std::string url = result.GetUrl();
+	//	std::size_t start = 0;
+	//	if (url.rfind("https://", 0) == 0)
+	//	{
+	//		start = 8;
+	//	}
+	//	else if (url.rfind("http://", 0) == 0)
+	//	{
+	//		start = 7;
+	//	}
+	//	std::size_t slashPos = url.find_first_of('/', start);
+	//	std::string host = (slashPos == std::string::npos) ? url.substr(start) : url.substr(start, slashPos - start);
 
-		int port = 80;
-		int portPos = host.find_first_of(':');
-		if (portPos != std::string::npos)
-		{
-			port = atoi(host.substr(portPos).c_str() + 1);
-			host = host.substr(0, portPos);
-		}
+	//	int port = 80;
+	//	int portPos = host.find_first_of(':');
+	//	if (portPos != std::string::npos)
+	//	{
+	//		port = atoi(host.substr(portPos).c_str() + 1);
+	//		host = host.substr(0, portPos);
+	//	}
 
-		//Network::IPAddress address;
-		//if (Network::Resolve(host, address) == Network::Result::Success)
-		//{
-		//	//json message =
-		//	//{
-		//	//	{ "type", "http_server_found" },
-		//	//	{ "url", url },
-		//	//	{ "ip_address", address.GetHostAsString() },
-		//	//	{ "port", port }
-		//	//};
-		//	//pGoogleSearch->m_pMessageCallback(message);
-		//}
-	}
+	//	//Network::IPAddress address;
+	//	//if (Network::Resolve(host, address) == Network::Result::Success)
+	//	//{
+	//	//	//json message =
+	//	//	//{
+	//	//	//	{ "type", "http_server_found" },
+	//	//	//	{ "url", url },
+	//	//	//	{ "ip_address", address.GetHostAsString() },
+	//	//	//	{ "port", port }
+	//	//	//};
+	//	//	//pGoogleSearch->m_pMessageCallback(message);
+	//	//}
+	//}
 }
 
 bool GoogleSearch::FilterResult(const QueryData& queryData, const QueryResult& result)
@@ -258,14 +256,14 @@ bool GoogleSearch::FilterResult(const QueryData& queryData, const QueryResult& r
 	// If our query makes use of inurl:, make sure our result actually has it in the URL.
 	// This is necessary as Google will return some results which have something similar
 	// in the URL, but are not necessarily exact matches.
-	const std::string& encodedQuery = queryData.query.Get();
-	std::size_t inUrlStart = encodedQuery.rfind("inurl:", 0);
-	if (inUrlStart != std::string::npos)
-	{
-		std::size_t inUrlEnd = encodedQuery.find_first_of(' ', inUrlStart + 6);
-		std::string inUrl = encodedQuery.substr(inUrlStart + 6, inUrlEnd);
-		return result.GetUrl().find(inUrl) != std::string::npos;
-	}
+	//const std::string& encodedQuery = queryData.query.Get();
+	//std::size_t inUrlStart = encodedQuery.rfind("inurl:", 0);
+	//if (inUrlStart != std::string::npos)
+	//{
+	//	std::size_t inUrlEnd = encodedQuery.find_first_of(' ', inUrlStart + 6);
+	//	std::string inUrl = encodedQuery.substr(inUrlStart + 6, inUrlEnd);
+	//	return result.GetUrl().find(inUrl) != std::string::npos;
+	//}
 
 	return true;
 }

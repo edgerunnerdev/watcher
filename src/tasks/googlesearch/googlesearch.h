@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "ext/json.h"
-#include "tasks/task.h"
+#include "tasks/searchtask.h"
 #include "query.h"
 
 using json = nlohmann::json;
@@ -32,7 +32,7 @@ namespace Watcher
 namespace Tasks
 {
 
-class GoogleSearch : public Task
+class GoogleSearch : public SearchTask
 {
 public:
 	GoogleSearch();

@@ -82,6 +82,10 @@ void Watcher::InitialiseDatabase()
     {
         m_pDatabase = std::move(pDatabase);
     }
+	else
+	{
+		Log::Error("Failed to initialise database.");
+	}
 }
 
 void Watcher::GeolocationRequestCallback(const QueryResult& result, void* pData)
@@ -109,7 +113,14 @@ void Watcher::InitialiseTasks()
     m_Tasks.emplace_back(std::make_unique<Task>("Geolocation"));
     m_Tasks.emplace_back(std::make_unique<Tasks::GoogleSearch>());
     m_Tasks.emplace_back(std::make_unique<Task>("HTTP camera detector"));
-    m_Tasks.emplace_back(std::make_unique<Task>("Port scanner"));
+
+	if (m_pDatabase->IsFreshlyCreated())
+	{
+		for (auto&& pTask : m_Tasks)
+		{
+			pTask->OnDatabaseCreated(m_pDatabase.get());
+		}
+	}
 }
 
 void Watcher::ProcessEvent(const SDL_Event& event)
