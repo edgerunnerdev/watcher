@@ -20,7 +20,7 @@ if (WIN32)
 #    )
 endif()
 
-find_package(curl REQUIRED)
+find_package(CURL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 

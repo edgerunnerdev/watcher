@@ -15,8 +15,6 @@
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
 #include <imgui/imgui.h>
 
 #include "tasks/googlesearch/googlesearch.h"

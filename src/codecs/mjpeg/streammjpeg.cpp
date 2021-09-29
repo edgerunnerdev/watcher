@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with watcher. If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
 #include <curl/curl.h>
 #include <SDL.h>
 #include <SDL_image.h>

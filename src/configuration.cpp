@@ -22,6 +22,10 @@
 #include <windows.h>
 #include <shlobj.h>
 #undef WIN32_LEAN_AND_MEAN
+#else
+#include <sys/types.h>
+#include <pwd.h>
+#include <unistd.h>
 #endif
 
 #include <fstream>

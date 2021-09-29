@@ -96,7 +96,11 @@ void Log::Error( const char* format, ... )
     LogInternal( m_VABuffer.data(), LogLevel::Error );
     va_end( args );
 
+#ifdef _WIN32
 	__debugbreak();
+#else
+    asm("int $3");
+#endif
 }
 
 
