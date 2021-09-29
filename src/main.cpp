@@ -25,13 +25,20 @@ int main(int, char**)
 
 	// Setup SDL_image
 	int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
-	if ( IMG_Init( imgFlags ) != imgFlags )
+	if (IMG_Init( imgFlags ) != imgFlags)
 	{
-		SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Error in SDL2_image initialisation", IMG_GetError(), nullptr );
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error in SDL2_image initialisation", IMG_GetError(), nullptr);
 		return 2;
 	}
 
-    curl_global_init( CURL_GLOBAL_SSL );
+    CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+	if (code != CURLE_OK)
+	{
+        std::stringstream error;
+        error << "Error code: " << code;
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error in CURL initialisation", error.str().c_str(), nullptr);
+        return 4;
+	}
 
     // Setup window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);

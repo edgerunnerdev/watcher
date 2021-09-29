@@ -163,10 +163,10 @@ bool TileStreamer::DownloadFromTileServer(Tile& tile)
 	FILE* pTileFile = nullptr;
 
 	pCurlHandle = curl_easy_init();
-	curl_easy_setopt(pCurlHandle, CURLOPT_URL, path.c_str());
-
+	
+	curl_easy_setopt(pCurlHandle, CURLOPT_URL, url.str().c_str());
 	curl_easy_setopt(pCurlHandle, CURLOPT_NOPROGRESS, 1L);
-	//curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback);
+	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, &WriteTileFileCallback);
 
 #ifdef _WIN32
 	_wfopen_s(&pTileFile, path.c_str(), L"wb");
@@ -176,7 +176,7 @@ bool TileStreamer::DownloadFromTileServer(Tile& tile)
 	bool result = false;
 	if (pTileFile != nullptr)
 	{
-		//curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, pTileFile);
+		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, pTileFile);
 		CURLcode code = curl_easy_perform(pCurlHandle);
 		fclose(pTileFile);
 		if (code != CURLE_OK)

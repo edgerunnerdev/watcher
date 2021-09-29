@@ -60,7 +60,6 @@ m_pDatabase(nullptr)
 	m_pRep = std::make_unique<WatcherRep>(pWindow);
     m_pCodecManager = std::make_unique<CodecManager>();
 
-	InitialiseCURL();
 	InitialiseDatabase();
 
 	// All the geolocation data needs to be loaded before the cameras are, as every 
@@ -74,19 +73,6 @@ Watcher::~Watcher()
 {
 	m_Tasks.clear();
 	m_Active = false;
-}
-
-void Watcher::InitialiseCURL()
-{
-	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
-	if (code == CURLE_OK)
-	{
-		Log::Info("CURL initialised.");
-	}
-	else
-	{
-		Log::Error("CURL initialisation error: %d.", code);
-	}
 }
 
 void Watcher::InitialiseDatabase()

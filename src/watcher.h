@@ -71,7 +71,6 @@ private:
 	static void LoadGeolocationDataCallback(const QueryResult& result, void* pData);
 	static void LoadCamerasCallback(const QueryResult& result, void* pData);
 
-	void InitialiseCURL();
 	void InitialiseDatabase();
 	void InitialiseGeolocation();
 	void InitialiseCameras();
