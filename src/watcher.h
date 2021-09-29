@@ -60,11 +60,14 @@ public:
 	bool IsActive() const;
 	Configuration* GetConfiguration() const;
     const TaskVector& GetTasks() const;
+	Task* GetTask(const std::string& name) const;
 
 	void OnMessageReceived(const json& message);
 
 	CameraVector GetCameras() const;
     CodecManager* GetCodecManager() const;
+
+	Database* GetDatabase() const;
 
 private:
 	static void GeolocationRequestCallback(const QueryResult& result, void* pData);
@@ -128,6 +131,11 @@ inline CameraVector Watcher::GetCameras() const
 inline CodecManager* Watcher::GetCodecManager() const
 {
     return m_pCodecManager.get();
+}
+
+inline Database* Watcher::GetDatabase() const
+{
+	return m_pDatabase.get();
 }
 
 } // namespace Watcher

@@ -389,6 +389,27 @@ void GoogleSearch::Stop()
 	}
 }
 
+void GoogleSearch::ShowQueriesUI(bool* pOpen)
+{
+	ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Google search queries", pOpen))
+	{
+		ImGui::Columns(2);
+		ImGui::Text("Query"); ImGui::NextColumn();
+		ImGui::Text("Date"); ImGui::NextColumn();
+
+		for (auto& queryData : m_Queries)
+		{
+			ImGui::Text("%s", queryData.query.c_str()); ImGui::NextColumn();
+			ImGui::Text("%s", queryData.time.GetAsString().c_str()); ImGui::NextColumn();
+		}
+
+		ImGui::Columns(1);
+
+		ImGui::End();
+	}
+}
+
 bool GoogleSearch::IsRunning() const
 {
 	return m_QueryThreadActive;

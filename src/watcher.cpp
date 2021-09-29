@@ -141,6 +141,19 @@ void Watcher::Update()
 	m_pRep->Render();
 }
 
+Task* Watcher::GetTask(const std::string& name) const
+{
+	for (auto&& pTask : m_Tasks)
+	{
+		if (pTask->GetName() == name)
+		{
+			return pTask.get();
+		}
+	}
+
+	return nullptr;
+}
+
 void Watcher::OnMessageReceived(const json& message)
 {
 	const std::string& messageType = message["type"];

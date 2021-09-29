@@ -42,6 +42,8 @@ public:
 	virtual void Start() override;
 	virtual void Stop() override;
 
+	void ShowQueriesUI(bool* pOpen);
+
 private:
 	static void ThreadMain(GoogleSearch* pGoogleSearch);
 	static std::string FilterCurlData(const std::string& data);

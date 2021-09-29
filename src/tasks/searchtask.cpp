@@ -23,6 +23,7 @@
 #include "database/database.h"
 #include "tasks/searchtask.h"
 #include "log.h"
+#include "watcher.h"
 
 namespace Watcher
 {
@@ -82,11 +83,7 @@ void SearchTask::OnDatabaseCreated(Database* pDatabase)
 			{
 				if (entry.is_string())
 				{
-					PreparedStatement statement(pDatabase, "INSERT INTO SearchQueries VALUES(?1, ?2, ?3);");
-					statement.Bind(1, GetName());
-					statement.Bind(2, entry.get<std::string>());
-					statement.Bind(3, "");
-					pDatabase->Execute(statement);
+					AddQuery(entry.get<std::string>());
 				}
 			}
 		}
@@ -95,7 +92,24 @@ void SearchTask::OnDatabaseCreated(Database* pDatabase)
 
 void SearchTask::AddQuery(const std::string& query)
 {
+	for (const auto& queryData : m_Queries)
+	{
+		if (queryData.query == query)
+		{
+			return;
+		}
+	}
 
+	Database* pDatabase = g_pWatcher->GetDatabase();
+	PreparedStatement statement(pDatabase, "INSERT INTO SearchQueries VALUES(?1, ?2, ?3);");
+	statement.Bind(1, GetName());
+	statement.Bind(2, query);
+	statement.Bind(3, "");
+	pDatabase->Execute(statement);
+
+	QueryData queryData;
+	queryData.query = query;
+	m_Queries.push_back(queryData);
 }
 
 void SearchTask::RemoveQuery(const std::string& query)

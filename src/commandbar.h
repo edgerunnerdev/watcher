@@ -41,6 +41,7 @@ private:
     void RenderTasks();
     float m_AnimTimer;
     bool m_ShowDemoWindow;
+    bool m_ShowGoogleQueries;
 };
 
 } // namespace Watcher

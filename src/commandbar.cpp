@@ -19,6 +19,7 @@
 
 #include <imgui/imgui.h>
 
+#include "tasks/googlesearch/googlesearch.h"
 #include "tasks/task.h"
 #include "commandbar.h"
 #include "watcher.h"
@@ -32,6 +33,7 @@ CommandBar::CommandBar()
 {
     m_AnimTimer = 0.0f;
     m_ShowDemoWindow = false;
+    m_ShowGoogleQueries = false;
 }
 
 void CommandBar::Render()
@@ -49,10 +51,18 @@ void CommandBar::Render()
         }
         if (BeginMenu("View"))
         {
+            if (MenuItem("Google queries", nullptr, m_ShowGoogleQueries))
+            {
+                m_ShowGoogleQueries = !m_ShowGoogleQueries;
+            }
+
+            ImGui::Separator();
+
             if (MenuItem("ImGui demo window", nullptr, m_ShowDemoWindow))
             {
                 m_ShowDemoWindow = !m_ShowDemoWindow;
             }
+
             EndMenu();
         }
         if (BeginMenu("Help"))
@@ -66,6 +76,15 @@ void CommandBar::Render()
     if (m_ShowDemoWindow)
     {
         ImGui::ShowDemoWindow(&m_ShowDemoWindow);
+    }
+
+    if (m_ShowGoogleQueries)
+    {
+        Tasks::GoogleSearch* pTask = reinterpret_cast<Tasks::GoogleSearch*>(g_pWatcher->GetTask("Google search"));
+        if (pTask != nullptr)
+        {
+            pTask->ShowQueriesUI(&m_ShowGoogleQueries);
+        }
     }
 
     RenderSearchWidget();
