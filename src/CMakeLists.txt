@@ -39,7 +39,7 @@ link_directories(
 )
 
 link_libraries(
-  libcurl
+  curl
   SDL2main
   SDL2
   SDL2_image
@@ -65,5 +65,5 @@ if(WIN32)
     target_compile_definitions(${NAME} PRIVATE UNICODE _UNICODE _HASEXCEPTIONS=0 CURL_STATICLIB)
     target_link_libraries(${NAME} PRIVATE Opengl32 glu32 ws2_32)
 else()
-    target_link_libraries(${NAME} PRIVATE GL pthread)
+    target_link_libraries(${NAME} PRIVATE GL pthread ${CMAKE_DL_LIBS})
 endif()
