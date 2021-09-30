@@ -290,12 +290,12 @@ void Watcher::AddGeolocationData(const json& message)
 std::string Watcher::GetDate() const
 {
 	time_t rawTime;
-	struct tm* pTimeInfo;
 	static char buffer[128];
 	time(&rawTime);
 
 #ifdef _WIN32
-	if (localtime_s(pTimeInfo, &rawTime) == 0)
+	struct tm timeInfo;
+	if (localtime_s(&timeInfo, &rawTime) == 0)
 	{
 		strftime(buffer, sizeof(buffer), "%F %T.000", &timeInfo);
 		return std::string(buffer);
@@ -305,7 +305,7 @@ std::string Watcher::GetDate() const
 		return std::string();
 	}
 #else
-	pTimeInfo = localtime(&rawTime);
+	struct tm* pTimeInfo = localtime(&rawTime);
 	strftime(buffer, sizeof(buffer), "%F %T.000", pTimeInfo);
 	return std::string(buffer);	
 #endif

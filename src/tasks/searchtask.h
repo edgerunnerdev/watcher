@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "database/databasetime.h"
+#include "database/queryresult.h"
 #include "tasks/task.h"
 
 namespace Watcher
@@ -51,6 +52,10 @@ public:
 
 protected:
 	const std::filesystem::path& GetDefaultQueriesFilePath() const;
+	void AddQueriesFromDatabase();
+	void AddQueryToDatabase(const std::string& query);
+	void AddQueryInternal(const std::string& query);
+	static void DatabaseSelectQueriesCallback(const QueryResult& result, void* pData);
 
 	struct QueryData
 	{
@@ -58,6 +63,7 @@ protected:
 		DatabaseTime time;
 	};
 	std::vector<QueryData> m_Queries;
+	bool m_QueriesAddedFromDatabase;
 
 private:
 	std::filesystem::path m_DefaultQueriesFilePath;

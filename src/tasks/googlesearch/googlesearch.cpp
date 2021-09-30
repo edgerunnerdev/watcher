@@ -68,7 +68,7 @@ GoogleSearch::~GoogleSearch()
 
 void GoogleSearch::Update(float delta)
 {
-	Task::Update(delta);
+	SearchTask::Update(delta);
 }
 
 void GoogleSearch::LoadQueries()
