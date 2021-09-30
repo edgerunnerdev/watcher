@@ -20,7 +20,7 @@
 
 #include "log.h"
 #include "textureloader.h"
-#include "utf8.h"
+#include "encoding.h"
 
 namespace Watcher
 {
@@ -95,7 +95,7 @@ GLuint TextureLoader::LoadTexture(const std::filesystem::path& path)
 
 #if _UNICODE
 	// Annoyingly, IMG_Load() doesn't actually support wide strings for loading...
-	SDL_Surface* pSurface = IMG_Load(utf8_encode(path.c_str()).c_str());
+	SDL_Surface* pSurface = IMG_Load(Encoding::UTF8Encode(path.c_str()).c_str());
 #else
 	SDL_Surface* pSurface = IMG_Load(path.c_str());
 #endif

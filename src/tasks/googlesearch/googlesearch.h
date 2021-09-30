@@ -47,22 +47,23 @@ public:
 private:
 	static void ThreadMain(GoogleSearch* pGoogleSearch);
 	static std::string FilterCurlData(const std::string& data);
+	void ExecuteQuery(const std::string& query);
 	static bool ExtractStartIndex(const json& data, int& result);
 	static bool ExtractTotalResults(const json& data, int& result);
 	static bool ExtractResults(const json& data, QueryResults& results);
 	static void ProcessResults(GoogleSearch* pGoogleSearch, const QueryData& queryData);
 	static bool FilterResult(const QueryData& queryData, const QueryResult& result);
 	bool IsRunning() const;
-	void LoadQueries();
-	void DrawResultsUI(bool* pShow);
+
+	std::vector<SearchTask::QueryData> FindPendingQueries() const;
 
 	std::thread m_QueryThread;
 	std::atomic_bool m_QueryThreadActive;
 	std::atomic_bool m_QueryThreadStopFlag;
 	bool m_ShowResultsUI;
 	std::string m_CurlData;
-	QueryDatum m_QueryDatum;
 	std::mutex m_QueryDatumMutex;
+	bool m_IsRunning;
 };
 
 } // namespace Tasks

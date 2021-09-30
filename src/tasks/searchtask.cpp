@@ -141,11 +141,6 @@ void SearchTask::RemoveQuery(const std::string& query)
 	SDL_assert(false); // Not implemented.
 }
 
-void SearchTask::OnQuery(const std::string& query)
-{
-	SDL_assert(false); // Not implemented.
-}
-
 void SearchTask::OnResult(const std::string& result, const DatabaseTime& time)
 {
 	SDL_assert(false); // Not implemented.

@@ -47,7 +47,6 @@ public:
 	void AddQuery(const std::string& query);
 	void RemoveQuery(const std::string& query);
 
-	virtual void OnQuery(const std::string& query);
 	virtual void OnResult(const std::string& result, const DatabaseTime& time);
 
 protected:

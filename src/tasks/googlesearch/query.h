@@ -92,19 +92,5 @@ private:
 
 using QueryResults = std::vector<QueryResult>;
 
-
-//////////////////////////////////////////////////////////////////////////
-// QueryData
-//////////////////////////////////////////////////////////////////////////
-
-struct QueryData
-{
-	Query query;
-	QueryState state;
-	QueryResults results;
-};
-
-using QueryDatum = std::vector<QueryData>;
-
 } // namespace Tasks
 } // namespace Watcher
