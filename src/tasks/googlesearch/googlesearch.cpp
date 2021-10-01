@@ -226,6 +226,7 @@ void GoogleSearch::ExecuteQuery(const std::string& query)
 		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 		curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, &m_CurlData);
 		curl_easy_setopt(pCurlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+		curl_easy_setopt(pCurlHandle, CURLOPT_CAINFO, "cacert.pem");
 		curl_easy_setopt(pCurlHandle, CURLOPT_TIMEOUT, 10L);
 
 		if (curl_easy_perform(pCurlHandle) != CURLE_OK)
