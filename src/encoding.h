@@ -1,5 +1,3 @@
-#ifdef _WIN32
-
 #include <string>
 
 namespace Encoding
@@ -13,6 +11,4 @@ std::wstring UTF8Decode(const std::string& str);
 
 std::string URLEncode(const std::string& str);
 
-}
-
-#endif // namespace Encoding
+} // namespace Encoding
