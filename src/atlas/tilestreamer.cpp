@@ -25,6 +25,7 @@
 #include "atlas/atlas.h"
 #include "atlas/tilestreamer.h"
 #include "atlas/tile.h"
+#include "imgui/imgui.h"
 #include "configuration.h"
 #include "textureloader.h"
 #include "log.h"
@@ -33,11 +34,14 @@
 namespace Watcher
 {
 
+TileStreamer* g_pTileStreamer = nullptr;
+
 TileStreamer::TileStreamer()
 {
 	m_RunThread = true;
 	m_Thread = std::thread(&TileStreamer::TileStreamerThreadMain, this);
 	CreateDirectories();
+	g_pTileStreamer = this;
 }
 
 TileStreamer::~TileStreamer()
@@ -47,35 +51,62 @@ TileStreamer::~TileStreamer()
 		m_RunThread = false;
 		m_Thread.join();
 	}
+	g_pTileStreamer = nullptr;
 }
 
-TileSharedPtr TileStreamer::Get(int x, int y, int zoomLevel)
+TileSharedPtr TileStreamer::Get(int x, int y, int zoomLevel, bool isStatic)
 {
-	auto containsFn = [x, y, zoomLevel](TileSharedPtr pTile) -> bool
+	SDL_assert(x >= 0);
+	SDL_assert(y >= 0);
+	SDL_assert(zoomLevel >= 0);
+
+	auto containsFn = [x, y, zoomLevel](const TileStreamInfo& tileStreamInfo) -> bool
 	{
-		return pTile->X() == x && pTile->Y() == y && pTile->ZoomLevel() == zoomLevel;
+		return tileStreamInfo.pTile->X() == x && tileStreamInfo.pTile->Y() == y && tileStreamInfo.pTile->ZoomLevel() == zoomLevel;
 	};
 
 	std::lock_guard< std::mutex > lock(m_AccessMutex);
 	auto loadedTileIt = std::find_if(m_LoadedTiles.begin(), m_LoadedTiles.end(), containsFn);
 	if (loadedTileIt != m_LoadedTiles.end())
 	{
-		return *loadedTileIt;
+		return loadedTileIt->pTile;
 	}
 
 	auto queuedTileIt = std::find_if(m_Queue.begin(), m_Queue.end(), containsFn);
 	if (queuedTileIt != m_Queue.end())
 	{
-		return *queuedTileIt;
+		return queuedTileIt->pTile;
 	}
-	else if (m_LoadingTile && containsFn(m_LoadingTile))
+	else if (m_LoadingTile.pTile && containsFn(m_LoadingTile))
 	{
-		return m_LoadingTile;
+		return m_LoadingTile.pTile;
 	}
 
-	TileSharedPtr pTile = std::make_shared< Tile >(x, y, zoomLevel);
-	m_Queue.push_back(pTile);
-	return pTile;
+	TileStreamInfo streamInfo;
+	streamInfo.pTile = std::make_shared<Tile>(x, y, zoomLevel);
+	streamInfo.isStatic = isStatic;
+	m_Queue.push_back(streamInfo);
+	return streamInfo.pTile;
+}
+
+void TileStreamer::ShowDebugUI(bool* pOpen)
+{
+	if (g_pTileStreamer == nullptr || pOpen == nullptr)
+	{
+		return;
+	}
+
+	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Atlas tile streamer", pOpen))
+	{
+		// Early out if the window is collapsed, as an optimization.
+		ImGui::End();
+		return;
+	}
+
+	ImGui::Text("Test");
+
+	ImGui::End();
 }
 
 int TileStreamer::TileStreamerThreadMain(TileStreamer* pTS)
@@ -90,9 +121,9 @@ int TileStreamer::TileStreamerThreadMain(TileStreamer* pTS)
 		}
 		pTS->m_AccessMutex.unlock();
 
-		if (pTS->m_LoadingTile)
+		if (pTS->m_LoadingTile.pTile != nullptr)
 		{
-			Tile& tile = *pTS->m_LoadingTile;
+			Tile& tile = *pTS->m_LoadingTile.pTile;
 			if (LoadFromFile(tile) == false)
 			{
 				DownloadFromTileServer(tile);
@@ -107,7 +138,7 @@ int TileStreamer::TileStreamerThreadMain(TileStreamer* pTS)
 			}
 
 			pTS->m_AccessMutex.unlock();
-			pTS->m_LoadingTile = nullptr;
+			pTS->m_LoadingTile.pTile = nullptr;
 		}
 
 		if (pTS->m_Queue.empty())

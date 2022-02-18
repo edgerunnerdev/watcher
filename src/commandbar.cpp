@@ -17,12 +17,11 @@
 
 #include <imgui/imgui.h>
 
+#include "atlas/tilestreamer.h"
 #include "tasks/googlesearch/googlesearch.h"
 #include "tasks/task.h"
 #include "commandbar.h"
 #include "watcher.h"
-
-using namespace ImGui;
 
 namespace Watcher
 {
@@ -30,45 +29,59 @@ namespace Watcher
 CommandBar::CommandBar()
 {
     m_AnimTimer = 0.0f;
+    m_ShowAtlasTileStreamer = false;
     m_ShowDemoWindow = false;
     m_ShowGoogleQueries = false;
 }
 
 void CommandBar::Render()
 {
-	SetNextWindowPos(ImVec2(0, 0));
-	SetNextWindowSize(ImVec2(250, 0));
-	Begin("CommandBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(250, 0));
+	ImGui::Begin("CommandBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
 
-    if (BeginMenuBar())
+    if (ImGui::BeginMenuBar())
     {
-        if (BeginMenu("File"))
+        if (ImGui::BeginMenu("File"))
         {
-            MenuItem("Quit");
-            EndMenu();
+            ImGui::MenuItem("Quit");
+            ImGui::EndMenu();
         }
-        if (BeginMenu("View"))
+        if (ImGui::BeginMenu("View"))
         {
-            if (MenuItem("Google queries", nullptr, m_ShowGoogleQueries))
+            if (ImGui::MenuItem("Google queries", nullptr, m_ShowGoogleQueries))
             {
                 m_ShowGoogleQueries = !m_ShowGoogleQueries;
             }
 
             ImGui::Separator();
 
-            if (MenuItem("ImGui demo window", nullptr, m_ShowDemoWindow))
+            if (ImGui::BeginMenu("Development"))
             {
-                m_ShowDemoWindow = !m_ShowDemoWindow;
+                if (ImGui::MenuItem("Atlas tile streamer", nullptr, m_ShowAtlasTileStreamer))
+                {
+                    m_ShowAtlasTileStreamer = !m_ShowAtlasTileStreamer;
+                }
+                if (ImGui::MenuItem("ImGui demo window", nullptr, m_ShowDemoWindow))
+                {
+                    m_ShowDemoWindow = !m_ShowDemoWindow;
+                }
+                ImGui::EndMenu();
             }
 
-            EndMenu();
+            ImGui::EndMenu();
         }
-        if (BeginMenu("Help"))
+        if (ImGui::BeginMenu("Help"))
         {
-            MenuItem("About");
-            EndMenu();
+            ImGui::MenuItem("About");
+            ImGui::EndMenu();
         }
-        EndMenuBar();
+        ImGui::EndMenuBar();
+    }
+
+    if (m_ShowAtlasTileStreamer)
+    {
+        TileStreamer::ShowDebugUI(&m_ShowAtlasTileStreamer);
     }
 
     if (m_ShowDemoWindow)
@@ -87,28 +100,28 @@ void CommandBar::Render()
 
     RenderSearchWidget();
     RenderTasks();
-    End();
+    ImGui::End();
 }
 
 void CommandBar::RenderSearchWidget()
 {
-    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
-    BeginChild("SearchWidget", ImVec2(0.0f, 30.0f), true);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
+    ImGui::BeginChild("SearchWidget", ImVec2(0.0f, 30.0f), true);
     RenderSearchBackground();
     RenderSearchButton();
-    EndChild();
-    PopStyleVar(2);
+    ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 }
 
 void CommandBar::RenderSearchBackground()
 {
     const bool isSearching = g_pWatcher->IsSearching();
-    ImVec2 p = GetCursorScreenPos();
-    ImDrawList* pDrawList = GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 
-    const float width = GetWindowWidth();
-    const float height = GetWindowHeight();
+    const float width = ImGui::GetWindowWidth();
+    const float height = ImGui::GetWindowHeight();
 
     ImVec2 tl(p);
     ImVec2 br(p.x + width, p.y + height);
@@ -132,7 +145,7 @@ void CommandBar::RenderSearchBackground()
 
     if (g_pWatcher->IsSearching())
     {
-        m_AnimTimer += GetIO().DeltaTime * 5.0f;
+        m_AnimTimer += ImGui::GetIO().DeltaTime * 5.0f;
         if (m_AnimTimer > stripeWidth * 2.0f)
         {
             m_AnimTimer = 0.0f;
@@ -142,27 +155,27 @@ void CommandBar::RenderSearchBackground()
 
 void CommandBar::RenderSearchButton()
 {
-    ImVec2 p = GetCursorScreenPos();
-    ImDrawList* pDrawList = GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 
-    if (InvisibleButton("SearchWidgetButton", GetWindowSize()))
+    if (ImGui::InvisibleButton("SearchWidgetButton", ImGui::GetWindowSize()))
     {
         g_pWatcher->SetSearching(!g_pWatcher->IsSearching());
     }
 
-    const float width = GetWindowWidth();
-    const float height = GetWindowHeight();
+    const float width = ImGui::GetWindowWidth();
+    const float height = ImGui::GetWindowHeight();
     const ImVec2 padding(20, 6);
     const ImVec2 tl(p.x + padding.x, p.y + padding.y);
     const ImVec2 br(p.x + width - padding.x, p.y + height - padding.y);
 
-    ImU32 borderColor = IsItemHovered() ? IM_COL32(200, 200, 200, 255) : IM_COL32(128, 128, 128, 255);
+    ImU32 borderColor = ImGui::IsItemHovered() ? IM_COL32(200, 200, 200, 255) : IM_COL32(128, 128, 128, 255);
     pDrawList->AddRectFilled(tl, br, IM_COL32(20, 20, 20, 200));
     pDrawList->AddRect(tl, br, borderColor);
 
     const std::string& text = g_pWatcher->IsSearching() ? "Searching" : "Begin search";
-    ImVec2 textSize = CalcTextSize(text.c_str());
-    pDrawList->AddText(ImVec2(p.x + (width - textSize.x) / 2.0f, p.y + (height - GetTextLineHeight()) / 2.0f), IM_COL32(255, 255, 255, 255), text.c_str());
+    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+    pDrawList->AddText(ImVec2(p.x + (width - textSize.x) / 2.0f, p.y + (height - ImGui::GetTextLineHeight()) / 2.0f), IM_COL32(255, 255, 255, 255), text.c_str());
 }
 
 void CommandBar::RenderTasks()

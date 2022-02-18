@@ -106,6 +106,10 @@ void Atlas::OnZoomOut()
 
 void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
 {
+	// The minimum zoom level should always be marked as static, so it is never streamed out.
+	// This helps with having a smoother transition when zooming back out.
+	const bool isStatic = ( m_CurrentZoomLevel == m_MinimumZoomLevel );
+
 	const int stride = static_cast< int >( pow( 2, m_CurrentZoomLevel ) );
 	const int minX = std::max( 0, (int)( (float)-m_OffsetX / (float)sTileSize ) );
 	const int maxX = std::min( minX + m_MaxVisibleTilesX, stride );
@@ -115,7 +119,7 @@ void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
 	{
 		for ( int x = minX; x < maxX; ++x )
 		{
-			visibleTiles.push_back( m_pTileStreamer->Get( x, y, m_CurrentZoomLevel ) );
+			visibleTiles.push_back(m_pTileStreamer->Get(x, y, m_CurrentZoomLevel, isStatic));
 		}
 	}
 }
@@ -140,7 +144,7 @@ void Atlas::Render()
 		}
 		else
 		{
-			pDrawList->AddImage( reinterpret_cast< ImTextureID >( pTile->Texture() ), p1, p2 );
+			pDrawList->AddImage(reinterpret_cast<ImTextureID>(uintptr_t(pTile->Texture())), p1, p2);
 		}
 	}
 }

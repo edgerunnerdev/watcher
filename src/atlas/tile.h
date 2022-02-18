@@ -29,7 +29,6 @@ namespace Watcher
 class Tile;
 using TileSharedPtr = std::shared_ptr< Tile >;
 using TileVector = std::vector< TileSharedPtr >;
-using TileDeque = std::deque< TileSharedPtr >;
 
 class Tile
 {

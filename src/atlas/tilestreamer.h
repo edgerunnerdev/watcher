@@ -18,6 +18,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -36,7 +37,11 @@ class TileStreamer
 public:
 	TileStreamer();
 	~TileStreamer();
-	TileSharedPtr Get( int x, int y, int zoomLevel );
+
+	// Gets a tile for a given zoom level. If a tile is "static", it will never be streamed out once loaded.
+	TileSharedPtr Get(int x, int y, int zoomLevel, bool isStatic);
+
+	static void ShowDebugUI(bool* pOpen);
 	
 private:
 	static int TileStreamerThreadMain( TileStreamer* pTileRequester );
@@ -44,10 +49,23 @@ private:
 	static bool DownloadFromTileServer( Tile& tile ); 
 	void CreateDirectories();
 
+	struct TileStreamInfo 
+	{
+		TileStreamInfo() 
+		{
+			pTile = nullptr;
+			isStatic = false;
+		}
+
+		TileSharedPtr pTile;
+		bool isStatic;
+	};
+	using TileStreamInfoDeque = std::deque<TileStreamInfo>;
+
 	std::mutex m_AccessMutex;
-	TileDeque m_Queue;
-	TileDeque m_LoadedTiles;
-	TileSharedPtr m_LoadingTile;
+	TileStreamInfoDeque m_Queue;
+	TileStreamInfoDeque m_LoadedTiles;
+	TileStreamInfo m_LoadingTile;
 	std::thread m_Thread;
 	std::atomic_bool m_RunThread;
 };
