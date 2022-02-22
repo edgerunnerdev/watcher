@@ -157,7 +157,10 @@ void WatcherRep::ProcessEvent(const SDL_Event& event)
 	{
 		if (event.window.event == SDL_WINDOWEVENT_RESIZED || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 		{
-			m_pAtlas->OnWindowSizeChanged(event.window.data1, event.window.data2);
+			if (event.window.windowID == 1)
+			{
+				m_pAtlas->OnWindowSizeChanged(event.window.data1, event.window.data2);
+			}
 		}
 	}
 }
@@ -194,9 +197,9 @@ void WatcherRep::Render()
 	int windowWidth;
 	int windowHeight;
 	SDL_GetWindowSize(m_pWindow, &windowWidth, &windowHeight);
-	ImVec2 windowSize = ImVec2(static_cast<float>(windowWidth + 8), static_cast<float>(windowHeight + 8));
+	ImVec2 windowSize = ImVec2(static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
-	ImGui::SetNextWindowPos(ImVec2(-4, -4));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
 	ImGui::SetNextWindowSize(windowSize);
 	ImGui::Begin("Watcher", nullptr, flags);
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();

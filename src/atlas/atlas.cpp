@@ -131,12 +131,13 @@ void Atlas::Render()
 	CalculateVisibleTiles( visibleTiles );
 
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+	const ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
 	for ( TileSharedPtr pTile : visibleTiles )
 	{
 		const int x = pTile->X();
 		const int y = pTile->Y();
-		ImVec2 p1( static_cast< float >( x * sTileSize + m_OffsetX ), static_cast< float >( y * sTileSize + m_OffsetY ) );
-		ImVec2 p2( static_cast< float >( ( x + 1 ) * sTileSize + m_OffsetX ), static_cast< float >( ( y + 1 ) * sTileSize + m_OffsetY ) );
+		ImVec2 p1( static_cast< float >( x * sTileSize + m_OffsetX + viewportPos.x ), static_cast< float >( y * sTileSize + m_OffsetY + viewportPos.y ) );
+		ImVec2 p2( static_cast< float >( ( x + 1 ) * sTileSize + m_OffsetX + viewportPos.x ), static_cast< float >( ( y + 1 ) * sTileSize + m_OffsetY + viewportPos.y ) );
 
 		if ( pTile->Texture() == 0 )
 		{
@@ -158,8 +159,9 @@ void Atlas::GetScreenCoordinates( float longitude, float latitude, float& x, flo
 	y = ( 1.0f - logf( tanf( latitude * pi / 180.0f ) + 1.0f / cosf( latitude * pi / 180.0f ) ) / pi ) / 2.0f * stride;
 
 	// To screenspace.
-	x = x * sTileSize + m_OffsetX;
-	y = y * sTileSize + m_OffsetY;
+	const ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
+	x = x * sTileSize + m_OffsetX + viewportPos.x;
+	y = y * sTileSize + m_OffsetY + viewportPos.y;
 }
 
 } // namespace Watcher

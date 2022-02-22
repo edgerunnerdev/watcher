@@ -36,7 +36,7 @@ CommandBar::CommandBar()
 
 void CommandBar::Render()
 {
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
 	ImGui::SetNextWindowSize(ImVec2(250, 0));
 	ImGui::Begin("CommandBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
 
