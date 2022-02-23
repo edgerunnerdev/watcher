@@ -104,7 +104,37 @@ void TileStreamer::ShowDebugUI(bool* pOpen)
 		return;
 	}
 
-	ImGui::Text("Test");
+	g_pTileStreamer->m_AccessMutex.lock();
+	ImGui::Text("Tiles loaded: %d", g_pTileStreamer->m_LoadedTiles.size());
+
+	static ImGuiTableFlags flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody;
+	if (ImGui::BeginTable("table", 5, flags))
+	{
+		ImGui::TableSetupColumn("Zoom");
+		ImGui::TableSetupColumn("X");
+		ImGui::TableSetupColumn("Y");
+		ImGui::TableSetupColumn("Type");
+		ImGui::TableSetupColumn("Hidden for");
+
+		ImGui::TableHeadersRow();
+
+		for (const auto& tsi : g_pTileStreamer->m_LoadedTiles)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", tsi.pTile->ZoomLevel());
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", tsi.pTile->X());
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", tsi.pTile->Y());
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", tsi.isStatic ? "Static" : "Dynamic");
+			ImGui::TableNextColumn();
+			ImGui::Text("-");
+		}
+		ImGui::EndTable();
+	}
+	g_pTileStreamer->m_AccessMutex.unlock();
 
 	ImGui::End();
 }
