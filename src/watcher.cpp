@@ -132,12 +132,14 @@ void Watcher::Update()
 {
 	TextureLoader::Update();
 
+	const float delta = ImGui::GetIO().DeltaTime;
+
 	for (auto& pTask : m_Tasks)
 	{
-		pTask->Update(ImGui::GetIO().DeltaTime);
+		pTask->Update(delta);
 	}
 
-	m_pRep->Update();
+	m_pRep->Update(delta);
 	m_pRep->Render();
 }
 

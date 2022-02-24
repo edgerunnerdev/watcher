@@ -124,6 +124,11 @@ void Atlas::CalculateVisibleTiles( TileVector& visibleTiles )
 	}
 }
 
+void Atlas::Update(float delta)
+{
+	m_pTileStreamer->Update(delta);
+}
+
 void Atlas::Render()
 {
 	TileVector visibleTiles;

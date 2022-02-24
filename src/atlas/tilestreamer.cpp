@@ -69,6 +69,7 @@ TileSharedPtr TileStreamer::Get(int x, int y, int zoomLevel, bool isStatic)
 	auto loadedTileIt = std::find_if(m_LoadedTiles.begin(), m_LoadedTiles.end(), containsFn);
 	if (loadedTileIt != m_LoadedTiles.end())
 	{
+		loadedTileIt->accessTimer = 0.0f;
 		return loadedTileIt->pTile;
 	}
 
@@ -87,6 +88,30 @@ TileSharedPtr TileStreamer::Get(int x, int y, int zoomLevel, bool isStatic)
 	streamInfo.isStatic = isStatic;
 	m_Queue.push_back(streamInfo);
 	return streamInfo.pTile;
+}
+
+void TileStreamer::Update(float delta)
+{
+	std::lock_guard<std::mutex> lock(m_AccessMutex);
+	TileStreamInfoList::iterator it = m_LoadedTiles.begin();
+	while (it != m_LoadedTiles.end())
+	{
+		auto& rsi = *it;
+
+		if (rsi.isStatic == false)
+		{
+			rsi.accessTimer += delta;
+		}
+
+		if (rsi.accessTimer > 30.0f)
+		{
+			it = m_LoadedTiles.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
 }
 
 void TileStreamer::ShowDebugUI(bool* pOpen)
@@ -130,7 +155,15 @@ void TileStreamer::ShowDebugUI(bool* pOpen)
 			ImGui::TableNextColumn();
 			ImGui::Text("%s", tsi.isStatic ? "Static" : "Dynamic");
 			ImGui::TableNextColumn();
-			ImGui::Text("-");
+
+			if (tsi.isStatic)
+			{
+				ImGui::Text("-");
+			}
+			else
+			{
+				ImGui::Text("%.2f", tsi.accessTimer);
+			}
 		}
 		ImGui::EndTable();
 	}
@@ -162,11 +195,6 @@ int TileStreamer::TileStreamerThreadMain(TileStreamer* pTS)
 
 			pTS->m_AccessMutex.lock();
 			pTS->m_LoadedTiles.push_front(pTS->m_LoadingTile);
-			if (pTS->m_LoadedTiles.size() > 64)
-			{
-				pTS->m_LoadedTiles.pop_back();
-			}
-
 			pTS->m_AccessMutex.unlock();
 			pTS->m_LoadingTile.pTile = nullptr;
 		}

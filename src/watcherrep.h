@@ -44,7 +44,7 @@ public:
 	~WatcherRep();
 
 	void ProcessEvent(const SDL_Event& event);
-	void Update();
+	void Update(float delta);
 	void Render();
 
 private:

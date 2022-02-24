@@ -42,6 +42,7 @@ public:
 	Atlas( int windowWidth, int windowHeight );
 	~Atlas();
 
+	void Update(float delta);
 	void Render();
 	void GetScreenCoordinates( float longitude, float latitude, float& x, float& y ) const;
 

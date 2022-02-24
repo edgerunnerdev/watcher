@@ -165,10 +165,12 @@ void WatcherRep::ProcessEvent(const SDL_Event& event)
 	}
 }
 
-void WatcherRep::Update()
+void WatcherRep::Update(float delta)
 {
 	static const float sBaseCellSize = 128.0f;
 	m_CellSize = sBaseCellSize;
+
+	m_pAtlas->Update(delta);
 
     for (auto& cameraDisplay : m_CameraReps)
     {
